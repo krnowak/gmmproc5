@@ -1,0 +1,2 @@
+gmmproc5 is a rewrite of perl/m4 tool called gmmproc in C++. the effect of
+rewrite tries to be maintainable and extensible.

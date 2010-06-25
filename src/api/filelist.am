@@ -1,0 +1,13 @@
+libapi_cc = \
+	src/api/enum.cc \
+	src/api/function.cc \
+	src/api/id.cc \
+	src/api/namespace.cc \
+	src/api/object.cc \
+	src/api/param.cc \
+	src/api/property.cc \
+	src/api/signal.cc
+
+libapi_h = $(libapi_cc:.cc=.h)
+
+libapi_src = $(libapi_cc) $(libapi_h)

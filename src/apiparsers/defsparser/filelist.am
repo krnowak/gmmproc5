@@ -1,0 +1,5 @@
+libdefsparser_src = \
+	src/apiparsers/defsparser/defsparser.h \
+	src/apiparsers/defsparser/statement.h \
+	src/apiparsers/defsparser/defsparser.cc \
+	src/apiparsers/defsparser/statement.cc
