@@ -1,7 +1,0 @@
-libcommon_cc = src/common/apitemplates.cc
-
-libcommon_h = \
-	$(libcommon_cc:.cc=.h) \
-	src/common/stlops.h
-
-libcommon_src = $(libcommon_cc) $(libcommon_h)

@@ -1,0 +1,13 @@
+libdefsparser_src = \
+	src/apiparsers/defsparser/defsparser.cc \
+	src/apiparsers/defsparser/defsparser.h \
+	src/apiparsers/defsparser/statement.cc \
+	src/apiparsers/defsparser/statement.h
+
+lib_LTLIBRARIES += src/apiparsers/defsparser/libdefsparser.la
+
+src_apiparsers_defsparser_libdefsparser_la_SOURCES = $(libdefsparser_src)
+
+src_apiparsers_defsparser_libdefsparser_la_CPPFLAGS = $(apiparsers_cppflags)
+
+src_apiparsers_defsparser_libdefsparser_la_CXXFLAGS = $(common_cxxflags)

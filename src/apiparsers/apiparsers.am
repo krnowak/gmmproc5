@@ -1,0 +1,3 @@
+apiparsers_cppflags = -I$(top_srcdir)/src/api -I$(top_srcdir)/src/parsers
+
+include $(top_srcdir)/src/apiparsers/defsparser/defsparser.am

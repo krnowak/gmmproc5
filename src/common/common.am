@@ -1,0 +1,10 @@
+libcommon_src = \
+	src/common/apitemplates.cc
+	src/common/apitemplates.h
+	src/common/stlops.h
+
+lib_LTLIBRARIES += src/common/libcommon.la
+
+src_common_libcommon_la_SOURCES = $(libcommon_src)
+
+src_common_libcommon_la_CXXFLAGS = $(common_cxxflags)
