@@ -50,8 +50,10 @@ void Statement::clear()
   m_values.clear ();
   m_bools.clear ();
   m_lists.clear ();
+  m_file.clear ();
+  m_line = 0;
 }
-
+/*
 std::string Statement::extract_header() const
 {
   size_t bidx (m_body.find ("("));
@@ -184,7 +186,7 @@ size_t Statement::get_key_value_index (const std::string& key)
   }
   return std::string::npos;
 }
-
+*/
 } // namespace DefsPrivate
 
 } // namespace ApiParsers

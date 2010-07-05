@@ -24,7 +24,12 @@
 namespace Proc
 {
 
-class Api::Namespace;
+namespace Api
+{
+
+class Namespace;
+
+} // namespace Api
 
 namespace Parsers
 {

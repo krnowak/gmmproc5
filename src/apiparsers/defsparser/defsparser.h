@@ -21,14 +21,24 @@
 #ifndef PROC_PARSERS_API_PARSERS_DEFSPARSER_H
 #define PROC_PARSERS_API_PARSERS_DEFSPARSER_H
 
+// standard
 #include <iosfwd>
+#include <map>
 #include <string>
 #include <utility>
+
+// parsers
+#include "apiparser.h"
 
 namespace Proc
 {
 
-class Api::Namespace;
+namespace Api
+{
+
+class Namespace;
+
+} // namespace Api
 
 namespace Parsers
 {
@@ -36,11 +46,19 @@ namespace Parsers
 namespace ApiParsers
 {
 
+namespace DefsPrivate
+{
+
+class Statement;
+class ParserStuff;
+
+} // namespace DefsPrivate
+
 class DefsParser : public ApiParser
 {
 public:
-                  DefsParser( const std::string& filename );
-  virtual         ~DefsParser();
+                            DefsParser (const std::string& filename);
+  virtual                   ~DefsParser();
 private:
   enum DefineType
   {
@@ -56,33 +74,39 @@ private:
     OMIT
   };
   
-  virtual Api::Namespace* parse_vfunc ();
-  virtual std::string     get_ext_vfunc ();
-
-  void                    parse_stream( std::istream& stream );
-  std::string             get_statement( std::istream& stream );
-  void                    parse_statement( const std::string& statement );
+  enum Context
+  {
+    CONTEXT_OUTSIDE,
+    CONTEXT_HEADER,
+    CONTEXT_LEVEL1,
+    CONTEXT_LEVEL2,
+    CONTEXT_LIST_ELEMENT
+  };
   
-  void                    on_include( const std::string& statement );
-  void                    on_enum( const std::string& statement );
-  void                    on_flags( const std::string& statement );
-  void                    on_object( const std::string& statement );
-  void                    on_function( const std::string& statement );
-  void                    on_method( const std::string& statement );
-  void                    on_property( const std::string& statement );
-  void                    on_signal( const std::string& statement );
-  void                    on_vfunc( const std::string& statement );
-  void                    on_omit( const std::string& statement );
-  
-  void                    create_namespace( DefineType, const std::string& statement );
-  void                    create_ef( const std::string& statement, bool flags );
-  std::string             extract_parentheses( std::istream& stream );
-  std::pair< std::string, std::string> get_enum_element( const std::string& values );
+  virtual Api::Namespace*   parse_vfunc ();
+  virtual std::string       get_ext_vfunc () const;
 
-  std::string     m_directory;
-  std::istream*   m_stream;
-  Api::Namespace* m_namespace;
-  std::map< std::string, std::pair< DefineType, void (*)( const std::string& ) > > m_token_types_actions;
+  //void                    parse_stream( std::istream& stream );
+  //std::string             get_statement( std::istream& stream );
+  //void                    parse_statement( const DefsPrivate::Statement& statement );
+  
+  /*void                    on_include( const DefsPrivate::Statement& statement );
+  void                    on_enum( const DefsPrivate::Statement& statement );
+  void                    on_flags( const DefsPrivate::Statement& statement );
+  void                    on_object( const DefsPrivate::Statement& statement );
+  void                    on_function( const DefsPrivate::Statement& statement );
+  void                    on_method( const DefsPrivate::Statement& statement );
+  void                    on_property( const DefsPrivate::Statement& statement );
+  void                    on_signal( const DefsPrivate::Statement& statement );
+  void                    on_vfunc( const DefsPrivate::Statement& statement );
+  void                    on_omit( const DefsPrivate::Statement& statement );*/
+  
+  //void                    create_namespace( DefineType type, const DefsPrivate::Statement& statement );
+  //void                    create_ef( const std::string& statement, bool flags );
+  //std::string             extract_parentheses( std::istream& stream );
+  //std::pair< std::string, std::string> get_enum_element( const std::string& values );
+
+  DefsPrivate::ParserStuff* m_stuff;
 };
 
 } // namespace ApiParsers

@@ -18,8 +18,14 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_STATEMENT_H
-#define PROC_STATEMENT_H
+#ifndef PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENT_H
+#define PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENT_H
+
+// standard
+#include <list>
+#include <map>
+#include <string>
+#include <vector>
 
 namespace Proc
 {
@@ -32,23 +38,7 @@ namespace ApiParsers
 
 namespace DefsPrivate
 {
-/*
-class Statement
-{
-public:
-  Statement();
-  Statement( const std::string& body );
-  virtual ~Statement();
-  std::string extract_header() const;
-  std::string extract_value (const std::string& key);
-  bool extract_bool (const std::string& key);
-  std::list< std::vector< std::string> > extract_value_list (const std::string& key);
-private:
-  size_t get_key_value_index (const std::string& key);
-  
-  std::string m_body;
-};
-*/
+
 class Statement
 {
 public:
@@ -56,7 +46,7 @@ public:
   virtual ~Statement ();
   
   inline const std::string& get_type () const;
-  inline std::string get_type ();
+  inline std::string& get_type ();
   //void set_type (const std::string& type);
   
   inline const std::string& get_header() const;
@@ -71,6 +61,12 @@ public:
   
   inline const std::map<std::string, std::list<std::vector<std::string> > >& get_lists() const;
   inline std::map<std::string, std::list<std::vector<std::string> > >& get_lists();
+  
+  inline const std::string& get_file () const;
+  inline std::string& get_file ();
+  
+  inline const unsigned int& get_line () const;
+  inline unsigned int& get_line ();
   
   void clear();
   /*
@@ -96,6 +92,8 @@ private:
   std::map<std::string, std::string> m_values;
   std::map<std::string, bool> m_bools;
   std::map<std::string, std::list<std::vector<std::string> > > m_lists;
+  std::string m_file;
+  unsigned int m_line;
 };
 
 inline const std::string& Statement::get_type () const
@@ -103,7 +101,7 @@ inline const std::string& Statement::get_type () const
   return const_cast<Statement*> (this)->get_type();
 }
 
-inline std::string Statement::get_type ()
+inline std::string& Statement::get_type ()
 {
   return m_type;
 }
@@ -148,6 +146,26 @@ inline std::map<std::string, std::list<std::vector<std::string> > >& Statement::
   return m_lists;
 }
 
+inline const std::string& Statement::get_file () const
+{
+  return const_cast<Statement*> (this)->get_file ();
+}
+
+inline std::string& Statement::get_file ()
+{
+  return m_file;
+}
+
+inline const unsigned int& Statement::get_line () const
+{
+  return const_cast<Statement*> (this)->get_line ();
+}
+
+inline unsigned int& Statement::get_line ()
+{
+  return m_line;
+}
+
 } // namespace DefsPrivate
 
 } // namespace ApiParsers
@@ -156,4 +174,4 @@ inline std::map<std::string, std::list<std::vector<std::string> > >& Statement::
 
 } // namespace Proc
 
-#endif // PROC_STATEMENT_H
+#endif // PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENT_H
