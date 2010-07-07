@@ -43,6 +43,91 @@ Statement::Statement()
 Statement::~Statement()
 {}
 
+std::string Statement::get_type () const
+{
+  return m_type;
+}
+
+void Statement::set_type (const std::string& type)
+{
+  m_type = type;
+}
+
+std::string Statement::get_header () const
+{
+  return m_header;
+}
+
+void Statement::set_header (const std::string& header)
+{
+  m_header = header;
+}
+
+std::string Statement::get_value (const std::string& key) const
+{
+  return m_values[key];
+}
+
+void Statement::set_value (const std::string& key, const std::string& value)
+{
+  m_values[key] = value;
+}
+
+bool Statement::get_bool (const std::string& key) const
+{
+  return m_bools[key];
+}
+
+void Statement::set_bool (const std::string& key, bool value)
+{
+  m_bools[key] = value;
+}
+
+std::list<std::vector<std::string> >::iterator Statement::get_list_begin (const std::string& key)
+{
+  return m_lists.begin ();
+}
+
+std::list<std::vector<std::string> >::const_iterator Statement::get_list_begin (const std::string& key) const
+{
+  return const_cast<Statement*> (this)->get_list_begin ();
+}
+
+std::list<std::vector<std::string> >::iterator Statement::get_list_end (const std::string& key)
+{
+  return m_lists.end ();
+}
+
+std::list<std::vector<std::string> >::const_iterator Statement::get_list_end (const std::string& key) const
+{
+  return const_cast<Statement*> (this)->get_list_end ();
+}
+
+void Statement::set_list (const std::string& key, const std::list<std::vector<std::string> >& list)
+{
+  m_lists[key] = list;
+}
+
+std::string Statement::get_file () const
+{
+  return m_file;
+}
+
+void Statement::set_file (const std::string& file)
+{
+  m_file = file;
+}
+
+unsigned int Statement::get_line () const
+{
+  return m_line;
+}
+
+void Statement::set_line (unsigned int line)
+{
+  m_line = line;
+}
+
 void Statement::clear()
 {
   m_type.clear ();
@@ -53,140 +138,7 @@ void Statement::clear()
   m_file.clear ();
   m_line = 0;
 }
-/*
-std::string Statement::extract_header() const
-{
-  size_t bidx (m_body.find ("("));
-  size_t eidx (std::string::npos);
-  
-  if (bidx == std::string::npos)
-  {
-    return std::string();
-  }
-  bidx = m_body.find (" ", bidx + 1);
-  if (bidx == std::string::npos)
-  {
-    return std::string ();
-  }
-  bidx++;
-  eidx = m_body.find_first_of (" )", bidx);
-  if (eidx == std::string::npos)
-  {
-    return std::string ();
-  }
-  return m_body.substr (bidx, eidx - bidx);
-}
 
-std::string Statement::extract_value( const std::string& key )
-{
-  size_t bidx (get_key_value_index (key));
-  
-  if ((bidx != std::string::npos) && (m_body[bidx] == '"'))
-  {
-    size_t eidx (std::string::npos);
-    
-    do
-    {
-      eidx = m_body.find ("\"", bidx);
-      if (eidx == std::string::npos)
-      {
-        return std::string();
-      }
-    }
-    while ((m_body[eidx - 1] != '\\') || (m_body[eidx - 2] == '\\'));
-    return m_body.substr (bidx, eidx - bidx);
-  }
-  return std::string();
-}
-
-bool Statement::extract_bool( const std::string& key )
-{
-  size_t bidx (get_key_value_index (key));
-  
-  if ((bidx != std::string::npos) && (m_body[bidx] == '#'))
-  {
-    size_t eidx = bidx + 1;
-    
-    if ((eidx < m_body.length()) && (m_body[eidx] == 't'))
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
-std::list< std::vector< std::string> > Statement::extract_value_list (const std::string& key)
-{
-  size_t bidx (get_key_value_index (key));
-  std::list< std::vector< std::string> > list;
-  
-  if (bidx != std::string::npos)
-  {
-    do
-    {
-      bidx = m_body.find ("'(", bidx);
-    }
-  }
-  return list;
-}
-
-size_t Statement::get_key_value_index (const std::string& key)
-{
-  const size_t len (m_body.length());
-  const size_t keylen (key.length());
-  
-  size_t idx (std::string::npos);
-  bool inside_dq (false);
-  bool begin_key (false);
-  bool found (false);
-  int level = 0;
-  
-  for (unsigned int iter = 0; (iter < len) && !found; iter++)
-  {
-    char c = body [iter];
-    if (inside_dq)
-    {
-      if (c == '"' && body [iter - 1] != '\\')
-      {
-        inside_dq = false;
-      }
-    }
-    else if (c == '"')
-    {
-      inside_dq = true;
-    }
-    else if (c == '(')
-    {
-      level++;
-      if (level == 2)
-      {
-        begin_key = true;
-      }
-    }
-    else if (c == ')')
-    {
-      level--;
-    }
-    else if (begin_key)
-    {
-      begin_key = false;
-      if ((iter + keylen) < len)
-      {
-        if (body.substr (iter, keylen + 1) == (key + ' '))
-        {
-          idx = body.find_first_not_of (' ', iter + keylen);
-          return idx;
-        }
-      }
-      else
-      {
-        return std::string::npos;
-      }
-    }
-  }
-  return std::string::npos;
-}
-*/
 } // namespace DefsPrivate
 
 } // namespace ApiParsers

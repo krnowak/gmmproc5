@@ -55,7 +55,7 @@ public:
   inline std::list<Element*>::iterator get_end ();
   
   bool append_element (Element* element);
-  inline std::list<Element*>::iterator erase(const std::list<Element*>::iterator& position);
+  inline std::list<Element*>::iterator erase (const std::list<Element*>::iterator& position);
   
   inline bool operator== (const Enum& enumeration) const;
 private:

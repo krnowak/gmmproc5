@@ -23,9 +23,9 @@
 
 // standard
 #include <list>
-#include <map>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace Proc
 {
@@ -45,126 +45,40 @@ public:
   Statement ();
   virtual ~Statement ();
   
-  inline const std::string& get_type () const;
-  inline std::string& get_type ();
-  //void set_type (const std::string& type);
+  std::string get_type () const;
+  void set_type (const std::string& type);
   
-  inline const std::string& get_header() const;
-  inline std::string& get_header();
-  //void set_header (const std::string& header);
+  std::string get_header() const;
+  void set_header (const std::string& header);
   
-  inline const std::map<std::string, std::string>& get_values() const;
-  inline std::map<std::string, std::string>& get_values();
+  std::string get_value (const std::string& key);
+  void set_value (const std::string& key, const std::string& value)
   
-  inline const std::map<std::string, bool>& get_bools() const;
-  inline std::map<std::string, bool>& get_bools();
+  bool get_bool (const std::string& key);
+  void set_bool (const std::string& key, bool value);
   
-  inline const std::map<std::string, std::list<std::vector<std::string> > >& get_lists() const;
-  inline std::map<std::string, std::list<std::vector<std::string> > >& get_lists();
+  std::list<std::vector<std::string> >::iterator get_list_begin (const std::string& key);
+  std::list<std::vector<std::string> >::const_iterator get_list_begin (const std::string& key) const;
+  std::list<std::vector<std::string> >::iterator get_list_end (const std::string& key);
+  std::list<std::vector<std::string> >::const_iterator get_list_end (const std::string& key) const;
+  void set_list (const std::string& key, const std::list<std::vector<std::string> >& list);
   
-  inline const std::string& get_file () const;
-  inline std::string& get_file ();
+  std::string get_file () const;
+  void set_file (const std::string& file);
   
-  inline const unsigned int& get_line () const;
-  inline unsigned int& get_line ();
+  unsigned int get_line () const;
+  void set_line (unsigned int line);
   
   void clear();
-  /*
-  bool add_value (const std::string& key, const std::string& value);
-  std::map<std::string, std::string>::const_iterator get_value_begin() const;
-  std::map<std::string, std::string>::iterator get_value_begin();
-  std::map<std::string, std::string>::const_iterator get_value_end() const;
-  std::map<std::string, std::string>::iterator get_value_end();
-  
-  bool add_bool (const std::string& key, bool value);
-  std::map<std::string, bool>::const_iterator get_bool_begin () const;
-  std::map<std::string, bool>::iterator get_bool_begin ();
-  std::map<std::string, bool>::const_iterator get_bool_end () const;
-  std::map<std::string, bool>::iterator get_bool_end ();
-  
-  bool create_list (const std::string& list);
-  bool add_to_list (const std::string& list, const std::vector<std::string>& values);
-  */
-  
 private:
   std::string m_type;
   std::string m_header;
-  std::map<std::string, std::string> m_values;
-  std::map<std::string, bool> m_bools;
-  std::map<std::string, std::list<std::vector<std::string> > > m_lists;
+  std::unordered_map<std::string, std::string> m_values;
+  std::unordered_map<std::string, bool> m_bools;
+  std::unordered_map<std::string, std::list<std::vector<std::string> > > m_lists;
   std::string m_file;
   unsigned int m_line;
 };
-
-inline const std::string& Statement::get_type () const
-{
-  return const_cast<Statement*> (this)->get_type();
-}
-
-inline std::string& Statement::get_type ()
-{
-  return m_type;
-}
-
-inline const std::string& Statement::get_header() const
-{
-  return const_cast<Statement*> (this)->get_header();
-}
-
-inline std::string& Statement::get_header()
-{
-  return m_header;
-}
-
-inline const std::map<std::string, std::string>& Statement::get_values() const
-{
-  return const_cast<Statement*> (this)->get_values();
-}
-
-inline std::map<std::string, std::string>& Statement::get_values()
-{
-  return m_values;
-}
-
-inline const std::map<std::string, bool>& Statement::get_bools() const
-{
-  return const_cast<Statement*> (this)->get_bools();
-}
-
-inline std::map<std::string, bool>& Statement::get_bools()
-{
-  return m_bools;
-}
-
-inline const std::map<std::string, std::list<std::vector<std::string> > >& Statement::get_lists() const
-{
-  return const_cast<Statement*> (this)->get_lists();
-}
-
-inline std::map<std::string, std::list<std::vector<std::string> > >& Statement::get_lists()
-{
-  return m_lists;
-}
-
-inline const std::string& Statement::get_file () const
-{
-  return const_cast<Statement*> (this)->get_file ();
-}
-
-inline std::string& Statement::get_file ()
-{
-  return m_file;
-}
-
-inline const unsigned int& Statement::get_line () const
-{
-  return const_cast<Statement*> (this)->get_line ();
-}
-
-inline unsigned int& Statement::get_line ()
-{
-  return m_line;
-}
 
 } // namespace DefsPrivate
 

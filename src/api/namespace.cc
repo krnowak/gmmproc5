@@ -35,21 +35,21 @@ namespace Proc
 namespace Api
 {
 
-Namespace::Namespace( const std::string& id )
-: Id( id ),
-  m_enums(),
-  m_objects(),
-  m_functions()
+Namespace::Namespace (const std::string& id)
+: Id (id),
+  m_enums (),
+  m_objects (),
+  m_functions ()
 {}
 
-Namespace::~Namespace()
+Namespace::~Namespace ()
 {
-  std::for_each (m_enums.begin(), m_enums.end(), ::Proc::Common::PairDeleter<std::string, Enum> ());
-  std::for_each (m_objects.begin(), m_objects.end(), ::Proc::Common::PairDeleter<std::string, Object> ());
-  std::for_each (m_functions.begin(), m_functions.end(), ::Proc::Common::PairDeleter<std::string, Function> ());
+  std::for_each (m_enums.begin (), m_enums.end (), ::Proc::Common::PairDeleter<std::string, Enum> ());
+  std::for_each (m_objects.begin (), m_objects.end (), ::Proc::Common::PairDeleter<std::string, Object> ());
+  std::for_each (m_functions.begin (), m_functions.end (), ::Proc::Common::PairDeleter<std::string, Function> ());
 }
 
-bool Namespace::add_function( Function* function )
+bool Namespace::add_function (Function* function)
 {
   return ::Proc::Common::IdInserter<Function> () (m_functions, function);
 }
@@ -59,61 +59,61 @@ bool Namespace::add_object (Object* object)
   return ::Proc::Common::IdInserter<Object> () (m_objects, object);
 }
 
-bool Namespace::add_enum( Enum* enumeration )
+bool Namespace::add_enum (Enum* enumeration)
 {
   return ::Proc::Common::IdInserter<Enum> () (m_enums, enumeration);
 }
 
-typedef bool ( *break_func )( const std::string::const_iterator& it );
-
-static bool underline_break( const std::string::const_iterator& it )
-{
-  return *it != '_';
-}
-
-static bool capital_break( const std::string::const_iterator& it )
-{
-  return( *it < 'A' || *it > 'Z' );
-}
-
-std::string Namespace::get_namespace_name( const std::string& name )
+std::string Namespace::get_namespace_name (const std::string& name)
 {
   std::string::const_iterator it;
   std::string ns_name;
-  break_func b_f = 0;
+  std::function<bool (const std::string::const_iterator&)> break_func;
+  bool grow (false);
   
-  if( name.empty() )
+  if (name.empty ())
   {
-    return std::string();
+    return std::string ();
   }
-  it = name.begin();
-  if( *it >= 'A' && *it <= 'Z' )
+  it = name.begin ();
+  if ((*it >= 'A') && (*it <= 'Z'))
   {
-    b_f = capital_break;
+    break_func = std::bind (&Namespace::capital_break, _1);
   }
-  else if( *it >= 'a' && *it <= 'z' )
+  else if ((*it >= 'a') && (*it <= 'z'))
   {
-    b_f = underline_break;
+    break_func = std::bind (&Namespace::underline_break, _1);
+    grow = true;
   }
   else
   {
-    return std::string();
+    return std::string ();
   }
   do
   {
     it++;
   }
-  while( it != name.end() && b_f( it ) );
-  if ( it == name.end() )
+  while ((it != name.end ()) && b_f (it));
+  if (it == name.end ())
   {
-    return std::string();
+    return std::string ();
   }
-  ns_name = std::string( name.begin(), it );
-  if ( b_f == underline_break )
+  ns_name = std::string (name.begin (), it);
+  if (grow)
   {
     ns_name[0] += 'A' - 'a';
   }
   return ns_name;
+}
+
+bool Namespace::underline_break (const std::string::const_iterator& it)
+{
+  return (*it != '_');
+}
+
+bool Namespace::capital_break (const std::string::const_iterator& it)
+{
+  return ((*it < 'A') || (*it > 'Z'));
 }
 
 } // namespace Api

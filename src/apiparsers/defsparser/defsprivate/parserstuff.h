@@ -59,8 +59,9 @@ public:
   Api::Namespace* get_namespace();
 
 private:
-  typedef std::unordered_map< std::string, std::function<void (const Statement&)> > SAMap;
+  typedef std::unordered_map<std::string, std::function<void (const Statement&)> > SAMap;
   typedef std::stack<std::pair<std::string, std::string> > FileStack;
+  typedef std::unordered_map<std::string, std::string> SSMap;
 
   void                      tokenize ();
   void                      statementize ();
@@ -79,6 +80,9 @@ private:
   void                      on_signal (const Statement& statement);
   void                      on_vfunc (const Statement& statement);
   void                      on_omit (const Statement& statement);
+  
+  void						          create_ef (const Statement& statement, bool flags);
+  void						          create_namespace (const Statement& statement);
 
 //  std::string               m_contents;
 //  unsigned int              m_current_line;
@@ -88,6 +92,7 @@ private:
   Api::Namespace*           m_namespace;
   SAMap                     m_statement_actions;
   FileStack                 m_parsed_files;
+  SSMap                     m_types_ns;
 };
 
 } // namespace DefsPrivate

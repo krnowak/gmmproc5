@@ -86,14 +86,14 @@ void StatementizeTask::on_token_open_paren ()
     case CONTEXT_OUTSIDE:
     {
       m_current_context = CONTEXT_HEADER;
-      m_current_statement.get_line() = m_current_line;
-      m_current_statement.get_file() = m_file;
+      m_current_statement.set_line (m_current_line);
+      m_current_statement.set_file (m_file);
       break;
     }
     case CONTEXT_HEADER:
     {
-      m_current_statement.get_type() = m_key;
-      m_current_statement.get_header() = m_value;
+      m_current_statement.set_type (m_key);
+      m_current_statement.set_header (m_value);
       m_current_context = CONTEXT_LEVEL2;
       break;
     }
@@ -171,7 +171,7 @@ void StatementizeTask::on_token_close_paren ()
                 return;
               }
             }
-            m_current_statement.get_bools ()[m_key] = option;
+            m_current_statement.set_bool (m_key, option);
             break;
           }
           case '"':
@@ -183,7 +183,7 @@ void StatementizeTask::on_token_close_paren ()
               // empty string error
               return;
             }
-            m_current_statement.get_values ()[m_key] = m_value.substr (1, val_length - 2);
+            m_current_statement.set_value (m_key, m_value.substr (1, val_length - 2));
             break;
           }
           default:
@@ -195,7 +195,7 @@ void StatementizeTask::on_token_close_paren ()
       }
       else if (!list_empty)
       {
-        m_current_statement.get_lists ()[m_key] = m_element_list;
+        m_current_statement.set_list (m_key, m_element_list);
       }
       else
       {

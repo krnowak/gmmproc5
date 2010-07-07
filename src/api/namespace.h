@@ -55,11 +55,14 @@ public:
   
   inline bool operator== (const Namespace& ns);
   
-  static std::string get_namespace_name( const std::string& name );
+  static std::string get_namespace_name (const std::string& name);
 private:
-  std::map< std::string, Enum* > m_enums;
-  std::map< std::string, Object* > m_objects;
-  std::map< std::string, Function* > m_functions;
+  static bool underline_break (const std::string::const_iterator& it);
+  static bool capital_break (const std::string::const_iterator& it);
+  
+  std::map<std::string, Enum*> m_enums;
+  std::map<std::string, Object*> m_objects;
+  std::map<std::string, Function*> m_functions;
 };
 
 inline bool Namespace::operator== (const Namespace& ns)
