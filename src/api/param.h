@@ -23,6 +23,7 @@
 
 // standard
 #include <string>
+
 // api
 #include "id.h"
 
@@ -35,14 +36,14 @@ namespace Api
 class Param : public Id
 {
 public:
-  Param (const std::string& id = std::string ());
-  
-  virtual ~Param ();
-  
-  inline std::string get_type () const;
-  bool set_type (const std::string& type);
+                      Param (const std::string& id = std::string ());
+
+  virtual             ~Param ();
+
+  inline std::string  get_type () const;
+  bool                set_type (const std::string& type);
 private:
-  std::string m_type;
+  std::string         m_type;
 };
 
 std::string Param::get_type () const

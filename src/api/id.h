@@ -33,16 +33,16 @@ namespace Api
 class Id
 {
 public:
-  Id (const std::string& id = std::string ());
+                      Id (const std::string& id = std::string ());
 
-  virtual ~Id();
+  virtual             ~Id();
 
-  inline std::string get_id () const;
-  bool set_id (const std::string& id);
-  
-  inline bool operator== (const Id& id) const;
+  inline std::string  get_id () const;
+  bool                set_id (const std::string& id);
+
+  inline bool         operator== (const Id& id) const;
 private:
-  std::string m_id;
+  std::string         m_id;
 };
 
 inline std::string Id::get_id () const

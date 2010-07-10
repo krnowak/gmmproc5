@@ -67,7 +67,7 @@ DefsParser::DefsParser (const std::string& path)
   m_statement_actions["define-vfunc"]           = std::bind (&DefsParser::on_vfunc, this, std::placeholders::_1);
   m_statement_actions["define-flags"]           = std::bind (&DefsParser::on_omit, this, std::placeholders::_1);
   m_statement_actions["define-enum"]            = std::bind (&DefsParser::on_omit, this, std::placeholders::_1);
-  
+
   m_types_ns["include"]               = empty;
   m_types_ns["define-flags-extended"] = c_name;
   m_types_ns["define-enum-extended"]  = c_name;
@@ -93,7 +93,7 @@ DefsParser::~DefsParser ()
 Api::Namespace* DefsParser::parse_vfunc ()
 {
   Api::Namespace* ns (0);
-  
+
   parse_round ();
   ns = m_namespace;
   m_namespace = 0;
@@ -119,18 +119,18 @@ void DefsParser::tokenize ()
   std::string::iterator contents_end (m_parsed_files.top().second.end ());
   std::string::iterator token_begin (m_parsed_files.top().second.begin ());
   int current_line (0);
-  
+
   for (std::string::iterator contents_iter (token_begin); contents_iter != contents_end; contents_iter++)
   {
     const char c (*contents_iter);
-    
+
     switch (token_type)
     {
       case TOKEN_NONE:
       {
         bool push (false);
         bool begin (false);
-        
+
         switch (c)
         {
           case '\n':
@@ -170,7 +170,7 @@ void DefsParser::tokenize ()
             }
           }
         }
-        
+
         if (push)
         {
           m_tokens.push_back (std::string (1, c));
@@ -219,7 +219,7 @@ void DefsParser::tokenize ()
       {
         bool push (false);
         bool decrement (false);
-        
+
         switch (c)
         {
           case '(':
@@ -285,12 +285,12 @@ void DefsParser::statementize ()
 void DefsParser::apicize ()
 {
   std::list<Statement>::iterator statements_end (m_statements.end ());
-  
+
   for (std::list<Statement>::iterator statement_iter (m_statements.begin ()); statement_iter != statements_end; statement_iter++)
   {
     const std::string type (statement_iter->get_type ());
     std::unordered_map<std::string, std::function<void (const Statement&)> >::iterator it (m_statement_actions.find (type));
-    
+
     if (it != m_statement_actions.end ())
     {
       it->second(*statement_iter);
@@ -314,7 +314,7 @@ std::string DefsParser::read_contents (const std::string& filename)
 {
   std::ifstream       file  (filename.c_str ());
   std::ostringstream  oss;
-  
+
   if (file.good())
   {
     file >> oss.rdbuf ();
@@ -325,7 +325,7 @@ std::string DefsParser::read_contents (const std::string& filename)
 std::string DefsParser::dirname (const std::string& filename)
 {
   const size_t found (filename.find_last_of ("/"));
-  
+
   if (found == std::string::npos)
   {
     return std::string ("./");
@@ -357,7 +357,7 @@ void DefsParser::on_object (const Statement& statement)
   const std::string parent (statement.get_value ("parent"));
   const std::string gtype (statement.get_value ("gtype-id"));
   Api::Object* object (0);
-  
+
   if( cname.empty() || gtype.empty() || parent.empty() )
   {
     // error
@@ -384,7 +384,7 @@ void DefsParser::on_function (const Statement& statement)
   const std::string cname (statement.get_value ("c-name"));
   const std::string ret_type (statement.get_value ("return-type"));
   Api::Function* function (0);
-  
+
   if (cname.empty () || ret_type.empty ())
   {
     // error
@@ -453,12 +453,12 @@ void DefsParser::on_omit (const Statement& /* statement */)
 {
   // empty
 }
-  
+
 void DefsParser::create_enum_or_flags (const Statement& statement, bool flags)
 {
   const std::string name ( statement.get_value ("c-name"));
   Api::Enum* enumeration ( 0 );
-  
+
   if ( name.empty() )
   {
     // error
@@ -503,7 +503,7 @@ void DefsParser::create_namespace (const Statement& statement)
   const std::string parameter (m_types_ns[statement.get_type ()]);
   const std::string name = statement.get_value (parameter);
   const std::string ns_name = Api::Namespace::get_namespace_name (name);
-  
+
   if (name.empty ())
   {
     return;

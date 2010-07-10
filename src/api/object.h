@@ -22,8 +22,9 @@
 #define PROC_API_OBJECT_H
 
 // standard
-#include <map>
 #include <string>
+#include <unordered_map>
+
 // api
 #include "id.h"
 
@@ -40,36 +41,40 @@ class Signal;
 class Object : public Id
 {
 public:
-  Object (const std::string& id = std::string ());
-  
-  Object (const Object& object);
-  Object& operator= (const Object& object);
-  
-  virtual ~Object ();
-  
-  inline std::string get_parent () const;
-  bool set_parent ( const std::string& parent );
-  
-  inline std::string get_gtype () const;
-  bool set_gtype ( const std::string& gtype );
-  
-  bool add_constructor (Function* constructor);
-  bool set_destructor (Function* destructor);
-  bool add_method (Function* method);
-  bool add_signal (Signal* signal);
-  bool add_property (Property* property);
-  bool add_vfunc (Function* vfunc);
-  
-  inline bool operator== (const Object& object);
+                      Object (const std::string& id = std::string ());
+
+                      Object (const Object& object);
+  Object&             operator= (const Object& object);
+
+  virtual             ~Object ();
+
+  inline std::string  get_parent () const;
+  bool                set_parent ( const std::string& parent );
+
+  inline std::string  get_gtype () const;
+  bool                set_gtype ( const std::string& gtype );
+
+  bool                add_constructor (Function* constructor);
+  bool                set_destructor (Function* destructor);
+  bool                add_method (Function* method);
+  bool                add_signal (Signal* signal);
+  bool                add_property (Property* property);
+  bool                add_vfunc (Function* vfunc);
+
+  inline bool         operator== (const Object& object);
 private:
-  std::string m_parent;
-  std::string m_gtype;
-  std::map<std::string, Function*> m_constructors;
-  Function* m_destructor;
-  std::map<std::string, Function*> m_methods;
-  std::map<std::string, Signal*> m_signals;
-  std::map<std::string, Property*> m_properties;
-  std::map<std::string, Function*> m_vfuncs;
+  typedef std::unordered_map<std::string, Function*> StringFunctionMap;
+  typedef std::unordered_map<std::string, Signal*> StringSignalMap;
+  typedef std::unordered_map<std::string, Property*> StringPropertyMap;
+
+  std::string         m_parent;
+  std::string         m_gtype;
+  StringFunctionMap   m_constructors;
+  Function*           m_destructor;
+  StringFunctionMap   m_methods;
+  StringSignalMap     m_signals;
+  StringPropertyMap   m_properties;
+  StringFunctionMap   m_vfuncs;
 };
 
 inline std::string Object::get_parent () const

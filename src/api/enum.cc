@@ -20,9 +20,11 @@
 
 // standard
 #include <algorithm>
+
 // common
 #include "apitemplates.h"
 #include "stlops.h"
+
 // api
 #include "enum.h"
 
@@ -39,7 +41,7 @@ Enum::Enum (const std::string& id)
   m_elements (),
   m_is_flags (false)
 {}
-  
+
 Enum::Enum (const Enum& enumeration)
 : Id (enumeration),
   m_elements (enumeration.m_elements.size ()),
@@ -59,7 +61,7 @@ Enum& Enum::operator= (const Enum& enumeration)
   }
   return *this;
 }
-  
+
 Enum::~Enum()
 {
   std::for_each (m_elements.begin(), m_elements.end(), ::Proc::Common::PtrDeleter<Element> ());

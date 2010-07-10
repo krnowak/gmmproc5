@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_PARSERS_APIPARSER_H
-#define PROC_PARSERS_APIPARSER_H
+#ifndef PROC_PARSERS_API_PARSER_H
+#define PROC_PARSERS_API_PARSER_H
 
 namespace Proc
 {
@@ -37,12 +37,12 @@ namespace Parsers
 class ApiParser
 {
 public:
-  virtual ~ApiParser () {}
-  inline Api::Namespace* parse ();
-  inline std::string get_ext () const;
+  virtual                 ~ApiParser () {}
+  inline Api::Namespace*  parse ();
+  inline std::string      get_ext () const;
 private:
   virtual Api::Namespace* parse_vfunc () = 0;
-  virtual std::string get_ext_vfunc () const = 0;
+  virtual std::string     get_ext_vfunc () const = 0;
 };
 
 inline Api::Namespace* ApiParser::parse()

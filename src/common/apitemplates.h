@@ -24,6 +24,7 @@
 // standard
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 namespace Proc
@@ -35,17 +36,36 @@ namespace Common
 template <typename T>
 struct IdInserter
 {
-  bool operator() (std::map<std::string, T*>& attrs, T* attr)
+  typedef std::map<std::string, T*> MapType;
+  typedef std::unordered_map<std::string, T*> HashType;
+
+  bool operator() (MapType& attrs, T* attr)
   {
     bool ok (false);
-    
+
     if (attr)
     {
       std::string name (attr->get_id ());
-      
+
       if (!name.empty ())
       {
-        ok = attrs.insert (std::make_pair (name, attr)).second;
+        ok = attrs.insert (typename MapType::value_type (name, attr)).second;
+      }
+    }
+    return ok;
+  }
+
+  bool operator() (HashType& attrs, T* attr)
+  {
+    bool ok (false);
+
+    if (attr)
+    {
+      std::string name (attr->get_id ());
+
+      if (!name.empty ())
+      {
+        ok = attrs.insert (typename HashType::value_type (name, attr)).second;
       }
     }
     return ok;
@@ -58,7 +78,7 @@ struct PlainInserter
   bool operator() (Container& container, T* ptr)
   {
     bool ok (false);
-    
+
     if (ptr)
     {
       container.push_back (ptr);
@@ -91,7 +111,7 @@ struct FieldAssigner
   bool operator() (T& field, const T& value)
   {
     bool ok (false);
-    
+
     if ((field == Tr::zero) && (value != Tr::zero))
     {
       field = value;

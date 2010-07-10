@@ -22,8 +22,9 @@
 #define PROC_API_NAMESPACE_H
 
 // standard
-#include <map>
 #include <string>
+#include <unordered_map>
+
 // api
 #include "id.h"
 
@@ -40,32 +41,36 @@ class Function;
 class Namespace : public Id
 {
 public:
-  Namespace (const std::string& id = std::string ());
-  
-  Namespace (const Namespace& ns);
-  Namespace& operator= (const Namespace& ns);
-  
-  virtual ~Namespace ();
-  
-  bool add_enum (Enum* enumeration);
-  Enum* get_enum (const std::string& c_name) const;
-  
-  bool add_object (Object* object);
-  Object* get_object (const std::string& c_name) const;
-  
-  bool add_function (Function* function);
-  Function* get_function (const std::string& c_name) const;
-  
-  inline bool operator== (const Namespace& ns);
-  
-  static std::string get_namespace_name (const std::string& name);
+                      Namespace (const std::string& id = std::string ());
+
+                      Namespace (const Namespace& ns);
+  Namespace&          operator= (const Namespace& ns);
+
+  virtual             ~Namespace ();
+
+  bool                add_enum (Enum* enumeration);
+  Enum*               get_enum (const std::string& c_name) const;
+
+  bool                add_object (Object* object);
+  Object*             get_object (const std::string& c_name) const;
+
+  bool                add_function (Function* function);
+  Function*           get_function (const std::string& c_name) const;
+
+  inline bool         operator== (const Namespace& ns);
+
+  static std::string  get_namespace_name (const std::string& name);
 private:
-  static bool underline_break (const std::string::const_iterator& it);
-  static bool capital_break (const std::string::const_iterator& it);
-  
-  std::map<std::string, Enum*> m_enums;
-  std::map<std::string, Object*> m_objects;
-  std::map<std::string, Function*> m_functions;
+  typedef std::unordered_map<std::string, Enum*> StringEnumMap;
+  typedef std::unordered_map<std::string, Object*> StringObjectMap;
+  typedef std::unordered_map<std::string, Function*> StringFunctionMap;
+
+  static bool         underline_break (const std::string::const_iterator& it);
+  static bool         capital_break (const std::string::const_iterator& it);
+
+  StringEnumMap       m_enums;
+  StringObjectMap     m_objects;
+  StringFunctionMap   m_functions;
 };
 
 inline bool Namespace::operator== (const Namespace& ns)

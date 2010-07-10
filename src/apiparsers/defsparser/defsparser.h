@@ -60,7 +60,7 @@ private:
   typedef std::unordered_map<std::string, std::function<void (const Statement&)> > StringFunctionMap;
   typedef std::stack<std::pair<std::string, std::string> > FileStack;
   typedef std::unordered_map<std::string, std::string> StringStringMap;
-  
+
   virtual Api::Namespace*   parse_vfunc ();
   virtual std::string       get_ext_vfunc () const;
 
@@ -70,7 +70,7 @@ private:
   void                      parse_round ();
   std::string               read_contents (const std::string& path);
   std::string               dirname (const std::string& path);
-  
+
   void                      on_include (const Statement& statement);
   void                      on_enum (const Statement& statement);
   void                      on_flags (const Statement& statement);
@@ -81,7 +81,7 @@ private:
   void                      on_signal (const Statement& statement);
   void                      on_vfunc (const Statement& statement);
   void                      on_omit (const Statement& statement);
-  
+
   void						          create_enum_or_flags (const Statement& statement, bool flags);
   void						          create_namespace (const Statement& statement);
 

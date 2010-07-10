@@ -25,6 +25,7 @@
 #include <list>
 #include <string>
 #include <utility>
+
 // api
 #include "id.h"
 
@@ -39,28 +40,28 @@ class Enum : public Id
 public:
   typedef std::pair<std::string, std::string> Element;
 
-  Enum (const std::string& id = std::string());
-  
-  Enum (const Enum& enumeration);
-  Enum& operator= (const Enum& enumeration);
-  
-  virtual ~Enum();
-  
-  inline bool is_flags () const;
-  inline void set_is_flags (bool is_flags = true);
-  
-  inline std::list<Element*>::const_iterator get_begin () const;
-  inline std::list<Element*>::iterator get_begin ();
-  inline std::list<Element*>::const_iterator get_end () const;
-  inline std::list<Element*>::iterator get_end ();
-  
-  bool append_element (Element* element);
-  inline std::list<Element*>::iterator erase (const std::list<Element*>::iterator& position);
-  
-  inline bool operator== (const Enum& enumeration) const;
+                                              Enum (const std::string& id = std::string());
+
+                                              Enum (const Enum& enumeration);
+  Enum&                                       operator= (const Enum& enumeration);
+
+  virtual                                     ~Enum();
+
+  inline bool                                 is_flags () const;
+  inline void                                 set_is_flags (bool is_flags = true);
+
+  inline std::list<Element*>::const_iterator  get_begin () const;
+  inline std::list<Element*>::iterator        get_begin ();
+  inline std::list<Element*>::const_iterator  get_end () const;
+  inline std::list<Element*>::iterator        get_end ();
+
+  bool                                        append_element (Element* element);
+  inline std::list<Element*>::iterator        erase (const std::list<Element*>::iterator& position);
+
+  inline bool                                 operator== (const Enum& enumeration) const;
 private:
-  std::list<Element* > m_elements;
-  bool m_is_flags;
+  std::list<Element* >                        m_elements;
+  bool                                        m_is_flags;
 };
 
 inline bool Enum::is_flags () const

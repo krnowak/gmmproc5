@@ -41,31 +41,31 @@ class Statement
 public:
   Statement ();
   virtual ~Statement ();
-  
+
   std::string get_type () const;
   void set_type (const std::string& type);
-  
+
   std::string get_header () const;
   void set_header (const std::string& header);
-  
+
   std::string get_value (const std::string& key) const;
   void set_value (const std::string& key, const std::string& value);
-  
+
   bool get_bool (const std::string& key) const;
   void set_bool (const std::string& key, bool value);
-  
+
   std::list<std::vector<std::string> >::iterator get_list_begin (const std::string& key);
   std::list<std::vector<std::string> >::const_iterator get_list_begin (const std::string& key) const;
   std::list<std::vector<std::string> >::iterator get_list_end (const std::string& key);
   std::list<std::vector<std::string> >::const_iterator get_list_end (const std::string& key) const;
   void set_list (const std::string& key, const std::list<std::vector<std::string> >& list);
-  
+
   std::string get_file () const;
   void set_file (const std::string& file);
-  
+
   unsigned int get_line () const;
   void set_line (unsigned int line);
-  
+
   void clear();
 private:
   std::string m_type;

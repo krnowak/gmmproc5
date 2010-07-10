@@ -20,9 +20,11 @@
 
 // standard
 #include <algorithm>
+
 // common
 #include "apitemplates.h"
 #include "stlops.h"
+
 // api
 #include "function.h"
 #include "object.h"

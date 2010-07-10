@@ -49,12 +49,12 @@ struct PairDeleter
   {
     PtrDeleter<T1> () (pair.first);
   }
-  
+
   void operator() (std::pair<const T1, T2*>& pair)
   {
     PtrDeleter<T2> () (pair.second);
   }
-  
+
   void operator() (std::pair<T1*, T2*>& pair)
   {
     PtrDeleter<T1> () (pair.first);

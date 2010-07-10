@@ -24,6 +24,7 @@
 // standard
 #include <list>
 #include <string>
+
 // api
 #include "id.h"
 
@@ -38,32 +39,32 @@ class Param;
 class Function : public Id
 {
 public:
-  Function (const std::string& id = std::string ());
-  
-  Function (const Function& function);
-  Function& operator= (const Function& function);
-  
-  virtual ~Function ();
-  
-  inline std::string get_ret_type () const;
-  bool set_ret_type (const std::string& ret_type);
-  
-  inline std::list<Param*>::const_iterator get_begin () const;
-  inline std::list<Param*>::iterator get_begin ();
-  inline std::list<Param*>::const_iterator get_end () const;
-  inline std::list<Param*>::iterator get_end ();
-  
-  bool append_param (Param* param);
-  inline std::list<Param*>::iterator erase(const std::list<Param*>::iterator& position);
-  
-  inline bool has_varargs () const;
-  inline void set_varargs (bool has_varargs = true);
-  
-  inline bool operator== (const Function& function) const;
+                                            Function (const std::string& id = std::string ());
+
+                                            Function (const Function& function);
+  Function&                                 operator= (const Function& function);
+
+  virtual                                   ~Function ();
+
+  inline std::string                        get_ret_type () const;
+  bool                                      set_ret_type (const std::string& ret_type);
+
+  inline std::list<Param*>::const_iterator  get_begin () const;
+  inline std::list<Param*>::iterator        get_begin ();
+  inline std::list<Param*>::const_iterator  get_end () const;
+  inline std::list<Param*>::iterator        get_end ();
+
+  bool                                      append_param (Param* param);
+  inline std::list<Param*>::iterator        erase (const std::list<Param*>::iterator& position);
+
+  inline bool                               has_varargs () const;
+  inline void                               set_varargs (bool has_varargs = true);
+
+  inline bool                               operator== (const Function& function) const;
 private:
-  std::string m_ret_type;
-  std::list<Param*> m_parameters;
-  bool m_has_varargs;
+  std::string                               m_ret_type;
+  std::list<Param*>                         m_parameters;
+  bool                                      m_has_varargs;
 };
 
 inline std::string Function::get_ret_type () const

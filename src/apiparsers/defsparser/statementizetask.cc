@@ -70,7 +70,7 @@ std::list<Statement> StatementizeTask::statementize(const std::list<std::string>
   }
   return m_statements;
 }
-  
+
 void StatementizeTask::on_token_newline ()
 {
   m_current_line++;
@@ -130,7 +130,7 @@ void StatementizeTask::on_token_close_paren ()
     {
       bool val_empty (m_value.empty ());
       bool list_empty (m_element_list.empty ());
-      
+
       m_current_context = CONTEXT_LEVEL1;
       if (!(val_empty ^ list_empty))
       {
@@ -149,7 +149,7 @@ void StatementizeTask::on_token_close_paren ()
               // error
               return;
             }
-            
+
             switch (m_value[1])
             {
               case 't':
@@ -174,7 +174,7 @@ void StatementizeTask::on_token_close_paren ()
           case '"':
           {
             size_t val_length (m_value.length ());
-            
+
             if (val_length < 3)
             {
               // empty string error

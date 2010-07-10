@@ -21,9 +21,11 @@
 // standard
 #include <algorithm>
 #include <functional>
+
 // common
 #include "apitemplates.h"
 #include "stlops.h"
+
 // api
 #include "enum.h"
 #include "function.h"
@@ -57,7 +59,8 @@ bool Namespace::add_function (Function* function)
 
 Function* Namespace::get_function (const std::string& c_name) const
 {
-  std::map<std::string, Function*>::const_iterator it (m_functions.find (c_name));
+  StringFunctionMap::const_iterator it (m_functions.find (c_name));
+
   if (it != m_functions.end ())
   {
     return it->second;
@@ -72,7 +75,8 @@ bool Namespace::add_object (Object* object)
 
 Object* Namespace::get_object (const std::string& c_name) const
 {
-  std::map<std::string, Object*>::const_iterator it (m_objects.find (c_name));
+  StringObjectMap::const_iterator it (m_objects.find (c_name));
+
   if (it != m_objects.end ())
   {
     return it->second;
@@ -87,7 +91,8 @@ bool Namespace::add_enum (Enum* enumeration)
 
 Enum* Namespace::get_enum (const std::string& c_name) const
 {
-  std::map<std::string, Enum*>::const_iterator it (m_enums.find (c_name));
+  StringEnumMap::const_iterator it (m_enums.find (c_name));
+
   if (it != m_enums.end ())
   {
     return it->second;
@@ -100,7 +105,7 @@ std::string Namespace::get_namespace_name (const std::string& name)
   std::string ns_name;
   std::function<bool (const std::string::const_iterator&)> break_func;
   bool grow (false);
-  
+
   if (name.empty ())
   {
     return std::string ();

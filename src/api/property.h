@@ -23,6 +23,7 @@
 
 // standard
 #include <string>
+
 // api
 #include "id.h"
 
@@ -86,20 +87,20 @@ operator~ (ParamFlags first)
 class Property : public Id
 {
 public:
-  Property (const std::string& id = std::string ());
-  
-  virtual ~Property ();
-  
-  std::string get_type () const;
-  bool set_type (const std::string& type);
-  
+                    Property (const std::string& id = std::string ());
+
+  virtual           ~Property ();
+
+  std::string       get_type () const;
+  bool              set_type (const std::string& type);
+
   inline ParamFlags get_flags () const;
-  bool set_flags (ParamFlags param_flags);
-  
-  inline bool operator== (const Property& property) const;
+  bool              set_flags (ParamFlags param_flags);
+
+  inline bool       operator== (const Property& property) const;
 private:
-  std::string m_type;
-  ParamFlags m_param_flags;
+  std::string       m_type;
+  ParamFlags        m_param_flags;
 };
 
 inline std::string Property::get_type() const

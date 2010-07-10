@@ -21,6 +21,7 @@
 #ifndef PROC_API_SIGNAL_H
 #define PROC_API_SIGNAL_H
 
+// api
 #include "function.h"
 
 namespace Proc
@@ -81,14 +82,14 @@ operator~ (RunFlags first)
 class Signal : public Function
 {
 public:
-  Signal (const std::string& id = std::string ());
-  
-  virtual ~Signal ();
-  
+                  Signal (const std::string& id = std::string ());
+
+  virtual         ~Signal ();
+
   inline RunFlags get_run_flags () const;
-  bool set_run_flags (RunFlags when);
+  bool            set_run_flags (RunFlags when);
 private:
-  RunFlags m_run_flags;
+  RunFlags        m_run_flags;
 };
 
 inline RunFlags Signal::get_run_flags () const
