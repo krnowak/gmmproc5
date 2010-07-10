@@ -18,45 +18,34 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// common
-#include "apitemplates.h"
 
-// api
-#include "signal.h"
+//standard
+#include <sstream>
+
+//parsers
+#include "syntaxerror.h"
 
 namespace Proc
 {
 
-namespace Common
+namespace Parsers
 {
 
-template <>
-struct ZeroTraits<Api::RunFlags>
-{
-  typedef Api::RunFlags Type;
-  static const Type zero;
-};
-
-const ZeroTraits<Api::RunFlags>::Type ZeroTraits<Api::RunFlags>::zero = Api::RUN_INVALID;
-
-} // namespace Common
-
-namespace Api
-{
-
-Signal::Signal (const std::string& id)
-: Function (id),
-  m_run_flags (RUN_INVALID)
+SyntaxError::SyntaxError (const std::string& file, unsigned int line, const std::string& what_arg) throw ()
+: std::runtime_error (create_string (file, line, what_arg))
 {}
 
-Signal::~Signal ()
+SyntaxError::~SyntaxError () throw ()
 {}
 
-bool Signal::set_run_flags (RunFlags run_flags)
+std::string SyntaxError::create_string (const std::string& file, unsigned int line, const std::string& what_arg) throw ()
 {
-  return Common::FieldAssigner<RunFlags> () (m_run_flags, run_flags);
+  std::ostringstream oss;
+
+  oss << "Syntax error in " << file << ", " << line << ": " << what_arg;
+  return oss.str();
 }
 
-} // namespace Api
+} // namespace Parsers
 
 } // namespace Proc

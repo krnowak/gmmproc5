@@ -48,35 +48,35 @@ Function::Function (const Function& function)
   m_parameters (function.m_parameters.size ()),
   m_has_varargs (function.m_has_varargs)
 {
-  std::transform (function.m_parameters.begin(), function.m_parameters.end(), m_parameters.begin(), ::Proc::Common::PtrCopier<Param> ());
+  std::transform (function.m_parameters.begin (), function.m_parameters.end (), m_parameters.begin (), Common::PtrCopier<Param> ());
 }
 
-Function& Function::operator= (const Function& function)
+Function&Function::operator= (const Function& function)
 {
   if (this != &function)
   {
-    *static_cast<Id*>(this) = function;
+    *static_cast<Id*> (this) = function;
     m_ret_type = function.m_ret_type;
-    std::for_each (m_parameters.begin(), m_parameters.end(), ::Proc::Common::PtrDeleter<Param> ());
+    std::for_each (m_parameters.begin (), m_parameters.end (), Common::PtrDeleter<Param> ());
     m_parameters.resize (function.m_parameters.size ());
-    std::transform (function.m_parameters.begin(), function.m_parameters.end(), m_parameters.begin(), ::Proc::Common::PtrCopier<Param> ());
+    std::transform (function.m_parameters.begin (), function.m_parameters.end (), m_parameters.begin (), Common::PtrCopier<Param> ());
   }
   return *this;
 }
 
-Function::~Function()
+Function::~Function ()
 {
-  std::for_each (m_parameters.begin(), m_parameters.end(), ::Proc::Common::PtrDeleter<Param> ());
+  std::for_each (m_parameters.begin (), m_parameters.end (), Common::PtrDeleter<Param> ());
 }
 
 bool Function::set_ret_type (const std::string& ret_type)
 {
-  return ::Proc::Common::FieldAssigner<std::string> () (m_ret_type, ret_type);
+  return Common::FieldAssigner<std::string> () (m_ret_type, ret_type);
 }
 
 bool Function::append_param (Param* param)
 {
-  return ::Proc::Common::PlainInserter<Param, std::list<Param*> > () (m_parameters, param);
+  return Common::PlainInserter<Param, std::list<Param*> > () (m_parameters, param);
 }
 
 } // namespace Api

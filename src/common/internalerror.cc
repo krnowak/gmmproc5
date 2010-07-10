@@ -18,11 +18,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// common
-#include "apitemplates.h"
+// standard
+#include <sstream>
 
-// api
-#include "signal.h"
+// common
+#include "internalerror.h"
 
 namespace Proc
 {
@@ -30,33 +30,21 @@ namespace Proc
 namespace Common
 {
 
-template <>
-struct ZeroTraits<Api::RunFlags>
-{
-  typedef Api::RunFlags Type;
-  static const Type zero;
-};
-
-const ZeroTraits<Api::RunFlags>::Type ZeroTraits<Api::RunFlags>::zero = Api::RUN_INVALID;
-
-} // namespace Common
-
-namespace Api
-{
-
-Signal::Signal (const std::string& id)
-: Function (id),
-  m_run_flags (RUN_INVALID)
+InternalError::InternalError (const char* file, const char* function, unsigned int line, const std::string& what_arg) throw ()
+: std::runtime_error (create_string (file, function, line, what_arg))
 {}
 
-Signal::~Signal ()
+InternalError::~InternalError () throw ()
 {}
 
-bool Signal::set_run_flags (RunFlags run_flags)
+std::string InternalError::create_string (const char* file, const char* function, unsigned int line, const std::string& what_arg) throw ()
 {
-  return Common::FieldAssigner<RunFlags> () (m_run_flags, run_flags);
+  std::ostringstream oss;
+
+  oss << "Internal error in " << file << ", " << function << ", " << line << ": " << what_arg;
+  return oss.str ();
 }
 
-} // namespace Api
+} // namespace Common
 
 } // namespace Proc

@@ -31,36 +31,36 @@ namespace Common
 {
 
 template <>
-struct ZeroTraits<Proc::Api::ParamFlags>
+struct ZeroTraits<Api::ParamFlags>
 {
-  typedef Proc::Api::ParamFlags Type;
+  typedef Api::ParamFlags Type;
   static const Type zero;
 };
 
-const ZeroTraits<Proc::Api::ParamFlags>::Type ZeroTraits<Proc::Api::ParamFlags>::zero = ::Proc::Api::PARAM_INVALID;
+const ZeroTraits<Api::ParamFlags>::Type ZeroTraits<Api::ParamFlags>::zero = Api::PARAM_INVALID;
 
 } // namespace Common
 
 namespace Api
 {
 
-Property::Property(const std::string& id)
+Property::Property (const std::string& id)
 : Id (id),
   m_type (),
   m_param_flags (PARAM_INVALID)
 {}
 
-Property::~Property()
+Property::~Property ()
 {}
 
-bool Property::set_type(const std::string& type)
+bool Property::set_type (const std::string& type)
 {
-  return ::Proc::Common::FieldAssigner<std::string> () (m_type, type);
+  return Common::FieldAssigner<std::string> () (m_type, type);
 }
 
-bool Property::set_flags(ParamFlags param_flags)
+bool Property::set_flags (ParamFlags param_flags)
 {
-  return ::Proc::Common::FieldAssigner<ParamFlags> () (m_param_flags, param_flags);
+  return Common::FieldAssigner<ParamFlags> () (m_param_flags, param_flags);
 }
 
 } // namespace Api

@@ -19,7 +19,7 @@
  */
 
 #ifndef PROC_PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
-#define PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
+#define PROC_PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
 
 // standard
 #include <functional>
@@ -44,10 +44,10 @@ namespace ApiParsers
 class StatementizeTask
 {
 public:
-                                                  StatementizeTask(const std::string& file);
+                                                  StatementizeTask (const std::string& file);
   std::list<Statement>                            statementize (const std::list<std::string>& tokens);
 private:
-  typedef std::unordered_map< std::string, std::function<void()> > StringFunctionMap;
+  typedef std::unordered_map<std::string, std::function<void()> > StringFunctionMap;
 
   void                                            on_token_newline ();
   void                                            on_token_open_paren ();
@@ -55,6 +55,7 @@ private:
   void                                            on_token_apostrophe ();
   void                                            on_token_other (const std::string& token);
   void                                            cleanup ();
+  void                                            throw_syntax_error (const std::string& what_arg);
 
   enum Context
   {
@@ -86,5 +87,5 @@ private:
 
 } // namespace Proc
 
-#endif // PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
+#endif // PROC_PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
 

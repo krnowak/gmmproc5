@@ -1,3 +1,4 @@
 include $(top_srcdir)/src/common/common.am
 include $(top_srcdir)/src/api/api.am
+include $(top_srcdir)/src/parserscommon/parserscommon.am
 include $(top_srcdir)/src/apiparsers/apiparsers.am

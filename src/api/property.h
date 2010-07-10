@@ -103,12 +103,12 @@ private:
   ParamFlags        m_param_flags;
 };
 
-inline std::string Property::get_type() const
+inline std::string Property::get_type () const
 {
   return m_type;
 }
 
-inline ParamFlags Property::get_flags() const
+inline ParamFlags Property::get_flags () const
 {
   return m_param_flags;
 }

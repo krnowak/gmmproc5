@@ -40,7 +40,7 @@ class Enum : public Id
 public:
   typedef std::pair<std::string, std::string> Element;
 
-                                              Enum (const std::string& id = std::string());
+                                              Enum (const std::string& id = std::string ());
 
                                               Enum (const Enum& enumeration);
   Enum&                                       operator= (const Enum& enumeration);

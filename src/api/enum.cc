@@ -34,8 +34,6 @@ namespace Proc
 namespace Api
 {
 
-//typedef std::pair<std::string, std::string> Element;
-
 Enum::Enum (const std::string& id)
 : Id (id),
   m_elements (),
@@ -47,7 +45,7 @@ Enum::Enum (const Enum& enumeration)
   m_elements (enumeration.m_elements.size ()),
   m_is_flags (enumeration.m_is_flags)
 {
-  std::transform (enumeration.m_elements.begin (), enumeration.m_elements.end (), m_elements.begin(), ::Proc::Common::PtrCopier<Element> ());
+  std::transform (enumeration.m_elements.begin (), enumeration.m_elements.end (), m_elements.begin (), Common::PtrCopier<Element> ());
 }
 
 Enum& Enum::operator= (const Enum& enumeration)
@@ -55,24 +53,23 @@ Enum& Enum::operator= (const Enum& enumeration)
   if (this != &enumeration)
   {
     *static_cast<Id*> (this) = enumeration;
-    std::for_each (m_elements.begin(), m_elements.end(), ::Proc::Common::PtrDeleter<Element> ());
+    std::for_each (m_elements.begin (), m_elements.end (), Common::PtrDeleter<Element> ());
     m_elements.resize (enumeration.m_elements.size ());
-    std::transform (enumeration.m_elements.begin (), enumeration.m_elements.end (), m_elements.begin(), ::Proc::Common::PtrCopier<Element> ());
+    std::transform (enumeration.m_elements.begin (), enumeration.m_elements.end (), m_elements.begin (), Common::PtrCopier<Element> ());
   }
   return *this;
 }
 
-Enum::~Enum()
+Enum::~Enum ()
 {
-  std::for_each (m_elements.begin(), m_elements.end(), ::Proc::Common::PtrDeleter<Element> ());
+  std::for_each (m_elements.begin (), m_elements.end (), Common::PtrDeleter<Element> ());
 }
 
 bool Enum::append_element (Element* element)
 {
-  return ::Proc::Common::PlainInserter<Element, std::list<Element*> > () (m_elements, element);
+  return Common::PlainInserter<Element, std::list<Element*> > () (m_elements, element);
 }
 
 } // namespace Api
 
 } // namespace Proc
-

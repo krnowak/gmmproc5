@@ -18,6 +18,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
+// standard
+#include <sstream>
+
+// common
+#include "internalerror.h"
+
+// parserscommon
+#include "syntaxerror.h"
+
 // defsparser
 #include "statementizetask.h"
 
@@ -30,7 +39,7 @@ namespace Parsers
 namespace ApiParsers
 {
 
-StatementizeTask::StatementizeTask(const std::string& file)
+StatementizeTask::StatementizeTask (const std::string& file)
 : m_current_statement (),
   m_current_context (CONTEXT_OUTSIDE),
   m_long_token_num (0),
@@ -50,18 +59,18 @@ StatementizeTask::StatementizeTask(const std::string& file)
   m_token_actions["'"] = std::bind (&StatementizeTask::on_token_apostrophe, this);
 }
 
-std::list<Statement> StatementizeTask::statementize(const std::list<std::string>& tokens)
+std::list<Statement> StatementizeTask::statementize (const std::list<std::string>& tokens)
 {
   std::list<std::string>::const_iterator tokens_end (tokens.end ());
 
-  cleanup();
+  cleanup ();
   for (std::list<std::string>::const_iterator token_iter (tokens.begin ()); token_iter != tokens_end; token_iter++)
   {
     StringFunctionMap::iterator it (m_token_actions.find (*token_iter));
 
     if (it != m_token_actions.end ())
     {
-      it->second();
+      it->second ();
     }
     else
     {
@@ -107,8 +116,10 @@ void StatementizeTask::on_token_open_paren ()
     }
     default:
     {
-      //internal error
-      return;
+      std::ostringstream oss;
+
+      oss << "Unknown Context value: " << m_current_context << ".";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
   }
   m_long_token_num = 0;
@@ -134,8 +145,7 @@ void StatementizeTask::on_token_close_paren ()
       m_current_context = CONTEXT_LEVEL1;
       if (!(val_empty ^ list_empty))
       {
-        // syntax error
-        return;
+        throw_syntax_error ("Expected a value or a list.");
       }
       else if (!val_empty)
       {
@@ -164,8 +174,10 @@ void StatementizeTask::on_token_close_paren ()
               }
               default:
               {
-                //error
-                return;
+                std::ostringstream oss;
+
+                oss << "Expected `#f' or `#t', got `" << m_value << "'.";
+                throw_syntax_error (oss.str ());
               }
             }
             m_current_statement.set_bool (m_key, option);
@@ -177,16 +189,17 @@ void StatementizeTask::on_token_close_paren ()
 
             if (val_length < 3)
             {
-              // empty string error
-              return;
+              throw_syntax_error ("String values have to be non-empty.");
             }
             m_current_statement.set_value (m_key, m_value.substr (1, val_length - 2));
             break;
           }
           default:
           {
-            // syntax error
-            return;
+            std::stringstream oss;
+
+            oss << "Expected a string or bool value, got `" << m_value << "'.";
+            throw_syntax_error (oss.str ());
           }
         }
       }
@@ -196,14 +209,17 @@ void StatementizeTask::on_token_close_paren ()
       }
       else
       {
-        // some kind of error
-        return;
+        throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Reached to wrong place.");
       }
       m_list_elements_count = 0;
       m_element_list.clear ();
       m_value.clear ();
       m_key.clear ();
       break;
+    }
+    case CONTEXT_BEFORE_LIST_ELEMENTS:
+    {
+      throw_syntax_error ("Expected `(', got `)'");
     }
     case CONTEXT_LIST_ELEMENTS:
     {
@@ -214,8 +230,10 @@ void StatementizeTask::on_token_close_paren ()
       }
       else if (m_list_elements_count != m_long_token_num)
       {
-        //error - different count of elements
-        return;
+        std::ostringstream oss;
+
+        oss << "Expected " << m_list_elements_count << " values in the list element, got " << m_long_token_num << ".";
+        throw_syntax_error (oss.str ());
       }
       m_element_list.push_back (m_elements);
       m_elements.clear ();
@@ -224,8 +242,10 @@ void StatementizeTask::on_token_close_paren ()
     }
     default:
     {
-      //internal error
-      return;
+      std::ostringstream oss;
+
+      oss << "Unknown Context value: " << m_current_context << ".";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
   }
   m_long_token_num = 0;
@@ -239,7 +259,7 @@ void StatementizeTask::on_token_apostrophe ()
   }
   else
   {
-    //syntax error
+    throw_syntax_error ("Unexpected apostrophe token.");
   }
 }
 
@@ -251,8 +271,10 @@ void StatementizeTask::on_token_other (const std::string& token)
     case CONTEXT_OUTSIDE:
     case CONTEXT_BEFORE_LIST_ELEMENTS:
     {
-      // syntax error
-      return;
+      std::ostringstream oss;
+
+      oss << "Expected `(', got `" << token << "'.";
+      throw_syntax_error (oss.str ());
     }
     case CONTEXT_HEADER:
     case CONTEXT_LEVEL2:
@@ -271,8 +293,10 @@ void StatementizeTask::on_token_other (const std::string& token)
         }
         default:
         {
-          //syntax error
-          return;
+          std::ostringstream oss;
+
+          oss << "Expected `)', got `" << token << "'.";
+          throw_syntax_error (oss.str ());
         }
       }
       m_long_token_num++;
@@ -286,8 +310,10 @@ void StatementizeTask::on_token_other (const std::string& token)
     }
     default:
     {
-      //internal error
-      return;
+      std::ostringstream oss;
+
+      oss << "Unknown Context value: `" << m_current_context << "'.";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
   }
 }
@@ -305,6 +331,11 @@ void StatementizeTask::cleanup ()
   m_current_line = 1;
   m_statements.clear ();
   m_file.clear();
+}
+
+void StatementizeTask::throw_syntax_error (const std::string& what_arg)
+{
+  throw SyntaxError (m_file, m_current_line, what_arg);
 }
 
 } // namespace ApiParsers

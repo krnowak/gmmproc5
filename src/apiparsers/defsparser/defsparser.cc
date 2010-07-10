@@ -23,12 +23,18 @@
 #include <memory>
 #include <sstream>
 
+// common
+#include "internalerror.h"
+
 // api
 #include "enum.h"
 #include "function.h"
 #include "namespace.h"
 #include "object.h"
 #include "param.h"
+
+// parsers
+#include "syntaxerror.h"
 
 // defsparser
 #include "defsparser.h"
@@ -56,29 +62,29 @@ DefsParser::DefsParser (const std::string& path)
   const std::string of_object ("of-object");
   const std::string empty;
 
-  m_statement_actions["include"]                = std::bind (&DefsParser::on_include, this, std::placeholders::_1);
-  m_statement_actions["define-flags-extended"]  = std::bind (&DefsParser::on_flags, this, std::placeholders::_1);
-  m_statement_actions["define-enum-extended"]   = std::bind (&DefsParser::on_enum, this, std::placeholders::_1);
-  m_statement_actions["define-object"]          = std::bind (&DefsParser::on_object, this, std::placeholders::_1);
-  m_statement_actions["define-function"]        = std::bind (&DefsParser::on_function, this, std::placeholders::_1);
-  m_statement_actions["define-method"]          = std::bind (&DefsParser::on_method, this, std::placeholders::_1);
-  m_statement_actions["define-property"]        = std::bind (&DefsParser::on_property, this, std::placeholders::_1);
-  m_statement_actions["define-signal"]          = std::bind (&DefsParser::on_signal, this, std::placeholders::_1);
-  m_statement_actions["define-vfunc"]           = std::bind (&DefsParser::on_vfunc, this, std::placeholders::_1);
-  m_statement_actions["define-flags"]           = std::bind (&DefsParser::on_omit, this, std::placeholders::_1);
-  m_statement_actions["define-enum"]            = std::bind (&DefsParser::on_omit, this, std::placeholders::_1);
+  m_statement_actions["include"] = std::bind (&DefsParser::on_include, this, std::placeholders::_1);
+  m_statement_actions["define-flags-extended"] = std::bind (&DefsParser::on_flags, this, std::placeholders::_1);
+  m_statement_actions["define-enum-extended"] = std::bind (&DefsParser::on_enum, this, std::placeholders::_1);
+  m_statement_actions["define-object"] = std::bind (&DefsParser::on_object, this, std::placeholders::_1);
+  m_statement_actions["define-function"] = std::bind (&DefsParser::on_function, this, std::placeholders::_1);
+  m_statement_actions["define-method"] = std::bind (&DefsParser::on_method, this, std::placeholders::_1);
+  m_statement_actions["define-property"] = std::bind (&DefsParser::on_property, this, std::placeholders::_1);
+  m_statement_actions["define-signal"] = std::bind (&DefsParser::on_signal, this, std::placeholders::_1);
+  m_statement_actions["define-vfunc"] = std::bind (&DefsParser::on_vfunc, this, std::placeholders::_1);
+  m_statement_actions["define-flags"] = std::bind (&DefsParser::on_omit, this, std::placeholders::_1);
+  m_statement_actions["define-enum"] = std::bind (&DefsParser::on_omit, this, std::placeholders::_1);
 
-  m_types_ns["include"]               = empty;
+  m_types_ns["include"] = empty;
   m_types_ns["define-flags-extended"] = c_name;
-  m_types_ns["define-enum-extended"]  = c_name;
-  m_types_ns["define-object"]         = c_name;
-  m_types_ns["define-function"]       = c_name;
-  m_types_ns["define-method"]         = c_name;
-  m_types_ns["define-property"]       = of_object;
-  m_types_ns["define-signal"]         = of_object;
-  m_types_ns["define-vfunc"]          = of_object;
-  m_types_ns["define-flags"]          = empty;
-  m_types_ns["define-enum"]           = empty;
+  m_types_ns["define-enum-extended"] = c_name;
+  m_types_ns["define-object"] = c_name;
+  m_types_ns["define-function"] =c_name;
+  m_types_ns["define-method"] = c_name;
+  m_types_ns["define-property"] = of_object;
+  m_types_ns["define-signal"] = of_object;
+  m_types_ns["define-vfunc"] = of_object;
+  m_types_ns["define-flags"] = empty;
+  m_types_ns["define-enum"] = empty;
 }
 
 DefsParser::~DefsParser ()
@@ -115,9 +121,10 @@ void DefsParser::tokenize ()
     TOKEN_COMMENT
   } token_type (TOKEN_NONE);
   bool escape (false);
-  std::list< std::string > tokens;
-  std::string::iterator contents_end (m_parsed_files.top().second.end ());
-  std::string::iterator token_begin (m_parsed_files.top().second.begin ());
+  std::list<std::string> tokens;
+  const std::string file (m_parsed_files.top ().first);
+  std::string::iterator contents_end (m_parsed_files.top ().second.end ());
+  std::string::iterator token_begin (m_parsed_files.top ().second.begin ());
   int current_line (0);
 
   for (std::string::iterator contents_iter (token_begin); contents_iter != contents_end; contents_iter++)
@@ -165,8 +172,10 @@ void DefsParser::tokenize ()
             }
             else if ((c != ' ') && (c != '\t'))
             {
-              // syntax error
-              return;
+              std::ostringstream oss;
+
+              oss << "Illegal char: `" << c << "'.";
+              throw SyntaxError (file, current_line, oss.str ());
             }
           }
         }
@@ -205,7 +214,7 @@ void DefsParser::tokenize ()
           }
           case '\n':
           {
-            // syntax error
+            throw SyntaxError (file, current_line, "Unexpected end of line inside a string token.");
             return;
           }
           default:
@@ -242,8 +251,10 @@ void DefsParser::tokenize ()
           {
             if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c != '-') && (c != '_') && (c != '#'))
             {
-              // syntax error
-              return;
+              std::ostringstream oss;
+
+              oss << "Illegal char inside string token: `" << c << "'.";
+              throw SyntaxError (file, current_line, oss.str ());
             }
           }
         }
@@ -269,8 +280,10 @@ void DefsParser::tokenize ()
       }
       default:
       {
-        // internal error
-        return;
+        std::ostringstream oss;
+
+        oss << "Unknown TokenType value: `" << token_type << "'.";
+        throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
       }
     }
   }
@@ -278,7 +291,7 @@ void DefsParser::tokenize ()
 
 void DefsParser::statementize ()
 {
-  std::auto_ptr<StatementizeTask> statementize_task (new StatementizeTask (m_parsed_files.top().first));
+  std::auto_ptr<StatementizeTask> statementize_task (new StatementizeTask (m_parsed_files.top ().first));
   m_statements = statementize_task->statementize (m_tokens);
 }
 
@@ -289,16 +302,18 @@ void DefsParser::apicize ()
   for (std::list<Statement>::iterator statement_iter (m_statements.begin ()); statement_iter != statements_end; statement_iter++)
   {
     const std::string type (statement_iter->get_type ());
-    std::unordered_map<std::string, std::function<void (const Statement&)> >::iterator it (m_statement_actions.find (type));
+    StringFunctionMap::iterator it (m_statement_actions.find (type));
 
     if (it != m_statement_actions.end ())
     {
-      it->second(*statement_iter);
+      it->second (*statement_iter);
     }
     else
     {
-      //error
-      return;
+      std::ostringstream oss;
+
+      oss << "Unknown statement type: `" << statement_iter->get_type () << "'.";
+      throw SyntaxError (statement_iter->get_file (), statement_iter->get_line (), oss.str ());
     }
   }
 }
@@ -312,10 +327,10 @@ void DefsParser::parse_round ()
 
 std::string DefsParser::read_contents (const std::string& filename)
 {
-  std::ifstream       file  (filename.c_str ());
-  std::ostringstream  oss;
+  std::ifstream file (filename.c_str ());
+  std::ostringstream oss;
 
-  if (file.good())
+  if (file.good ())
   {
     file >> oss.rdbuf ();
   }
@@ -343,87 +358,109 @@ void DefsParser::on_include (const Statement& statement)
 
 void DefsParser::on_enum (const Statement& statement)
 {
-  create_enum_or_flags( statement, false );
+  create_enum_or_flags (statement, false);
 }
 
 void DefsParser::on_flags (const Statement& statement)
 {
-  create_enum_or_flags( statement, true );
+  create_enum_or_flags (statement, true);
 }
 
 void DefsParser::on_object (const Statement& statement)
 {
-  const std::string cname (statement.get_value ("c-name"));
-  const std::string parent (statement.get_value ("parent"));
-  const std::string gtype (statement.get_value ("gtype-id"));
+  const Statement::StringBoolPair cname (statement.get_value ("c-name"));
+  const Statement::StringBoolPair parent (statement.get_value ("parent"));
+  const Statement::StringBoolPair gtype (statement.get_value ("gtype-id"));
   Api::Object* object (0);
 
-  if( cname.empty() || gtype.empty() || parent.empty() )
+  if (!cname.second)
   {
-    // error
-    return;
+    throw SyntaxError (statement.get_file (),statement.get_line (), "No `c-name' value.");
+  }
+  if (!parent.second)
+  {
+    throw SyntaxError (statement.get_file (),statement.get_line (), "No `parent' value.");
+  }
+  if (!gtype.second)
+  {
+    throw SyntaxError (statement.get_file (), statement.get_line (), "No`gtype-id'value.");
   }
   create_namespace (statement);
-  object = new Api::Object (cname);
+  object = new Api::Object (cname.first);
   if (!m_namespace->add_object (object))
   {
     delete object;
-    object = m_namespace->get_object (cname);
+    object = m_namespace->get_object (cname.first);
     if (!object)
     {
-      // error
-      return;
+      std::ostringstream oss;
+
+      oss << "Failed to insert object `" << cname.first << "' into namespace `" << m_namespace->get_id () << "'.";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
   }
-  object->set_parent (parent);
-  object->set_gtype (gtype);
+  object->set_parent (parent.first);
+  object->set_gtype (gtype.first);
 }
 
 void DefsParser::on_function (const Statement& statement)
 {
-  const std::string cname (statement.get_value ("c-name"));
-  const std::string ret_type (statement.get_value ("return-type"));
+  const Statement::StringBoolPair cname (statement.get_value ("c-name"));
+  const Statement::StringBoolPair ret_type (statement.get_value ("return-type"));
   Api::Function* function (0);
 
-  if (cname.empty () || ret_type.empty ())
+  if (!cname.second)
   {
-    // error
-    return;
+    throw SyntaxError (statement.get_file (), statement.get_line (), "No `c-name' value.");
+  }
+  if (!ret_type.second)
+  {
+    throw SyntaxError (statement.get_file (), statement.get_line (), "No `return-type' value.");
   }
   create_namespace (statement);
-  function = new Api::Function (cname);
+  function = new Api::Function (cname.first);
   if (!m_namespace->add_function (function))
   {
     delete function;
-    function = m_namespace->get_function (cname);
+    function = m_namespace->get_function (cname.first);
     if (!function)
     {
-      // error
-      return;
+      std::ostringstream oss;
+
+      oss << "Failed to insert function `" << cname.first << "' into namespace `" << m_namespace->get_id () << "'.";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
   }
-  function->set_ret_type (ret_type);
-  std::list<std::vector<std::string> >::const_iterator values_end (statement.get_list_end ("parameters"));
-  for (std::list<std::vector<std::string> >::const_iterator values_iter = statement.get_list_begin ("parameters"); values_iter != values_end; values_iter++)
+  function->set_ret_type (ret_type.first);
+  Statement::ConstIteratorBoolPair values_end (statement.get_list_end ("parameters"));
+  if (!values_end.second)
   {
-    if (values_iter->size () != 2)
+    throw SyntaxError (statement.get_file (), statement.get_line(), "No `parameters' list specified in statement.");
+  }
+  for (Statement::ConstIteratorBoolPair values_iter = statement.get_list_begin ("parameters"); values_iter.first != values_end.first; values_iter.first++)
+  {
+    const int elements_count (values_iter.first->size ());
+    if (elements_count != 2)
     {
-      // error
-      return;
+      std::ostringstream oss;
+
+      oss << "Expected 2 values in `parameters' list element, got" << elements_count << ".";
+      throw SyntaxError (statement.get_file (), statement.get_line (), oss.str ());
     }
-    const std::string param_name ((*values_iter)[1]);
-    const std::string param_type ((*values_iter)[2]);
+    const std::string param_name ((*(values_iter.first))[1]);
+    const std::string param_type ((*(values_iter.first))[2]);
     if (param_name.empty () || param_type.empty ())
     {
-      // error
-      return;
+      std::ostringstream oss;
+
+      oss << "Somehow empty string in statement placed in " << statement.get_file () << ", " << statement.get_line () << " slipped through earlier checks.";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
     Api::Param* param = new Api::Param (param_name);
     if (!function->append_param (param))
     {
       delete param;
-      // error
-      return;
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to insert parameter into function.");
     }
     param->set_type (param_type);
   }
@@ -456,44 +493,67 @@ void DefsParser::on_omit (const Statement& /* statement */)
 
 void DefsParser::create_enum_or_flags (const Statement& statement, bool flags)
 {
-  const std::string name ( statement.get_value ("c-name"));
-  Api::Enum* enumeration ( 0 );
+  const Statement::StringBoolPair name (statement.get_value ("c-name"));
+  Api::Enum* enumeration (0);
 
-  if ( name.empty() )
+  if (!name.second)
   {
-    // error
-    return;
+    throw SyntaxError (statement.get_file (), statement.get_line (), "No `c-name' value.");
   }
   create_namespace (statement);
-  enumeration = new Api::Enum (name);
-  if ( !m_namespace->add_enum (enumeration))
+  enumeration = new Api::Enum (name.first);
+  if (!m_namespace->add_enum (enumeration))
   {
     delete enumeration;
     enumeration = 0;
-    return;
+    if (m_namespace->get_enum (name.first))
+    {
+      std::ostringstream oss;
+
+      oss << (flags ? "Flags" : "Enum") << " `" << name.first << "' " << (flags ? "were" : "was") << "already defined.";
+      throw SyntaxError (statement.get_file (), statement.get_line (), oss.str ());
+    }
+    else
+    {
+      std::ostringstream oss;
+
+      oss << "Failed to add " << (flags ? "flags" : "enum") << " `" << name.first << "' into namespace `" << m_namespace->get_id ()<<"'.";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
+    }
   }
   enumeration->set_is_flags (flags);
-  std::list<std::vector<std::string> >::const_iterator values_end (statement.get_list_end ("values"));
-  for (std::list<std::vector<std::string> >::const_iterator values_iter = statement.get_list_begin ("values"); values_iter != values_end; values_iter++)
+  Statement::ConstIteratorBoolPair values_end (statement.get_list_end ("values"));
+  if (!values_end.second)
   {
-    if (values_iter->size () != 3)
+    throw SyntaxError (statement.get_file (), statement.get_line (), "No `values' list specified in statement.");
+  }
+  for (Statement::ConstIteratorBoolPair values_iter = statement.get_list_begin ("values"); values_iter.first != values_end.first; values_iter.first++)
+  {
+    const int elements_count (values_iter.first->size ());
+    if (elements_count != 3)
     {
-      // error
-      return;
+      std::ostringstream oss;
+
+      oss << "Expected 3 values in `values' list element, got " << elements_count << ".";
+      throw SyntaxError (statement.get_file (), statement.get_line (), oss.str ());
     }
-    const std::string elem_name ((*values_iter)[1]);
-    const std::string elem_value ((*values_iter)[2]);
+    const std::string elem_name ((*(values_iter.first))[1]);
+    const std::string elem_value ((*(values_iter.first))[2]);
     if (elem_name.empty () || elem_value.empty ())
     {
-      // error
-      return;
+      std::ostringstream oss;
+
+      oss << "Somehow empty string in statement placed in " << statement.get_file () << ", " << statement.get_line () << " slipped through earlier checks.";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
     Api::Enum::Element* element = new Api::Enum::Element (elem_name, elem_value);
     if (!enumeration->append_element (element))
     {
+      std::ostringstream oss;
+
       delete element;
-      // error
-      return;
+      oss << "Failed to insert element into " << (flags ? "flags" : "enum") << ".";
+      throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
   }
 }
@@ -501,18 +561,22 @@ void DefsParser::create_enum_or_flags (const Statement& statement, bool flags)
 void DefsParser::create_namespace (const Statement& statement)
 {
   const std::string parameter (m_types_ns[statement.get_type ()]);
-  const std::string name = statement.get_value (parameter);
-  const std::string ns_name = Api::Namespace::get_namespace_name (name);
+  const Statement::StringBoolPair name = statement.get_value (parameter);
+  const std::string ns_name = Api::Namespace::get_namespace_name (name.first);
 
-  if (name.empty ())
+  if (!name.second)
   {
     return;
   }
   if (m_namespace)
   {
-    if (m_namespace->get_id () != ns_name)
+    const std::string m_ns_name (m_namespace->get_id ());
+    if (m_ns_name != ns_name)
     {
-      //error
+      std::ostringstream oss;
+
+      oss << "Namespace is already defined (`" << m_ns_name << "'), but got also other (`" << ns_name << "').";
+      throw SyntaxError (statement.get_file (), statement.get_line (), oss.str());
     }
   }
   else

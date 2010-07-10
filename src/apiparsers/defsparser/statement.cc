@@ -29,7 +29,7 @@ namespace Parsers
 namespace ApiParsers
 {
 
-Statement::Statement()
+Statement::Statement ()
 : m_type (),
   m_header (),
   m_values (),
@@ -37,7 +37,7 @@ Statement::Statement()
   m_lists ()
 {}
 
-Statement::~Statement()
+Statement::~Statement ()
 {}
 
 std::string Statement::get_type () const
@@ -60,69 +60,73 @@ void Statement::set_header (const std::string& header)
   m_header = header;
 }
 
-std::string Statement::get_value (const std::string& key) const
+Statement::StringBoolPair Statement::get_value (const std::string& key) const
 {
-  std::unordered_map<std::string, std::string>::const_iterator it (m_values.find (key));
+  StringStringMap::const_iterator it (m_values.find (key));
+
   if (it == m_values.end ())
   {
-    // error
+    return StringBoolPair(std::string (), false);
   }
-  return it->second;
+  return StringBoolPair(it->second, true);
 }
 
 void Statement::set_value (const std::string& key, const std::string& value)
 {
-  m_values.insert (std::unordered_map<std::string, std::string>::value_type (key, value));
+  m_values.insert (StringStringMap::value_type (key, value));
 }
 
-bool Statement::get_bool (const std::string& key) const
+Statement::BoolBoolPair Statement::get_bool (const std::string& key) const
 {
-  std::unordered_map<std::string, bool>::const_iterator it (m_bools.find (key));
+  StringBoolMap::const_iterator it (m_bools.find (key));
+
   if (it == m_bools.end ())
   {
-    // error
+    return BoolBoolPair (false, false);
   }
-  return it->second;
+  return BoolBoolPair (it->second, true);
 }
 
 void Statement::set_bool (const std::string& key, bool value)
 {
-  m_bools.insert (std::unordered_map<std::string, bool>::value_type (key, value));
+  m_bools.insert (StringBoolMap::value_type (key, value));
 }
 
-std::list<std::vector<std::string> >::iterator Statement::get_list_begin (const std::string& key)
+Statement::IteratorBoolPair Statement::get_list_begin (const std::string& key)
 {
-  std::unordered_map<std::string, std::list<std::vector<std::string> > >::iterator it (m_lists.find (key));
+  StringListMap::iterator it (m_lists.find (key));
+
   if (it == m_lists.end ())
   {
-    // error
+    return IteratorBoolPair (std::list<std::vector<std::string>>::iterator (), false);
   }
-  return it->second.begin ();
+  return IteratorBoolPair (it->second.begin (), true);
 }
 
-std::list<std::vector<std::string> >::const_iterator Statement::get_list_begin (const std::string& key) const
+Statement::ConstIteratorBoolPair Statement::get_list_begin (const std::string& key) const
 {
   return const_cast<Statement*> (this)->get_list_begin (key);
 }
 
-std::list<std::vector<std::string> >::iterator Statement::get_list_end (const std::string& key)
+Statement::IteratorBoolPair Statement::get_list_end (const std::string& key)
 {
-  std::unordered_map<std::string, std::list<std::vector<std::string> > >::iterator it (m_lists.find (key));
+  StringListMap::iterator it(m_lists.find (key));
+
   if (it == m_lists.end ())
   {
-    // error
+    return IteratorBoolPair (std::list<std::vector<std::string> >::iterator(), false);
   }
-  return it->second.end ();
+  return IteratorBoolPair (it->second.end (), true);
 }
 
-std::list<std::vector<std::string> >::const_iterator Statement::get_list_end (const std::string& key) const
+Statement::ConstIteratorBoolPair Statement::get_list_end (const std::string& key) const
 {
   return const_cast<Statement*> (this)->get_list_end (key);
 }
 
-void Statement::set_list (const std::string& key, const std::list<std::vector<std::string> >& list)
+void Statement::set_list (const std::string& key,const std::list<std::vector<std::string> >& list)
 {
-  m_lists.insert (std::unordered_map<std::string, std::list<std::vector<std::string> > >::value_type (key, list));
+  m_lists.insert (StringListMap::value_type (key, list));
 }
 
 std::string Statement::get_file () const
@@ -145,7 +149,7 @@ void Statement::set_line (unsigned int line)
   m_line = line;
 }
 
-void Statement::clear()
+void Statement::clear ()
 {
   m_type.clear ();
   m_header.clear ();

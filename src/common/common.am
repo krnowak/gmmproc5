@@ -1,6 +1,8 @@
 libcommon_src = \
-	src/common/apitemplates.cc
-	src/common/apitemplates.h
+	src/common/apitemplates.cc \
+	src/common/apitemplates.h \
+	src/common/internalerror.cc \
+	src/common/internalerror.h \
 	src/common/stlops.h
 
 lib_LTLIBRARIES += src/common/libcommon.la

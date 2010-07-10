@@ -5,6 +5,7 @@ Makefile.in
 .libs
 *.l[ao]
 *.o
+*~
 /aclocal.m4
 /autom4te.cache
 /build/config.guess

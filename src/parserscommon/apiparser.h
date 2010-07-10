@@ -18,45 +18,45 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// common
-#include "apitemplates.h"
-
-// api
-#include "signal.h"
+#ifndef PROC_PARSERS_API_PARSER_H
+#define PROC_PARSERS_API_PARSER_H
 
 namespace Proc
 {
 
-namespace Common
-{
-
-template <>
-struct ZeroTraits<Api::RunFlags>
-{
-  typedef Api::RunFlags Type;
-  static const Type zero;
-};
-
-const ZeroTraits<Api::RunFlags>::Type ZeroTraits<Api::RunFlags>::zero = Api::RUN_INVALID;
-
-} // namespace Common
-
 namespace Api
 {
 
-Signal::Signal (const std::string& id)
-: Function (id),
-  m_run_flags (RUN_INVALID)
-{}
-
-Signal::~Signal ()
-{}
-
-bool Signal::set_run_flags (RunFlags run_flags)
-{
-  return Common::FieldAssigner<RunFlags> () (m_run_flags, run_flags);
-}
+class Namespace;
 
 } // namespace Api
 
+namespace Parsers
+{
+
+class ApiParser
+{
+public:
+  virtual                 ~ApiParser () {}
+  inline Api::Namespace*  parse () throw (Common::InternalError, SyntaxError);
+  inline std::string      get_ext () const throw ();
+private:
+  virtual Api::Namespace* parse_vfunc () = 0;
+  virtual std::string     get_ext_vfunc () const = 0;
+};
+
+inline Api::Namespace* ApiParser::parse() throw (Common::InternalError, SyntaxError)
+{
+  return parse_vfunc();
+}
+
+inline std::string ApiParser::get_ext () const throw ()
+{
+  return get_ext_vfunc ();
+}
+
+} // namespace Parsers
+
 } // namespace Proc
+
+#endif // PROC_PARSERS_APIPARSERS_H

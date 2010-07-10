@@ -27,7 +27,7 @@ namespace Proc
 namespace Common
 {
 
-const ZeroTraits<std::string>::Type ZeroTraits<std::string>::zero = std::string();
+const ZeroTraits<std::string>::Type ZeroTraits<std::string>::zero = std::string ();
 
 } // namespace Common
 

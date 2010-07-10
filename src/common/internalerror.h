@@ -18,45 +18,29 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_PARSERS_API_PARSER_H
-#define PROC_PARSERS_API_PARSER_H
+#ifndef PROC_COMMON_INTERNAL_ERROR_H
+#define PROC_COMMON_INTERNAL_ERROR_H
+
+// standard
+#include <stdexcept>
 
 namespace Proc
 {
 
-namespace Api
+namespace Common
 {
 
-class Namespace;
-
-} // namespace Api
-
-namespace Parsers
-{
-
-class ApiParser
+class InternalError : public std::runtime_error
 {
 public:
-  virtual                 ~ApiParser () {}
-  inline Api::Namespace*  parse ();
-  inline std::string      get_ext () const;
+  explicit            InternalError (const char* file, const char* function, unsigned int line, const std::string& what_arg) throw ();
+  virtual             ~InternalError () throw ();
 private:
-  virtual Api::Namespace* parse_vfunc () = 0;
-  virtual std::string     get_ext_vfunc () const = 0;
+  static std::string  create_string (const char* file, const char* function, unsigned int line, const std::string& what_arg) throw ();
 };
 
-inline Api::Namespace* ApiParser::parse()
-{
-  return parse_vfunc();
-}
-
-inline std::string ApiParser::get_ext () const
-{
-  return get_ext_vfunc ();
-}
-
-} // namespace Parsers
+} // namespace Common
 
 } // namespace Proc
 
-#endif // PROC_PARSERS_APIPARSERS_H
+#endif // PROC_COMMON_INTERNAL_ERROR_H

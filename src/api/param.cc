@@ -40,7 +40,7 @@ Param::~Param ()
 
 bool Param::set_type (const std::string& type)
 {
-  return ::Proc::Common::FieldAssigner<std::string> () (m_type, type);
+  return Common::FieldAssigner<std::string> () (m_type, type);
 }
 
 } // namespace Api

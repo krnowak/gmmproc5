@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 
 namespace Proc
 {
@@ -39,42 +40,51 @@ namespace ApiParsers
 class Statement
 {
 public:
-  Statement ();
-  virtual ~Statement ();
+  typedef std::pair<std::list<std::vector<std::string> >::iterator, bool> IteratorBoolPair;
+  typedef std::pair<std::list<std::vector<std::string> >::const_iterator, bool> ConstIteratorBoolPair;
+  typedef std::pair<std::string, bool> StringBoolPair;
+  typedef std::pair<bool, bool> BoolBoolPair;
 
-  std::string get_type () const;
-  void set_type (const std::string& type);
+                                                        Statement ();
+  virtual                                               ~Statement ();
 
-  std::string get_header () const;
-  void set_header (const std::string& header);
+  std::string                                           get_type () const;
+  void                                                  set_type (const std::string& type);
 
-  std::string get_value (const std::string& key) const;
-  void set_value (const std::string& key, const std::string& value);
+  std::string                                           get_header () const;
+  void                                                  set_header (const std::string& header);
 
-  bool get_bool (const std::string& key) const;
-  void set_bool (const std::string& key, bool value);
+  StringBoolPair                                        get_value (const std::string& key) const;
+  void                                                  set_value (const std::string& key, const std::string& value);
 
-  std::list<std::vector<std::string> >::iterator get_list_begin (const std::string& key);
-  std::list<std::vector<std::string> >::const_iterator get_list_begin (const std::string& key) const;
-  std::list<std::vector<std::string> >::iterator get_list_end (const std::string& key);
-  std::list<std::vector<std::string> >::const_iterator get_list_end (const std::string& key) const;
-  void set_list (const std::string& key, const std::list<std::vector<std::string> >& list);
+  BoolBoolPair                                          get_bool (const std::string& key) const;
+  void                                                  set_bool (const std::string& key, bool value);
 
-  std::string get_file () const;
-  void set_file (const std::string& file);
+  IteratorBoolPair                                      get_list_begin (const std::string& key);
+  ConstIteratorBoolPair                                 get_list_begin (const std::string& key) const;
+  IteratorBoolPair                                      get_list_end (const std::string& key);
+  ConstIteratorBoolPair                                 get_list_end (const std::string& key) const;
+  void                                                  set_list (const std::string& key, const std::list<std::vector<std::string> >& list);
 
-  unsigned int get_line () const;
-  void set_line (unsigned int line);
+  std::string                                           get_file () const;
+  void                                                  set_file (const std::string& file);
 
-  void clear();
+  unsigned int                                          get_line () const;
+  void                                                  set_line (unsigned int line);
+
+  void                                                  clear();
 private:
-  std::string m_type;
-  std::string m_header;
-  std::unordered_map<std::string, std::string> m_values;
-  std::unordered_map<std::string, bool> m_bools;
-  std::unordered_map<std::string, std::list<std::vector<std::string> > > m_lists;
-  std::string m_file;
-  unsigned int m_line;
+  typedef std::unordered_map<std::string, std::string> StringStringMap;
+  typedef std::unordered_map<std::string, bool> StringBoolMap;
+  typedef std::unordered_map<std::string, std::list<std::vector<std::string> > > StringListMap;
+
+  std::string                                           m_type;
+  std::string                                           m_header;
+  StringStringMap                                       m_values;
+  StringBoolMap                                         m_bools;
+  StringListMap                                         m_lists;
+  std::string                                           m_file;
+  unsigned int                                          m_line;
 };
 
 } // namespace ApiParsers

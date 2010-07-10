@@ -39,7 +39,7 @@ Id::~Id ()
 
 bool Id::set_id (const std::string& id)
 {
-  return ::Proc::Common::FieldAssigner<std::string> () (m_id, id);
+  return Common::FieldAssigner<std::string> () (m_id, id);
 }
 
 } // namespace Api

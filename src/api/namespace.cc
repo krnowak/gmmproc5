@@ -47,14 +47,14 @@ Namespace::Namespace (const std::string& id)
 
 Namespace::~Namespace ()
 {
-  std::for_each (m_enums.begin (), m_enums.end (), ::Proc::Common::PairDeleter<std::string, Enum> ());
-  std::for_each (m_objects.begin (), m_objects.end (), ::Proc::Common::PairDeleter<std::string, Object> ());
-  std::for_each (m_functions.begin (), m_functions.end (), ::Proc::Common::PairDeleter<std::string, Function> ());
+  std::for_each (m_enums.begin (), m_enums.end (), Common::PairDeleter<std::string, Enum> ());
+  std::for_each (m_objects.begin (), m_objects.end (), Common::PairDeleter<std::string, Object> ());
+  std::for_each (m_functions.begin (), m_functions.end (), Common::PairDeleter<std::string, Function> ());
 }
 
 bool Namespace::add_function (Function* function)
 {
-  return ::Proc::Common::IdInserter<Function> () (m_functions, function);
+  return Common::IdInserter<Function> () (m_functions, function);
 }
 
 Function* Namespace::get_function (const std::string& c_name) const
@@ -70,7 +70,7 @@ Function* Namespace::get_function (const std::string& c_name) const
 
 bool Namespace::add_object (Object* object)
 {
-  return ::Proc::Common::IdInserter<Object> () (m_objects, object);
+  return Common::IdInserter<Object> () (m_objects, object);
 }
 
 Object* Namespace::get_object (const std::string& c_name) const
@@ -86,7 +86,7 @@ Object* Namespace::get_object (const std::string& c_name) const
 
 bool Namespace::add_enum (Enum* enumeration)
 {
-  return ::Proc::Common::IdInserter<Enum> () (m_enums, enumeration);
+  return Common::IdInserter<Enum> () (m_enums, enumeration);
 }
 
 Enum* Namespace::get_enum (const std::string& c_name) const
@@ -154,4 +154,3 @@ bool Namespace::capital_break (const std::string::const_iterator& it)
 } // namespace Api
 
 } // namespace Proc
-
