@@ -29,11 +29,8 @@ namespace Parsers
 namespace ApiParsers
 {
 
-namespace DefsPrivate
-{
-
 Statement::Statement()
-  m_type (),
+: m_type (),
   m_header (),
   m_values (),
   m_bools (),
@@ -65,47 +62,67 @@ void Statement::set_header (const std::string& header)
 
 std::string Statement::get_value (const std::string& key) const
 {
-  return m_values[key];
+  std::unordered_map<std::string, std::string>::const_iterator it (m_values.find (key));
+  if (it == m_values.end ())
+  {
+    // error
+  }
+  return it->second;
 }
 
 void Statement::set_value (const std::string& key, const std::string& value)
 {
-  m_values[key] = value;
+  m_values.insert (std::unordered_map<std::string, std::string>::value_type (key, value));
 }
 
 bool Statement::get_bool (const std::string& key) const
 {
-  return m_bools[key];
+  std::unordered_map<std::string, bool>::const_iterator it (m_bools.find (key));
+  if (it == m_bools.end ())
+  {
+    // error
+  }
+  return it->second;
 }
 
 void Statement::set_bool (const std::string& key, bool value)
 {
-  m_bools[key] = value;
+  m_bools.insert (std::unordered_map<std::string, bool>::value_type (key, value));
 }
 
 std::list<std::vector<std::string> >::iterator Statement::get_list_begin (const std::string& key)
 {
-  return m_lists.begin ();
+  std::unordered_map<std::string, std::list<std::vector<std::string> > >::iterator it (m_lists.find (key));
+  if (it == m_lists.end ())
+  {
+    // error
+  }
+  return it->second.begin ();
 }
 
 std::list<std::vector<std::string> >::const_iterator Statement::get_list_begin (const std::string& key) const
 {
-  return const_cast<Statement*> (this)->get_list_begin ();
+  return const_cast<Statement*> (this)->get_list_begin (key);
 }
 
 std::list<std::vector<std::string> >::iterator Statement::get_list_end (const std::string& key)
 {
-  return m_lists.end ();
+  std::unordered_map<std::string, std::list<std::vector<std::string> > >::iterator it (m_lists.find (key));
+  if (it == m_lists.end ())
+  {
+    // error
+  }
+  return it->second.end ();
 }
 
 std::list<std::vector<std::string> >::const_iterator Statement::get_list_end (const std::string& key) const
 {
-  return const_cast<Statement*> (this)->get_list_end ();
+  return const_cast<Statement*> (this)->get_list_end (key);
 }
 
 void Statement::set_list (const std::string& key, const std::list<std::vector<std::string> >& list)
 {
-  m_lists[key] = list;
+  m_lists.insert (std::unordered_map<std::string, std::list<std::vector<std::string> > >::value_type (key, list));
 }
 
 std::string Statement::get_file () const
@@ -138,8 +155,6 @@ void Statement::clear()
   m_file.clear ();
   m_line = 0;
 }
-
-} // namespace DefsPrivate
 
 } // namespace ApiParsers
 

@@ -45,8 +45,8 @@ public:
   
   virtual ~Function ();
   
-  inline std::string get_ret_val () const;
-  bool set_ret_val (const std::string& ret_val);
+  inline std::string get_ret_type () const;
+  bool set_ret_type (const std::string& ret_type);
   
   inline std::list<Param*>::const_iterator get_begin () const;
   inline std::list<Param*>::iterator get_begin ();
@@ -61,14 +61,14 @@ public:
   
   inline bool operator== (const Function& function) const;
 private:
-  std::string m_ret_val;
+  std::string m_ret_type;
   std::list<Param*> m_parameters;
   bool m_has_varargs;
 };
 
-inline std::string Function::get_ret_val () const
+inline std::string Function::get_ret_type () const
 {
-  return m_ret_val;
+  return m_ret_type;
 }
 
 inline std::list<Param*>::const_iterator Function::get_begin () const

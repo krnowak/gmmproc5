@@ -2,7 +2,9 @@ libdefsparser_src = \
 	src/apiparsers/defsparser/defsparser.cc \
 	src/apiparsers/defsparser/defsparser.h \
 	src/apiparsers/defsparser/statement.cc \
-	src/apiparsers/defsparser/statement.h
+	src/apiparsers/defsparser/statement.h \
+	src/apiparsers/defsparser/statementizetask.cc \
+	src/apiparsers/defsparser/statementizetask.h
 
 lib_LTLIBRARIES += src/apiparsers/defsparser/libdefsparser.la
 

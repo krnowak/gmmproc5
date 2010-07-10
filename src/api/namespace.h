@@ -48,10 +48,13 @@ public:
   virtual ~Namespace ();
   
   bool add_enum (Enum* enumeration);
+  Enum* get_enum (const std::string& c_name) const;
   
   bool add_object (Object* object);
+  Object* get_object (const std::string& c_name) const;
   
   bool add_function (Function* function);
+  Function* get_function (const std::string& c_name) const;
   
   inline bool operator== (const Namespace& ns);
   

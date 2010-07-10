@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// defsprivate
+// defsparser
 #include "statementizetask.h"
 
 namespace Proc
@@ -28,9 +28,6 @@ namespace Parsers
 {
 
 namespace ApiParsers
-{
-
-namespace DefsPrivate
 {
 
 StatementizeTask::StatementizeTask(const std::string& file)
@@ -53,14 +50,14 @@ StatementizeTask::StatementizeTask(const std::string& file)
   m_token_actions["'"] = std::bind (&StatementizeTask::on_token_apostrophe, this);
 }
 
-std::list<Statement> StatementizeTask::statementize(const std::list<const std::string>& tokens)
+std::list<Statement> StatementizeTask::statementize(const std::list<std::string>& tokens)
 {
   std::list<std::string>::const_iterator tokens_end (tokens.end ());
 
   cleanup();
   for (std::list<std::string>::const_iterator token_iter (tokens.begin ()); token_iter != tokens_end; token_iter++)
   {
-    std::map<std::string, std::function< void()> >::iterator it (m_token_actions.find (*token_iter));
+    StringFunctionMap::iterator it (m_token_actions.find (*token_iter));
 
     if (it != m_token_actions.end ())
     {
@@ -309,8 +306,6 @@ void StatementizeTask::cleanup ()
   m_statements.clear ();
   m_file.clear();
 }
-
-} // namespace DefsPrivate
 
 } // namespace ApiParsers
 

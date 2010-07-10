@@ -18,17 +18,21 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_PARSERS_API_PARSERS_DEFSPARSER_H
-#define PROC_PARSERS_API_PARSERS_DEFSPARSER_H
+#ifndef PROC_PARSERS_API_PARSERS_DEFS_PARSER_H
+#define PROC_PARSERS_API_PARSERS_DEFS_PARSER_H
 
 // standard
-#include <iosfwd>
-#include <map>
+#include <list>
+#include <stack>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 // parsers
 #include "apiparser.h"
+
+// defsprivate
+#include "statement.h"
 
 namespace Proc
 {
@@ -46,67 +50,48 @@ namespace Parsers
 namespace ApiParsers
 {
 
-namespace DefsPrivate
-{
-
-class Statement;
-class ParserStuff;
-
-} // namespace DefsPrivate
-
 class DefsParser : public ApiParser
 {
 public:
-                            DefsParser (const std::string& filename);
-  virtual                   ~DefsParser();
+  DefsParser (const std::string& path);
+  virtual ~DefsParser ();
+
 private:
-  enum DefineType
-  {
-    INCLUDE,
-    ENUM,
-    FLAGS,
-    OBJECT,
-    FUNCTION,
-    METHOD,
-    PROPERTY,
-    SIGNAL,
-    VFUNC,
-    OMIT
-  };
-  
-  enum Context
-  {
-    CONTEXT_OUTSIDE,
-    CONTEXT_HEADER,
-    CONTEXT_LEVEL1,
-    CONTEXT_LEVEL2,
-    CONTEXT_LIST_ELEMENT
-  };
+  typedef std::unordered_map<std::string, std::function<void (const Statement&)> > StringFunctionMap;
+  typedef std::stack<std::pair<std::string, std::string> > FileStack;
+  typedef std::unordered_map<std::string, std::string> StringStringMap;
   
   virtual Api::Namespace*   parse_vfunc ();
   virtual std::string       get_ext_vfunc () const;
 
-  //void                    parse_stream( std::istream& stream );
-  //std::string             get_statement( std::istream& stream );
-  //void                    parse_statement( const DefsPrivate::Statement& statement );
+  void                      tokenize ();
+  void                      statementize ();
+  void                      apicize ();
+  void                      parse_round ();
+  std::string               read_contents (const std::string& path);
+  std::string               dirname (const std::string& path);
   
-  /*void                    on_include( const DefsPrivate::Statement& statement );
-  void                    on_enum( const DefsPrivate::Statement& statement );
-  void                    on_flags( const DefsPrivate::Statement& statement );
-  void                    on_object( const DefsPrivate::Statement& statement );
-  void                    on_function( const DefsPrivate::Statement& statement );
-  void                    on_method( const DefsPrivate::Statement& statement );
-  void                    on_property( const DefsPrivate::Statement& statement );
-  void                    on_signal( const DefsPrivate::Statement& statement );
-  void                    on_vfunc( const DefsPrivate::Statement& statement );
-  void                    on_omit( const DefsPrivate::Statement& statement );*/
+  void                      on_include (const Statement& statement);
+  void                      on_enum (const Statement& statement);
+  void                      on_flags (const Statement& statement);
+  void                      on_object (const Statement& statement);
+  void                      on_function (const Statement& statement);
+  void                      on_method (const Statement& statement);
+  void                      on_property (const Statement& statement);
+  void                      on_signal (const Statement& statement);
+  void                      on_vfunc (const Statement& statement);
+  void                      on_omit (const Statement& statement);
   
-  //void                    create_namespace( DefineType type, const DefsPrivate::Statement& statement );
-  //void                    create_ef( const std::string& statement, bool flags );
-  //std::string             extract_parentheses( std::istream& stream );
-  //std::pair< std::string, std::string> get_enum_element( const std::string& values );
+  void						          create_enum_or_flags (const Statement& statement, bool flags);
+  void						          create_namespace (const Statement& statement);
 
-  DefsPrivate::ParserStuff* m_stuff;
+  std::list<std::string>    m_tokens;
+  std::list<Statement>      m_statements;
+  std::string               m_directory;
+  Api::Namespace*           m_namespace;
+  StringFunctionMap         m_statement_actions;
+  FileStack                 m_parsed_files;
+  StringStringMap           m_types_ns;
 };
 
 } // namespace ApiParsers
@@ -115,4 +100,4 @@ private:
 
 } // namespace Proc
 
-#endif // PROC_PARSERS_API_PARSERS_DEFSPARSER_H
+#endif // PROC_PARSERS_API_PARSERS_DEFS_PARSER_H

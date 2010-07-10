@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_DEFAULT_SOURCE_EXT = .cc
 
-common_cxxflags = -Wall -Wextra -pedantic -Werror
+common_cxxflags = -Wall -Wextra -pedantic -Werror -std=c++0x
 
 ACLOCAL_AMFLAGS = -I build ${ACLOCAL_FLAGS}
 

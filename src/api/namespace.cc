@@ -20,6 +20,7 @@
 
 // standard
 #include <algorithm>
+#include <functional>
 // common
 #include "apitemplates.h"
 #include "stlops.h"
@@ -54,9 +55,29 @@ bool Namespace::add_function (Function* function)
   return ::Proc::Common::IdInserter<Function> () (m_functions, function);
 }
 
+Function* Namespace::get_function (const std::string& c_name) const
+{
+  std::map<std::string, Function*>::const_iterator it (m_functions.find (c_name));
+  if (it != m_functions.end ())
+  {
+    return it->second;
+  }
+  return 0;
+}
+
 bool Namespace::add_object (Object* object)
 {
   return ::Proc::Common::IdInserter<Object> () (m_objects, object);
+}
+
+Object* Namespace::get_object (const std::string& c_name) const
+{
+  std::map<std::string, Object*>::const_iterator it (m_objects.find (c_name));
+  if (it != m_objects.end ())
+  {
+    return it->second;
+  }
+  return 0;
 }
 
 bool Namespace::add_enum (Enum* enumeration)
@@ -64,6 +85,15 @@ bool Namespace::add_enum (Enum* enumeration)
   return ::Proc::Common::IdInserter<Enum> () (m_enums, enumeration);
 }
 
+Enum* Namespace::get_enum (const std::string& c_name) const
+{
+  std::map<std::string, Enum*>::const_iterator it (m_enums.find (c_name));
+  if (it != m_enums.end ())
+  {
+    return it->second;
+  }
+  return 0;
+}
 std::string Namespace::get_namespace_name (const std::string& name)
 {
   std::string::const_iterator it;
@@ -78,11 +108,11 @@ std::string Namespace::get_namespace_name (const std::string& name)
   it = name.begin ();
   if ((*it >= 'A') && (*it <= 'Z'))
   {
-    break_func = std::bind (&Namespace::capital_break, _1);
+    break_func = std::bind (&Namespace::capital_break, std::placeholders::_1);
   }
   else if ((*it >= 'a') && (*it <= 'z'))
   {
-    break_func = std::bind (&Namespace::underline_break, _1);
+    break_func = std::bind (&Namespace::underline_break, std::placeholders::_1);
     grow = true;
   }
   else
@@ -93,7 +123,7 @@ std::string Namespace::get_namespace_name (const std::string& name)
   {
     it++;
   }
-  while ((it != name.end ()) && b_f (it));
+  while ((it != name.end ()) && break_func (it));
   if (it == name.end ())
   {
     return std::string ();

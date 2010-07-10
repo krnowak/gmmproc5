@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENTIZE_TASK_H
-#define PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENTIZE_TASK_H
+#ifndef PROC_PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
+#define PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
 
 // standard
 #include <functional>
@@ -41,15 +41,14 @@ namespace Parsers
 namespace ApiParsers
 {
 
-namespace DefsPrivate
-{
-
 class StatementizeTask
 {
 public:
-  StatementizeTask(const std::string& file);
-  std::list<Statement>                            statementize (const std::list<const std::string>& tokens);
+                                                  StatementizeTask(const std::string& file);
+  std::list<Statement>                            statementize (const std::list<std::string>& tokens);
 private:
+  typedef std::unordered_map< std::string, std::function<void()> > StringFunctionMap;
+
   void                                            on_token_newline ();
   void                                            on_token_open_paren ();
   void                                            on_token_close_paren ();
@@ -70,18 +69,16 @@ private:
   Statement                                       m_current_statement;
   Context                                         m_current_context;
   int                                             m_long_token_num;
-  int                                                       m_list_elements_count;
-  std::string                                               m_value;
-  std::string                                               m_key;
-  std::list<std::vector<std::string> >                      m_element_list;
-  std::vector<std::string>                                  m_elements;
-  std::unordered_map< std::string, std::function<void()> >  m_token_actions;
+  int                                             m_list_elements_count;
+  std::string                                     m_value;
+  std::string                                     m_key;
+  std::list<std::vector<std::string> >            m_element_list;
+  std::vector<std::string>                        m_elements;
+  StringFunctionMap                               m_token_actions;
   int                                             m_current_line;
   std::list<Statement>                            m_statements;
   std::string                                     m_file;
 };
-
-} // namespace DefsPrivate
 
 } // namespace ApiParsers
 
@@ -89,5 +86,5 @@ private:
 
 } // namespace Proc
 
-#endif // PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENTIZE_TASK_H
+#endif // PARSERS_API_PARSERS_STATEMENTIZE_TASK_H
 

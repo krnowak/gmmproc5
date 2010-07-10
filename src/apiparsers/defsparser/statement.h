@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENT_H
-#define PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENT_H
+#ifndef PROC_PARSERS_API_PARSERS_STATEMENT_H
+#define PROC_PARSERS_API_PARSERS_STATEMENT_H
 
 // standard
 #include <list>
@@ -36,9 +36,6 @@ namespace Parsers
 namespace ApiParsers
 {
 
-namespace DefsPrivate
-{
-
 class Statement
 {
 public:
@@ -48,13 +45,13 @@ public:
   std::string get_type () const;
   void set_type (const std::string& type);
   
-  std::string get_header() const;
+  std::string get_header () const;
   void set_header (const std::string& header);
   
-  std::string get_value (const std::string& key);
-  void set_value (const std::string& key, const std::string& value)
+  std::string get_value (const std::string& key) const;
+  void set_value (const std::string& key, const std::string& value);
   
-  bool get_bool (const std::string& key);
+  bool get_bool (const std::string& key) const;
   void set_bool (const std::string& key, bool value);
   
   std::list<std::vector<std::string> >::iterator get_list_begin (const std::string& key);
@@ -80,12 +77,10 @@ private:
   unsigned int m_line;
 };
 
-} // namespace DefsPrivate
-
 } // namespace ApiParsers
 
 } // namespace Parsers
 
 } // namespace Proc
 
-#endif // PROC_PARSERS_APIPARSERS_DEFSPRIVATE_STATEMENT_H
+#endif // PROC_PARSERS_API_PARSERS_STATEMENT_H
