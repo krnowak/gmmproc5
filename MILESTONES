@@ -1,0 +1,28 @@
+alpha - gtkmm sources can be generated (without documentation) and compiled
+without warnings with g++ using -Wall -Wextra -pedantic flags
+that means:
+  - write a defs parser - DONE
+  - write a template files (hg, ccg) tokenizer
+  - write a plugin system for template commands
+  - write plugins for template commands
+  - write conversions parsers
+  - write an application which takes the same parameters as old gmmproc4
+
+beta - documentation can be generated also
+that means:
+  - write a documentation parser (in truth - xml parser)
+  - decide whether gmmproc can be dependent on external libraries or stay
+    on using standard library only.
+  - write a mappings parser
+  - add new functionality to application
+
+first release - usable for all mm-modules
+that means:
+  - integration with mm-common
+  - bugfixing
+  - bugfixing
+  - one more time: bugfixing
+
+second release - use gir definitions as API reference
+that means:
+  - write gir files parser - previously written xml parser can be written
