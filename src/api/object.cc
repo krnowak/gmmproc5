@@ -46,7 +46,8 @@ Object::Object (const std::string& id)
   m_methods (),
   m_signals (),
   m_properties (),
-  m_vfuncs ()
+  m_vfuncs (),
+  m_is_interface (false)
 {}
 
 Object::~Object()

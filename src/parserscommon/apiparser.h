@@ -21,6 +21,12 @@
 #ifndef PROC_PARSERS_API_PARSER_H
 #define PROC_PARSERS_API_PARSER_H
 
+// common
+#include "internalerror.h"
+
+// parserscommon
+#include "syntaxerror.h"
+
 namespace Proc
 {
 

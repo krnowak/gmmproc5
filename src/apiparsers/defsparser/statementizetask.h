@@ -54,7 +54,6 @@ private:
   void                                            on_token_close_paren ();
   void                                            on_token_apostrophe ();
   void                                            on_token_other (const std::string& token);
-  void                                            cleanup ();
   void                                            throw_syntax_error (const std::string& what_arg);
 
   enum Context

@@ -61,6 +61,9 @@ public:
   bool                add_property (Property* property);
   bool                add_vfunc (Function* vfunc);
 
+  inline bool         is_interace () const;
+  inline void         set_is_interface (bool iface);
+
   inline bool         operator== (const Object& object);
 private:
   typedef std::unordered_map<std::string, Function*> StringFunctionMap;
@@ -75,6 +78,7 @@ private:
   StringSignalMap     m_signals;
   StringPropertyMap   m_properties;
   StringFunctionMap   m_vfuncs;
+  bool                m_is_interface;
 };
 
 inline std::string Object::get_parent () const
@@ -85,6 +89,16 @@ inline std::string Object::get_parent () const
 inline std::string Object::get_gtype () const
 {
   return m_gtype;
+}
+
+inline bool Object::is_interace () const
+{
+  return m_is_interface;
+}
+
+inline void Object::set_is_interface (bool iface)
+{
+  m_is_interface = iface;
 }
 
 inline bool Object::operator== (const Object& object)

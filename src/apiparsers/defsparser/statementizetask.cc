@@ -63,7 +63,6 @@ std::list<Statement> StatementizeTask::statementize (const std::list<std::string
 {
   std::list<std::string>::const_iterator tokens_end (tokens.end ());
 
-  cleanup ();
   for (std::list<std::string>::const_iterator token_iter (tokens.begin ()); token_iter != tokens_end; token_iter++)
   {
     StringFunctionMap::iterator it (m_token_actions.find (*token_iter));
@@ -109,6 +108,9 @@ void StatementizeTask::on_token_open_paren ()
       break;
     }
     case CONTEXT_LEVEL2:
+    {
+      throw_syntax_error ("Expected an apostrophe before opening paren.");
+    }
     case CONTEXT_BEFORE_LIST_ELEMENTS:
     {
       m_current_context = CONTEXT_LIST_ELEMENTS;
@@ -130,6 +132,11 @@ void StatementizeTask::on_token_close_paren ()
   switch (m_current_context)
   {
     case CONTEXT_HEADER:
+    {
+      m_current_statement.set_type (m_key);
+      m_current_statement.set_header (m_value);
+      // fall through
+    }
     case CONTEXT_LEVEL1:
     {
       m_current_context = CONTEXT_OUTSIDE;
@@ -316,21 +323,6 @@ void StatementizeTask::on_token_other (const std::string& token)
       throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
     }
   }
-}
-
-void StatementizeTask::cleanup ()
-{
-  m_current_statement.clear ();
-  m_current_context = CONTEXT_OUTSIDE;
-  m_long_token_num = 0;
-  m_list_elements_count = 0;
-  m_value.clear ();
-  m_key.clear ();
-  m_element_list.clear ();
-  m_elements.clear ();
-  m_current_line = 1;
-  m_statements.clear ();
-  m_file.clear();
 }
 
 void StatementizeTask::throw_syntax_error (const std::string& what_arg)

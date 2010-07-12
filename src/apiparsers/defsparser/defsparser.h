@@ -31,7 +31,7 @@
 // parsers
 #include "apiparser.h"
 
-// defsprivate
+// defsparser
 #include "statement.h"
 
 namespace Proc
@@ -60,6 +60,8 @@ private:
   typedef std::unordered_map<std::string, std::function<void (const Statement&)> > StringFunctionMap;
   typedef std::stack<std::pair<std::string, std::string> > FileStack;
   typedef std::unordered_map<std::string, std::string> StringStringMap;
+  typedef std::stack<std::list<std::string> > TokensStack;
+  typedef std::stack<std::list<Statement> > StatementsStack;
 
   virtual Api::Namespace*   parse_vfunc ();
   virtual std::string       get_ext_vfunc () const;
@@ -85,8 +87,8 @@ private:
   void						          create_enum_or_flags (const Statement& statement, bool flags);
   void						          create_namespace (const Statement& statement);
 
-  std::list<std::string>    m_tokens;
-  std::list<Statement>      m_statements;
+  TokensStack               m_tokens;
+  StatementsStack           m_statements;
   std::string               m_directory;
   Api::Namespace*           m_namespace;
   StringFunctionMap         m_statement_actions;

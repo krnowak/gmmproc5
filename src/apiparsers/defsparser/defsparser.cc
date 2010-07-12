@@ -50,12 +50,12 @@ namespace ApiParsers
 {
 
 DefsParser::DefsParser (const std::string& path)
-: m_tokens (),
-  m_statements (),
+: m_tokens (std::deque<TokensStack::value_type> (1)),
+  m_statements (std::deque<StatementsStack::value_type> (1)),
   m_directory (dirname (path)),
   m_namespace (0),
   m_statement_actions (),
-  m_parsed_files (std::deque<std::pair<std::string, std::string> > (1, std::make_pair (path, read_contents (path)))),
+  m_parsed_files (std::deque<FileStack::value_type> (1, FileStack::value_type (path, read_contents (path)))),
   m_types_ns ()
 {
   const std::string c_name ("c-name");
@@ -121,11 +121,10 @@ void DefsParser::tokenize ()
     TOKEN_COMMENT
   } token_type (TOKEN_NONE);
   bool escape (false);
-  std::list<std::string> tokens;
   const std::string file (m_parsed_files.top ().first);
   std::string::iterator contents_end (m_parsed_files.top ().second.end ());
   std::string::iterator token_begin (m_parsed_files.top ().second.begin ());
-  int current_line (0);
+  int current_line (1);
 
   for (std::string::iterator contents_iter (token_begin); contents_iter != contents_end; contents_iter++)
   {
@@ -182,7 +181,7 @@ void DefsParser::tokenize ()
 
         if (push)
         {
-          m_tokens.push_back (std::string (1, c));
+          m_tokens.top ().push_back (std::string (1, c));
         }
         if (begin)
         {
@@ -198,7 +197,7 @@ void DefsParser::tokenize ()
           {
             if (!escape)
             {
-              m_tokens.push_back (std::string (token_begin, contents_iter + 1));
+              m_tokens.top ().push_back (std::string (token_begin, contents_iter + 1));
               token_type = TOKEN_NONE;
             }
             else
@@ -214,7 +213,7 @@ void DefsParser::tokenize ()
           }
           case '\n':
           {
-            throw SyntaxError (file, current_line, "Unexpected end of line inside a string token.");
+            throw SyntaxError (file, current_line, "Unexpected end of line inside a double-quoted token.");
             return;
           }
           default:
@@ -249,7 +248,7 @@ void DefsParser::tokenize ()
           }
           default:
           {
-            if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c != '-') && (c != '_') && (c != '#'))
+            if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c < '0' || c > '9') && (c != '-') && (c != '_') && (c != '#') && (c != '.'))
             {
               std::ostringstream oss;
 
@@ -260,7 +259,7 @@ void DefsParser::tokenize ()
         }
         if (push)
         {
-          m_tokens.push_back (std::string (token_begin, contents_iter));
+          m_tokens.top ().push_back (std::string (token_begin, contents_iter));
           token_type = TOKEN_NONE;
         }
         if (decrement)
@@ -291,15 +290,17 @@ void DefsParser::tokenize ()
 
 void DefsParser::statementize ()
 {
-  std::auto_ptr<StatementizeTask> statementize_task (new StatementizeTask (m_parsed_files.top ().first));
-  m_statements = statementize_task->statementize (m_tokens);
+  const std::string path (m_parsed_files.top ().first);
+  std::auto_ptr<StatementizeTask> statementize_task (new StatementizeTask (path));
+
+  m_statements.push (statementize_task->statementize (m_tokens.top ()));
 }
 
 void DefsParser::apicize ()
 {
-  std::list<Statement>::iterator statements_end (m_statements.end ());
+  std::list<Statement>::iterator statements_end (m_statements.top ().end ());
 
-  for (std::list<Statement>::iterator statement_iter (m_statements.begin ()); statement_iter != statements_end; statement_iter++)
+  for (std::list<Statement>::iterator statement_iter (m_statements.top ().begin ()); statement_iter != statements_end; statement_iter++)
   {
     const std::string type (statement_iter->get_type ());
     StringFunctionMap::iterator it (m_statement_actions.find (type));
@@ -352,7 +353,11 @@ void DefsParser::on_include (const Statement& statement)
 {
   const std::string path (m_directory + statement.get_header ());
   m_parsed_files.push (FileStack::value_type (path, read_contents (path)));
+  m_tokens.push (TokensStack::value_type ());
+  // new statements is pushed in statementize method
   parse_round ();
+  m_statements.pop ();
+  m_tokens.pop ();
   m_parsed_files.pop ();
 }
 
@@ -372,6 +377,7 @@ void DefsParser::on_object (const Statement& statement)
   const Statement::StringBoolPair parent (statement.get_value ("parent"));
   const Statement::StringBoolPair gtype (statement.get_value ("gtype-id"));
   Api::Object* object (0);
+  bool is_interface (false);
 
   if (!cname.second)
   {
@@ -379,7 +385,7 @@ void DefsParser::on_object (const Statement& statement)
   }
   if (!parent.second)
   {
-    throw SyntaxError (statement.get_file (),statement.get_line (), "No `parent' value.");
+    is_interface = true;
   }
   if (!gtype.second)
   {
@@ -401,6 +407,7 @@ void DefsParser::on_object (const Statement& statement)
   }
   object->set_parent (parent.first);
   object->set_gtype (gtype.first);
+  object->set_is_interface (is_interface);
 }
 
 void DefsParser::on_function (const Statement& statement)
@@ -435,7 +442,7 @@ void DefsParser::on_function (const Statement& statement)
   Statement::ConstIteratorBoolPair values_end (statement.get_list_end ("parameters"));
   if (!values_end.second)
   {
-    throw SyntaxError (statement.get_file (), statement.get_line(), "No `parameters' list specified in statement.");
+    return;
   }
   for (Statement::ConstIteratorBoolPair values_iter = statement.get_list_begin ("parameters"); values_iter.first != values_end.first; values_iter.first++)
   {
@@ -447,8 +454,8 @@ void DefsParser::on_function (const Statement& statement)
       oss << "Expected 2 values in `parameters' list element, got" << elements_count << ".";
       throw SyntaxError (statement.get_file (), statement.get_line (), oss.str ());
     }
-    const std::string param_name ((*(values_iter.first))[1]);
-    const std::string param_type ((*(values_iter.first))[2]);
+    const std::string param_name ((*(values_iter.first))[0]);
+    const std::string param_type ((*(values_iter.first))[1]);
     if (param_name.empty () || param_type.empty ())
     {
       std::ostringstream oss;
