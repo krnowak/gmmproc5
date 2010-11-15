@@ -21,10 +21,6 @@
 // standard
 #include <algorithm>
 
-// common
-#include "apitemplates.h"
-#include "stlops.h"
-
 // api
 #include "enum.h"
 
