@@ -19,7 +19,7 @@
  */
 
 // api
-#include "param.h"
+#include "identifiable.h"
 
 namespace Proc
 {
@@ -27,61 +27,47 @@ namespace Proc
 namespace Api
 {
 
-struct Param::ParamImpl
+Identifiable::~Identifiable ()
+{}
+
+std::string Identifiable::get_id () const
 {
-  ParamImpl ();
-  ParamImpl (const std::string& id);
-
-  std::string m_id;
-  std::string m_type;
-};
-
-Param::ParamImpl::ParamImpl ()
-: m_id (),
-  m_type ()
-{}
-
-Param::ParamImpl::ParamImpl (const std::string& id)
-: m_id (id),
-  m_type ()
-{}
-
-Param::Param ()
-: Identifiable (),
-  m_pimpl (new ParamImpl)
-{}
-
-Param::Param (const std::string& id)
-: Identifiable (),
-  m_pimpl (new ParamImpl (id))
-{}
-
-Param::~Param ()
-{}
-
-void Param::set_type (const std::string& type)
-{
-  m_pimpl->m_type = type;
+  return get_id_vfunc ();
 }
 
-std::string Param::get_type () const
+void Identifiable::set_id (const std::string& id)
 {
-  return m_pimpl->m_type;
+  set_id_vfunc (id);
 }
 
-void Param::swap (Param& param)
+bool operator== (const Identifiable& lhs, const Identifiable& rhs)
 {
-  m_pimpl.swap (param.m_pimpl);
+  return (lhs.get_id () == rhs.get_id ());
 }
 
-std::string Param::get_id_vfunc () const
+bool operator!= (const Identifiable& lhs, const Identifiable& rhs)
 {
-  return m_pimpl->m_id;
+  return (lhs.get_id () != rhs.get_id ());
 }
 
-void Param::set_id_vfunc (const std::string& id)
+bool operator< (const Identifiable& lhs, const Identifiable& rhs)
 {
-  m_pimpl->m_id = id;
+  return (lhs.get_id () < rhs.get_id ());
+}
+
+bool operator<= (const Identifiable& lhs, const Identifiable& rhs)
+{
+  return (lhs.get_id () <= rhs.get_id ());
+}
+
+bool operator> (const Identifiable& lhs, const Identifiable& rhs)
+{
+  return (lhs.get_id () > rhs.get_id ());
+}
+
+bool operator>= (const Identifiable& lhs, const Identifiable& rhs)
+{
+  return (lhs.get_id () >= rhs.get_id ());
 }
 
 } // namespace Api

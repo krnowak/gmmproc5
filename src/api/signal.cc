@@ -18,43 +18,104 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// common
-#include "apitemplates.h"
-
 // api
 #include "signal.h"
 
 namespace Proc
 {
 
-namespace Common
-{
-
-template <>
-struct ZeroTraits<Api::RunFlags>
-{
-  typedef Api::RunFlags Type;
-  static const Type zero;
-};
-
-const ZeroTraits<Api::RunFlags>::Type ZeroTraits<Api::RunFlags>::zero = Api::RUN_INVALID;
-
-} // namespace Common
-
 namespace Api
 {
 
-Signal::Signal (const std::string& id)
-: Function (id),
+struct Signal::SignalImpl
+{
+  SignalImpl ();
+  SignalImpl (const std::string& id);
+
+  std::string m_id;
+  bool m_wrapped;
+  std::string m_ret_type;
+  Signal::ParamList m_parameters;
+  RunFlags m_run_flags;
+};
+
+Signal::SignalImpl::SignalImpl ()
+: m_id (),
+  m_wrapped (false),
+  m_ret_type (),
+  m_parameters (),
   m_run_flags (RUN_INVALID)
+{}
+
+Signal::SignalImpl::SignalImpl (const std::string& id)
+: m_id (id),
+  m_wrapped (false),
+  m_ret_type (),
+  m_parameters (),
+  m_run_flags (RUN_INVALID)
+{}
+
+Signal::Signal ()
+: FunctionBase (),
+  m_pimpl (new SignalImpl)
+{}
+
+Signal::Signal (const std::string& id)
+: FunctionBase (),
+  m_pimpl (new SignalImpl (id))
 {}
 
 Signal::~Signal ()
 {}
 
-bool Signal::set_run_flags (RunFlags run_flags)
+RunFlags Signal::get_run_flags () const
 {
-  return Common::FieldAssigner<RunFlags> () (m_run_flags, run_flags);
+  return m_pimpl->m_run_flags;
+}
+
+void Signal::set_run_flags (RunFlags run_flags)
+{
+  m_pimpl->m_run_flags = run_flags;
+}
+
+void Signal::swap (Signal& signal)
+{
+  m_pimpl.swap (signal.m_pimpl);
+}
+
+void Signal::set_ret_type_vfunc (const std::string& ret_type)
+{
+  m_pimpl->m_ret_type = ret_type;
+}
+
+std::string Signal::get_ret_type_vfunc () const
+{
+  return m_pimpl->m_ret_type;
+}
+
+Signal::ParamList::const_iterator Signal::get_begin_vfunc () const
+{
+  return m_pimpl->m_parameters.begin ();
+}
+
+Signal::ParamList::iterator Signal::get_begin_vfunc ()
+{
+  return m_pimpl->m_parameters.begin ();
+}
+
+Signal::ParamList::const_iterator Signal::get_end_vfunc () const
+{
+  return m_pimpl->m_parameters.end ();
+}
+
+Signal::ParamList::iterator Signal::get_end_vfunc ()
+{
+  return m_pimpl->m_parameters.end ();
+}
+
+void Signal::append_param_vfunc (const ParamPtr& param)
+{
+  m_pimpl->m_parameters.push_back (param);
 }
 
 } // namespace Api

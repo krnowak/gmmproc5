@@ -18,11 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// common
-#include "apitemplates.h"
-
-// api
-#include "id.h"
+#include "functionbase.h"
 
 namespace Proc
 {
@@ -30,16 +26,42 @@ namespace Proc
 namespace Api
 {
 
-Id::Id (const std::string& id)
-: m_id (id)
+FunctionBase::~FunctionBase ()
 {}
 
-Id::~Id ()
-{}
-
-bool Id::set_id (const std::string& id)
+std::string FunctionBase::get_ret_type () const
 {
-  return Common::FieldAssigner<std::string> () (m_id, id);
+  return get_ret_type_vfunc ();
+}
+
+void FunctionBase::set_ret_type (const std::string& ret_type)
+{
+  set_ret_type_vfunc (ret_type);
+}
+
+FunctionBase::ParamList::const_iterator FunctionBase::get_begin () const
+{
+  return get_begin_vfunc ();
+}
+
+FunctionBase::ParamList::iterator FunctionBase::get_begin ()
+{
+  return get_begin_vfunc ();
+}
+
+FunctionBase::ParamList::const_iterator FunctionBase::get_end () const
+{
+  return get_end_vfunc ();
+}
+
+FunctionBase::ParamList::iterator FunctionBase::get_end ()
+{
+  return get_end_vfunc ();
+}
+
+void FunctionBase::append_param (const FunctionBase::ParamPtr& param)
+{
+  append_param_vfunc (param);
 }
 
 } // namespace Api

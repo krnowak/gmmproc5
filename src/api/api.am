@@ -1,10 +1,12 @@
 libapi_src = \
 	src/api/enum.cc \
 	src/api/enum.h \
+	src/api/functionbase.cc \
+	src/api/functionbase.h \
 	src/api/function.cc \
 	src/api/function.h \
-	src/api/id.cc \
-	src/api/id.h \
+	src/api/identifiable.cc \
+	src/api/identifiable.h \
 	src/api/namespace.cc \
 	src/api/namespace.h \
 	src/api/object.cc \
@@ -14,7 +16,9 @@ libapi_src = \
 	src/api/property.cc \
 	src/api/property.h \
 	src/api/signal.cc \
-	src/api/signal.h
+	src/api/signal.h \
+	src/api/wrappable.cc \
+	src/api/wrappable.h
 
 lib_LTLIBRARIES += src/api/libapi.la
 

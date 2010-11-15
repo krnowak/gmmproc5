@@ -19,12 +19,8 @@
  */
 
 // standard
-#include <algorithm>
 #include <functional>
-
-// common
-#include "apitemplates.h"
-#include "stlops.h"
+#include <unordered_map>
 
 // api
 #include "enum.h"
@@ -38,66 +34,107 @@ namespace Proc
 namespace Api
 {
 
-Namespace::Namespace (const std::string& id)
-: Id (id),
+struct Namespace::NamespaceImpl
+{
+  typedef std::unordered_map<std::string, EnumPtr> StringEnumMap;
+  typedef std::unordered_map<std::string, ObjectPtr> StringObjectMap;
+  typedef std::unordered_map<std::string, FunctionPtr> StringFunctionMap;
+
+  NamespaceImpl ();
+  NamespaceImpl (const std::string& id);
+
+  static bool underline_break (const std::string::const_iterator& it);
+  static bool capital_break (const std::string::const_iterator& it);
+
+  std::string m_id;
+  StringEnumMap m_enums;
+  StringObjectMap m_objects;
+  StringFunctionMap m_functions;
+};
+
+Namespace::NamespaceImpl::NamespaceImpl ()
+: m_id (),
   m_enums (),
   m_objects (),
   m_functions ()
 {}
 
+Namespace::NamespaceImpl::NamespaceImpl (const std::string& id)
+: m_id (id),
+  m_enums (),
+  m_objects (),
+  m_functions ()
+{}
+
+bool Namespace::NamespaceImpl::underline_break (const std::string::const_iterator& it)
+{
+  return (*it != '_');
+}
+
+bool Namespace::NamespaceImpl::capital_break (const std::string::const_iterator& it)
+{
+  return ((*it < 'A') || (*it > 'Z'));
+}
+
+Namespace::Namespace ()
+: Identifiable (),
+  m_pimpl (new NamespaceImpl)
+{}
+
+Namespace::Namespace (const std::string& id)
+: Identifiable (),
+  m_pimpl (new NamespaceImpl (id))
+{}
+
 Namespace::~Namespace ()
+{}
+
+void Namespace::add_function (const FunctionPtr& function)
 {
-  std::for_each (m_enums.begin (), m_enums.end (), Common::PairDeleter<std::string, Enum> ());
-  std::for_each (m_objects.begin (), m_objects.end (), Common::PairDeleter<std::string, Object> ());
-  std::for_each (m_functions.begin (), m_functions.end (), Common::PairDeleter<std::string, Function> ());
+  m_pimpl->m_functions.insert (std::make_pair (function->get_id (), function));
 }
 
-bool Namespace::add_function (Function* function)
+FunctionPtr Namespace::get_function (const std::string& c_name) const
 {
-  return Common::IdInserter<Function> () (m_functions, function);
-}
+  NamespaceImpl::StringFunctionMap::const_iterator it (m_pimpl->m_functions.find (c_name));
 
-Function* Namespace::get_function (const std::string& c_name) const
-{
-  StringFunctionMap::const_iterator it (m_functions.find (c_name));
-
-  if (it != m_functions.end ())
+  if (it != m_pimpl->m_functions.end ())
   {
     return it->second;
   }
-  return 0;
+  return FunctionPtr ();
 }
 
-bool Namespace::add_object (Object* object)
+void Namespace::add_object (const ObjectPtr& object)
 {
-  return Common::IdInserter<Object> () (m_objects, object);
+  m_pimpl->m_objects.insert (std::make_pair (object->get_id (), object));
 }
 
-Object* Namespace::get_object (const std::string& c_name) const
+ObjectPtr Namespace::get_object (const std::string& c_name) const
 {
-  StringObjectMap::const_iterator it (m_objects.find (c_name));
+  NamespaceImpl::StringObjectMap::const_iterator it (m_pimpl->m_objects.find (c_name));
 
-  if (it != m_objects.end ())
+  if (it != m_pimpl->m_objects.end ())
   {
     return it->second;
   }
-  return 0;
+  return ObjectPtr ();
 }
 
-bool Namespace::add_enum (Enum* enumeration)
+void Namespace::add_enum (const EnumPtr& enumeration)
 {
-  return Common::IdInserter<Enum> () (m_enums, enumeration);
+  m_pimpl->m_enums.insert (std::make_pair (enumeration->get_id (), enumeration));
 }
 
-Enum* Namespace::get_enum (const std::string& c_name) const
+EnumPtr Namespace::get_enum (const std::string& c_name) const
 {
-  StringEnumMap::const_iterator it (m_enums.find (c_name));
+  NamespaceImpl::StringEnumMap::const_iterator it (m_pimpl->m_enums.find (c_name));
 
-  if (it != m_enums.end ())
+  if (it != m_pimpl->m_enums.end ())
   {
     return it->second;
   }
-  return 0;
+  return EnumPtr ();
 }
 std::string Namespace::get_namespace_name (const std::string& name)
 {
@@ -113,11 +150,11 @@ std::string Namespace::get_namespace_name (const std::string& name)
   it = name.begin ();
   if ((*it >= 'A') && (*it <= 'Z'))
   {
-    break_func = std::bind (&Namespace::capital_break, std::placeholders::_1);
+    break_func = std::bind (&Namespace::NamespaceImpl::capital_break, std::placeholders::_1);
   }
   else if ((*it >= 'a') && (*it <= 'z'))
   {
-    break_func = std::bind (&Namespace::underline_break, std::placeholders::_1);
+    break_func = std::bind (&Namespace::NamespaceImpl::underline_break, std::placeholders::_1);
     grow = true;
   }
   else
@@ -126,7 +163,7 @@ std::string Namespace::get_namespace_name (const std::string& name)
   }
   do
   {
-    it++;
+    ++it;
   }
   while ((it != name.end ()) && break_func (it));
   if (it == name.end ())
@@ -141,14 +178,19 @@ std::string Namespace::get_namespace_name (const std::string& name)
   return ns_name;
 }
 
-bool Namespace::underline_break (const std::string::const_iterator& it)
+void Namespace::swap (Namespace& ns)
 {
-  return (*it != '_');
+  m_pimpl.swap (ns.m_pimpl);
 }
 
-bool Namespace::capital_break (const std::string::const_iterator& it)
+std::string Namespace::get_id_vfunc () const
 {
-  return ((*it < 'A') || (*it > 'Z'));
+  return m_pimpl->m_id;
+}
+
+void Namespace::set_id_vfunc (const std::string& id)
+{
+  m_pimpl->m_id = id;
 }
 
 } // namespace Api

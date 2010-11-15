@@ -22,10 +22,11 @@
 #define PROC_API_PROPERTY_H
 
 // standard
+#include <memory>
 #include <string>
 
 // api
-#include "id.h"
+#include "wrappable.h"
 
 namespace Proc
 {
@@ -45,79 +46,70 @@ enum ParamFlags
 inline ParamFlags
 operator& (ParamFlags first, ParamFlags second)
 {
-  return ParamFlags (static_cast<int> (first) & static_cast<int> (second));
+  return static_cast<ParamFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
 }
 
 inline ParamFlags
 operator| (ParamFlags first, ParamFlags second)
 {
-  return ParamFlags (static_cast<int> (first) | static_cast<int> (second));
+  return static_cast<ParamFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
 }
 
 inline ParamFlags
 operator^ (ParamFlags first, ParamFlags second)
 {
-  return ParamFlags (static_cast<int> (first) ^ static_cast<int> (second));
+  return static_cast<ParamFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
 }
 
 inline ParamFlags&
 operator|= (ParamFlags& first, ParamFlags second)
 {
-  return first = first | second;
+  return first = static_cast<ParamFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
 }
 
 inline ParamFlags&
 operator&= (ParamFlags& first, ParamFlags second)
 {
-  return first = first & second;
+  return first = static_cast<ParamFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
 }
 
 inline ParamFlags&
 operator^= (ParamFlags& first, ParamFlags second)
 {
-  return first = first ^ second;
+  return first = static_cast<ParamFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
 }
 
 inline ParamFlags
 operator~ (ParamFlags first)
 {
-  return ParamFlags (~static_cast<int> (first));
+  return static_cast<ParamFlags> (~static_cast<unsigned int> (first));
 }
 
-class Property : public Id
+class Property : public Wrappable
 {
 public:
-                    Property (const std::string& id = std::string ());
+  Property ();
+  Property (const std::string& id);
 
-  virtual           ~Property ();
+  virtual ~Property ();
 
-  std::string       get_type () const;
-  bool              set_type (const std::string& type);
+  std::string get_type () const;
+  void set_type (const std::string& type);
 
-  inline ParamFlags get_flags () const;
-  bool              set_flags (ParamFlags param_flags);
+  ParamFlags get_flags () const;
+  void set_flags (ParamFlags param_flags);
 
-  inline bool       operator== (const Property& property) const;
+  void swap (Property& property);
 private:
-  std::string       m_type;
-  ParamFlags        m_param_flags;
+  struct PropertyImpl;
+  std::shared_ptr<PropertyImpl> m_pimpl;
+
+  virtual std::string get_id_vfunc () const;
+  virtual void set_id_vfunc (const std::string& id);
+
+  virtual bool get_wrapped_vfunc () const;
+  virtual void set_wrapped_vfunc (bool wrapped);
 };
-
-inline std::string Property::get_type () const
-{
-  return m_type;
-}
-
-inline ParamFlags Property::get_flags () const
-{
-  return m_param_flags;
-}
-
-inline bool Property::operator== (const Property& property) const
-{
-  const Id* id (this);
-  return (*id == property);
-}
 
 } // namespace Api
 

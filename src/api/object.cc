@@ -19,11 +19,7 @@
  */
 
 // standard
-#include <algorithm>
-
-// common
-#include "apitemplates.h"
-#include "stlops.h"
+#include <unordered_map>
 
 // api
 #include "function.h"
@@ -37,12 +33,35 @@ namespace Proc
 namespace Api
 {
 
-Object::Object (const std::string& id)
-: Id (id),
+struct Object::ObjectImpl
+{
+  typedef std::unordered_map<std::string, FunctionPtr> StringFunctionMap;
+  typedef std::unordered_map<std::string, SignalPtr> StringSignalMap;
+  typedef std::unordered_map<std::string, PropertyPtr> StringPropertyMap;
+  
+  ObjectImpl ();
+  ObjectImpl (const std::string& id);
+
+  std::string m_id;
+  bool m_wrapped;
+  std::string m_parent;
+  std::string m_gtype;
+  StringFunctionMap m_constructors;
+  FunctionPtr m_destructor;
+  StringFunctionMap m_methods;
+  StringSignalMap m_signals;
+  StringPropertyMap m_properties;
+  StringFunctionMap m_vfuncs;
+  bool m_is_interface;
+};
+
+Object::ObjectImpl::ObjectImpl ()
+: m_id (),
+  m_wrapped (false),
   m_parent (),
   m_gtype (),
   m_constructors (),
-  m_destructor (0),
+  m_destructor (),
   m_methods (),
   m_signals (),
   m_properties (),
@@ -50,55 +69,120 @@ Object::Object (const std::string& id)
   m_is_interface (false)
 {}
 
+Object::ObjectImpl::ObjectImpl (const std::string& id)
+: m_id (id),
+  m_wrapped (false),
+  m_parent (),
+  m_gtype (),
+  m_constructors (),
+  m_destructor (),
+  m_methods (),
+  m_signals (),
+  m_properties (),
+  m_vfuncs (),
+  m_is_interface (false)
+{}
+
+Object::Object ()
+: Wrappable (),
+  m_pimpl (new ObjectImpl)
+{}
+
+Object::Object (const std::string& id)
+: Wrappable (),
+  m_pimpl (new ObjectImpl (id))
+{}
+
 Object::~Object()
+{}
+
+std::string Object::get_parent () const
 {
-  Common::PairDeleter<std::string, Function> pair_deleter_str_fun;
-  std::for_each (m_constructors.begin (), m_constructors.end (), pair_deleter_str_fun);
-  Common::PtrDeleter<Function> () (m_destructor);
-  std::for_each (m_methods.begin (), m_methods.end (), pair_deleter_str_fun);
-  std::for_each (m_signals.begin (), m_signals.end (), Common::PairDeleter<std::string, Signal> ());
-  std::for_each (m_properties.begin (),m_properties.end (),Common::PairDeleter<std::string, Property> ());
-  std::for_each (m_vfuncs.begin (), m_vfuncs.end (), pair_deleter_str_fun);
+  return m_pimpl->m_parent;
 }
 
-bool Object::set_parent (const std::string& parent)
+void Object::set_parent (const std::string& parent)
 {
-  return Common::FieldAssigner<std::string> () (m_parent, parent);
+  m_pimpl->m_parent = parent;
 }
 
-bool Object::set_gtype (const std::string& gtype)
+std::string Object::get_gtype () const
 {
-  return Common::FieldAssigner<std::string> () (m_gtype, gtype);
+  return m_pimpl->m_gtype;
 }
 
-bool Object::add_constructor (Function* constructor)
+void Object::set_gtype (const std::string& gtype)
 {
-  return Common::IdInserter<Function> () (m_constructors, constructor);
+  m_pimpl->m_gtype = gtype;
 }
 
-bool Object::set_destructor (Function* destructor)
+void Object::add_constructor (const FunctionPtr& constructor)
 {
-  return Common::FieldAssigner<Function*> () (m_destructor, destructor);
+  m_pimpl->m_constructors.insert (std::make_pair (constructor->get_id (), constructor));
 }
 
-bool Object::add_method (Function* method)
+void Object::set_destructor (const FunctionPtr& destructor)
 {
-  return Common::IdInserter<Function> () (m_methods, method);
+  m_pimpl->m_destructor = destructor;
 }
 
-bool Object::add_signal (Signal* signal)
+void Object::add_method (const FunctionPtr& method)
 {
-  return Common::IdInserter<Signal> () (m_signals, signal);
+  m_pimpl->m_methods.insert (std::make_pair (method->get_id (), method));
+//  m_pimpl->m_methods.push_back (method);
 }
 
-bool Object::add_property (Property* property)
+void Object::add_signal (const SignalPtr& signal)
 {
-  return Common::IdInserter<Property> () (m_properties, property);
+  m_pimpl->m_signals.insert (std::make_pair (signal->get_id (), signal));
+//  m_pimpl->m_signals.push_back (signal);
 }
 
-bool Object::add_vfunc (Function* vfunc)
+void Object::add_property (const PropertyPtr& property)
 {
-  return Common::IdInserter<Function> () (m_vfuncs, vfunc);
+  m_pimpl->m_properties.insert (std::make_pair (property->get_id (), property));
+//  m_pimpl->m_properties.push_back (property);
+}
+
+void Object::add_vfunc (const FunctionPtr& vfunc)
+{
+  m_pimpl->m_vfuncs.insert (std::make_pair (vfunc->get_id (), vfunc));
+ // m_pimpl->m_constructors.push_back (constructor);
+}
+
+bool Object::get_is_interface () const
+{
+  return m_pimpl->m_is_interface;
+}
+
+void Object::set_is_interface (bool iface)
+{
+  m_pimpl->m_is_interface = iface;
+}
+
+void Object::swap (Object& object)
+{
+  m_pimpl.swap (object.m_pimpl);
+}
+
+std::string Object::get_id_vfunc () const
+{
+  return m_pimpl->m_id;
+}
+
+void Object::set_id_vfunc (const std::string& id)
+{
+  m_pimpl->m_id = id;
+}
+
+bool Object::get_wrapped_vfunc () const
+{
+  return m_pimpl->m_wrapped;
+}
+
+void Object::set_wrapped_vfunc (bool wrapped)
+{
+  m_pimpl->m_wrapped = wrapped;
 }
 
 } // namespace Api

@@ -22,11 +22,12 @@
 #define PROC_API_OBJECT_H
 
 // standard
+#include <memory>
 #include <string>
-#include <unordered_map>
 
 // api
-#include "id.h"
+#include "ptrtypes.h"
+#include "wrappable.h"
 
 namespace Proc
 {
@@ -38,73 +39,43 @@ class Function;
 class Property;
 class Signal;
 
-class Object : public Id
+class Object : public Wrappable
 {
 public:
-                      Object (const std::string& id = std::string ());
 
-                      Object (const Object& object);
-  Object&             operator= (const Object& object);
+  Object ();
+  Object (const std::string& id);
 
-  virtual             ~Object ();
+  virtual ~Object ();
 
-  inline std::string  get_parent () const;
-  bool                set_parent ( const std::string& parent );
+  std::string get_parent () const;
+  void set_parent ( const std::string& parent );
 
-  inline std::string  get_gtype () const;
-  bool                set_gtype ( const std::string& gtype );
+  std::string get_gtype () const;
+  void set_gtype ( const std::string& gtype );
 
-  bool                add_constructor (Function* constructor);
-  bool                set_destructor (Function* destructor);
-  bool                add_method (Function* method);
-  bool                add_signal (Signal* signal);
-  bool                add_property (Property* property);
-  bool                add_vfunc (Function* vfunc);
+  void add_constructor (const FunctionPtr& constructor);
+  void set_destructor (const FunctionPtr& destructor);
+  void add_method (const FunctionPtr& method);
+  void add_signal (const SignalPtr& signal);
+  void add_property (const PropertyPtr& property);
+  void add_vfunc (const FunctionPtr& vfunc);
 
-  inline bool         is_interace () const;
-  inline void         set_is_interface (bool iface);
+  bool get_is_interface () const;
+  void set_is_interface (bool iface);
 
-  inline bool         operator== (const Object& object);
+  void swap (Object& object);
+
 private:
-  typedef std::unordered_map<std::string, Function*> StringFunctionMap;
-  typedef std::unordered_map<std::string, Signal*> StringSignalMap;
-  typedef std::unordered_map<std::string, Property*> StringPropertyMap;
+  struct ObjectImpl;
+  std::shared_ptr<ObjectImpl> m_pimpl;
 
-  std::string         m_parent;
-  std::string         m_gtype;
-  StringFunctionMap   m_constructors;
-  Function*           m_destructor;
-  StringFunctionMap   m_methods;
-  StringSignalMap     m_signals;
-  StringPropertyMap   m_properties;
-  StringFunctionMap   m_vfuncs;
-  bool                m_is_interface;
+  virtual std::string get_id_vfunc () const;
+  virtual void set_id_vfunc (const std::string& id);
+
+  virtual bool get_wrapped_vfunc () const;
+  virtual void set_wrapped_vfunc (bool wrapped);
 };
-
-inline std::string Object::get_parent () const
-{
-  return m_parent;
-}
-
-inline std::string Object::get_gtype () const
-{
-  return m_gtype;
-}
-
-inline bool Object::is_interace () const
-{
-  return m_is_interface;
-}
-
-inline void Object::set_is_interface (bool iface)
-{
-  m_is_interface = iface;
-}
-
-inline bool Object::operator== (const Object& object)
-{
-  return (*static_cast<Id*> (this) == object);
-}
 
 } // namespace Api
 

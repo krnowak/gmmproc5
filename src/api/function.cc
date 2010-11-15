@@ -35,48 +35,95 @@ namespace Proc
 namespace Api
 {
 
-Function::Function (const std::string& id)
-: Id (id),
+struct Function::FunctionImpl
+{
+  FunctionImpl ();
+  FunctionImpl (const std::string& id);
+
+  std::string m_id;
+  bool m_wrapped;
+  std::string m_ret_type;
+  Function::ParamList m_parameters;
+  bool m_has_varargs;
+};
+
+Function::FunctionImpl::FunctionImpl ()
+: m_id (),
+  m_wrapped (false),
   m_ret_type (),
   m_parameters (),
   m_has_varargs (false)
 {}
 
-Function::Function (const Function& function)
-: Id (function),
-  m_ret_type (function.m_ret_type),
-  m_parameters (function.m_parameters.size ()),
-  m_has_varargs (function.m_has_varargs)
-{
-  std::transform (function.m_parameters.begin (), function.m_parameters.end (), m_parameters.begin (), Common::PtrCopier<Param> ());
-}
+Function::FunctionImpl::FunctionImpl (const std::string& id)
+: m_id (id),
+  m_wrapped (false),
+  m_ret_type (),
+  m_parameters (),
+  m_has_varargs (false)
+{}
 
-Function&Function::operator= (const Function& function)
-{
-  if (this != &function)
-  {
-    *static_cast<Id*> (this) = function;
-    m_ret_type = function.m_ret_type;
-    std::for_each (m_parameters.begin (), m_parameters.end (), Common::PtrDeleter<Param> ());
-    m_parameters.resize (function.m_parameters.size ());
-    std::transform (function.m_parameters.begin (), function.m_parameters.end (), m_parameters.begin (), Common::PtrCopier<Param> ());
-  }
-  return *this;
-}
+Function::Function ()
+: FunctionBase (),
+  m_pimpl (new FunctionImpl)
+{}
+
+Function::Function (const std::string& id)
+: FunctionBase (),
+  m_pimpl (new FunctionImpl (id))
+{}
 
 Function::~Function ()
+{}
+
+bool Function::get_has_varargs () const
 {
-  std::for_each (m_parameters.begin (), m_parameters.end (), Common::PtrDeleter<Param> ());
+  return m_pimpl->m_has_varargs;
 }
 
-bool Function::set_ret_type (const std::string& ret_type)
+void Function::set_has_varargs (bool has_varargs)
 {
-  return Common::FieldAssigner<std::string> () (m_ret_type, ret_type);
+  m_pimpl->m_has_varargs = has_varargs;
 }
 
-bool Function::append_param (Param* param)
+void Function::swap (Function& function)
 {
-  return Common::PlainInserter<Param, std::list<Param*> > () (m_parameters, param);
+  m_pimpl.swap (function.m_pimpl);
+}
+
+void Function::set_ret_type_vfunc (const std::string& ret_type)
+{
+  m_pimpl->m_ret_type = ret_type;
+}
+
+std::string Function::get_ret_type_vfunc () const
+{
+  return m_pimpl->m_ret_type;
+}
+
+Function::ParamList::const_iterator Function::get_begin_vfunc () const
+{
+  return m_pimpl->m_parameters.begin ();
+}
+
+Function::ParamList::iterator Function::get_begin_vfunc ()
+{
+  return m_pimpl->m_parameters.begin ();
+}
+
+Function::ParamList::const_iterator Function::get_end_vfunc () const
+{
+  return m_pimpl->m_parameters.end ();
+}
+
+Function::ParamList::iterator Function::get_end_vfunc ()
+{
+  return m_pimpl->m_parameters.end ();
+}
+
+void Function::append_param_vfunc (const ParamPtr& param)
+{
+  m_pimpl->m_parameters.push_back (param);
 }
 
 } // namespace Api

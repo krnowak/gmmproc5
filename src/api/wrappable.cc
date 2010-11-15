@@ -18,11 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_API_ID_H
-#define PROC_API_ID_H
-
-// standard
-#include <string>
+// api
+#include "wrappable.h"
 
 namespace Proc
 {
@@ -30,33 +27,19 @@ namespace Proc
 namespace Api
 {
 
-class Id
+Wrappable::~Wrappable ()
+{}
+
+bool Wrappable::get_wrapped () const
 {
-public:
-                      Id (const std::string& id = std::string ());
-
-  virtual             ~Id();
-
-  inline std::string  get_id () const;
-  bool                set_id (const std::string& id);
-
-  inline bool         operator== (const Id& id) const;
-private:
-  std::string         m_id;
-};
-
-inline std::string Id::get_id () const
-{
-  return m_id;
+  return get_wrapped_vfunc ();
 }
 
-inline bool Id::operator== (const Id& id) const
+void Wrappable::set_wrapped (bool wrapped)
 {
-  return (m_id == id.m_id);
+  set_wrapped_vfunc (wrapped);
 }
 
 } // namespace Api
 
 } // namespace Proc
-
-#endif // PROC_API_ID_H

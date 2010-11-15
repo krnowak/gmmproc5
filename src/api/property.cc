@@ -18,49 +18,96 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// common
-#include "apitemplates.h"
-
 // api
 #include "property.h"
 
 namespace Proc
 {
 
-namespace Common
-{
-
-template <>
-struct ZeroTraits<Api::ParamFlags>
-{
-  typedef Api::ParamFlags Type;
-  static const Type zero;
-};
-
-const ZeroTraits<Api::ParamFlags>::Type ZeroTraits<Api::ParamFlags>::zero = Api::PARAM_INVALID;
-
-} // namespace Common
-
 namespace Api
 {
 
-Property::Property (const std::string& id)
-: Id (id),
+struct Property::PropertyImpl
+{
+  PropertyImpl ();
+  PropertyImpl (const std::string& id);
+
+  std::string m_id;
+  bool m_wrapped;
+  std::string m_type;
+  ParamFlags m_param_flags;
+};
+
+Property::PropertyImpl::PropertyImpl ()
+: m_id (),
+  m_wrapped (false),
   m_type (),
   m_param_flags (PARAM_INVALID)
+{}
+
+Property::PropertyImpl::PropertyImpl (const std::string& id)
+: m_id (id),
+  m_wrapped (false),
+  m_type (),
+  m_param_flags (PARAM_INVALID)
+{}
+
+Property::Property ()
+: Wrappable (),
+  m_pimpl (new PropertyImpl)
+{}
+
+Property::Property (const std::string& id)
+: Wrappable (),
+  m_pimpl (new PropertyImpl (id))
 {}
 
 Property::~Property ()
 {}
 
-bool Property::set_type (const std::string& type)
+std::string Property::get_type () const
 {
-  return Common::FieldAssigner<std::string> () (m_type, type);
+  return m_pimpl->m_type;
 }
 
-bool Property::set_flags (ParamFlags param_flags)
+void Property::set_type (const std::string& type)
 {
-  return Common::FieldAssigner<ParamFlags> () (m_param_flags, param_flags);
+  m_pimpl->m_type = type;
+}
+
+ParamFlags Property::get_flags () const
+{
+  return m_pimpl->m_param_flags;
+}
+
+void Property::set_flags (ParamFlags param_flags)
+{
+  m_pimpl->m_param_flags = param_flags;
+}
+
+void Property::swap (Property& property)
+{
+  m_pimpl.swap (property.m_pimpl);
+}
+
+std::string Property::get_id_vfunc () const
+{
+  return m_pimpl->m_id;
+}
+
+void Property::set_id_vfunc (const std::string& id)
+{
+  m_pimpl->m_id = id;
+}
+
+bool Property::get_wrapped_vfunc () const
+{
+  return m_pimpl->m_wrapped;
+}
+
+void Property::set_wrapped_vfunc (bool wrapped)
+{
+  m_pimpl->m_wrapped = wrapped;
 }
 
 } // namespace Api

@@ -34,40 +34,82 @@ namespace Proc
 namespace Api
 {
 
-Enum::Enum (const std::string& id)
-: Id (id),
+struct Enum::EnumImpl
+{
+  EnumImpl ();
+  EnumImpl (const std::string& id);
+
+  std::string m_id;
+  bool m_wrapped;
+  Enum::ElementList m_elements;
+  bool m_is_flags;
+};
+
+Enum::EnumImpl::EnumImpl ()
+: m_id (),
+  m_wrapped (false),
   m_elements (),
   m_is_flags (false)
 {}
 
-Enum::Enum (const Enum& enumeration)
-: Id (enumeration),
-  m_elements (enumeration.m_elements.size ()),
-  m_is_flags (enumeration.m_is_flags)
-{
-  std::transform (enumeration.m_elements.begin (), enumeration.m_elements.end (), m_elements.begin (), Common::PtrCopier<Element> ());
-}
+Enum::EnumImpl::EnumImpl (const std::string& id)
+: m_id (id),
+  m_wrapped (false),
+  m_elements (),
+  m_is_flags (false)
+{}
 
-Enum& Enum::operator= (const Enum& enumeration)
-{
-  if (this != &enumeration)
-  {
-    *static_cast<Id*> (this) = enumeration;
-    std::for_each (m_elements.begin (), m_elements.end (), Common::PtrDeleter<Element> ());
-    m_elements.resize (enumeration.m_elements.size ());
-    std::transform (enumeration.m_elements.begin (), enumeration.m_elements.end (), m_elements.begin (), Common::PtrCopier<Element> ());
-  }
-  return *this;
-}
+Enum::Enum ()
+: Wrappable (),
+  m_pimpl (new EnumImpl ())
+{}
+
+Enum::Enum (const std::string& id)
+: Wrappable (),
+  m_pimpl (new EnumImpl (id))
+{}
 
 Enum::~Enum ()
+{}
+
+void Enum::append_element (const ElementPtr& element)
 {
-  std::for_each (m_elements.begin (), m_elements.end (), Common::PtrDeleter<Element> ());
+  m_pimpl->m_elements.push_back (element);
 }
 
-bool Enum::append_element (Element* element)
+bool Enum::get_is_flags () const
 {
-  return Common::PlainInserter<Element, std::list<Element*> > () (m_elements, element);
+  return m_pimpl->m_is_flags;
+}
+
+void Enum::set_is_flags (bool is_flags)
+{
+  m_pimpl->m_is_flags = is_flags;
+}
+
+Enum::ElementList::const_iterator Enum::get_begin () const
+{
+  return const_cast<Enum*> (this)->get_begin ();
+}
+
+Enum::ElementList::iterator Enum::get_begin ()
+{
+  return m_pimpl->m_elements.begin ();
+}
+
+Enum::ElementList::const_iterator Enum::get_end () const
+{
+  return const_cast<Enum*> (this)->get_end ();
+}
+
+Enum::ElementList::iterator Enum::get_end ()
+{
+  return m_pimpl->m_elements.end ();
+}
+
+void Enum::swap (Enum& enumeration)
+{
+  m_pimpl.swap (enumeration.m_pimpl);
 }
 
 } // namespace Api

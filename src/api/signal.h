@@ -22,7 +22,7 @@
 #define PROC_API_SIGNAL_H
 
 // api
-#include "function.h"
+#include "functionbase.h"
 
 namespace Proc
 {
@@ -40,62 +40,72 @@ enum RunFlags
 inline RunFlags
 operator& (RunFlags first, RunFlags second)
 {
-  return RunFlags (static_cast<int> (first) & static_cast<int> (second));
+  return static_cast<RunFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
 }
 
 inline RunFlags
 operator| (RunFlags first, RunFlags second)
 {
-  return RunFlags (static_cast<int> (first) | static_cast<int> (second));
+  return static_cast<RunFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
 }
 
 inline RunFlags
 operator^ (RunFlags first, RunFlags second)
 {
-  return RunFlags (static_cast<int> (first) ^ static_cast<int> (second));
+  return static_cast<RunFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
 }
 
 inline RunFlags&
 operator|= (RunFlags& first, RunFlags second)
 {
-  return first = first | second;
+  return first = static_cast<RunFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
 }
 
 inline RunFlags&
 operator&= (RunFlags& first, RunFlags second)
 {
-  return first = first & second;
+  return first = static_cast<RunFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
 }
 
 inline RunFlags&
 operator^= (RunFlags& first, RunFlags second)
 {
-  return first = first ^ second;
+  return first = static_cast<RunFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
 }
 
 inline RunFlags
 operator~ (RunFlags first)
 {
-  return RunFlags (~static_cast<int> (first));
+  return static_cast<RunFlags> (~static_cast<unsigned int> (first));
 }
 
-class Signal : public Function
+class Signal : public FunctionBase
 {
 public:
-                  Signal (const std::string& id = std::string ());
+  Signal ();
+  explicit Signal (const std::string& id);
 
-  virtual         ~Signal ();
+  virtual ~Signal ();
 
-  inline RunFlags get_run_flags () const;
-  bool            set_run_flags (RunFlags when);
+  RunFlags get_run_flags () const;
+  void set_run_flags (RunFlags when);
+
+  void swap (Signal& signal);
+
 private:
-  RunFlags        m_run_flags;
-};
+  struct SignalImpl;
+  std::shared_ptr<SignalImpl> m_pimpl;
 
-inline RunFlags Signal::get_run_flags () const
-{
-  return m_run_flags;
-}
+  virtual std::string get_ret_type_vfunc () const;
+  virtual void set_ret_type_vfunc (const std::string& ret_type);
+
+  virtual ParamList::const_iterator get_begin_vfunc () const;
+  virtual ParamList::iterator get_begin_vfunc ();
+  virtual ParamList::const_iterator get_end_vfunc () const;
+  virtual ParamList::iterator get_end_vfunc ();
+
+  virtual void append_param_vfunc (const ParamPtr& param);
+};
 
 } // namespace Api
 

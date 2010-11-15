@@ -23,10 +23,11 @@
 
 // standard
 #include <list>
+#include <memory>
 #include <string>
 
 // api
-#include "id.h"
+#include "functionbase.h"
 
 namespace Proc
 {
@@ -34,84 +35,64 @@ namespace Proc
 namespace Api
 {
 
-class Param;
-
-class Function : public Id
+/** Class describing a function.
+ */
+class Function : public FunctionBase
 {
 public:
-                                            Function (const std::string& id = std::string ());
+  /** Constructor.
+   *
+   * Sets empty name, empty parameter list, empty return type and no var args.
+   */
+  Function ();
 
-                                            Function (const Function& function);
-  Function&                                 operator= (const Function& function);
+  /** Constructor.
+   *
+   * Sets name as given, empty parameter list, empty return type and no var
+   * args.
+   *
+   * @param id An id to set.
+   */
+  explicit Function (const std::string& id);
 
-  virtual                                   ~Function ();
+  /** Destructor.
+   *
+   * Not much to say about it.
+   */
+  virtual ~Function ();
 
-  inline std::string                        get_ret_type () const;
-  bool                                      set_ret_type (const std::string& ret_type);
+  /** Gets whether function takes varargs.
+   *
+   * @return @c true if function takes varargs, otherwise @c false.
+   */
+  bool get_has_varargs () const;
 
-  inline std::list<Param*>::const_iterator  get_begin () const;
-  inline std::list<Param*>::iterator        get_begin ();
-  inline std::list<Param*>::const_iterator  get_end () const;
-  inline std::list<Param*>::iterator        get_end ();
+  /** Sets whether function takes varargs.
+   *
+   * @param has_varargs An option to use.
+   */
+  void set_has_varargs (bool has_varargs);
 
-  bool                                      append_param (Param* param);
-  inline std::list<Param*>::iterator        erase (const std::list<Param*>::iterator& position);
+  /** Swaps contents of this function and given one.
+   *
+   * @param function Another function.
+   */
+  void swap (Function& function);
 
-  inline bool                               has_varargs () const;
-  inline void                               set_varargs (bool has_varargs = true);
-
-  inline bool                               operator== (const Function& function) const;
 private:
-  std::string                               m_ret_type;
-  std::list<Param*>                         m_parameters;
-  bool                                      m_has_varargs;
+  struct FunctionImpl;
+  std::shared_ptr<FunctionImpl> m_pimpl;
+
+  virtual std::string get_ret_type_vfunc () const;
+  virtual void set_ret_type_vfunc (const std::string& ret_type);
+
+  virtual ParamList::const_iterator get_begin_vfunc () const;
+  virtual ParamList::iterator get_begin_vfunc ();
+  virtual ParamList::const_iterator get_end_vfunc () const;
+  virtual ParamList::iterator get_end_vfunc ();
+
+  virtual void append_param_vfunc (const ParamPtr& param);
 };
-
-inline std::string Function::get_ret_type () const
-{
-  return m_ret_type;
-}
-
-inline std::list<Param*>::const_iterator Function::get_begin () const
-{
-  return m_parameters.begin ();
-}
-
-inline std::list<Param*>::iterator Function::get_begin ()
-{
-  return m_parameters.begin ();
-}
-
-inline std::list<Param*>::const_iterator Function::get_end () const
-{
-  return m_parameters.end ();
-}
-
-inline std::list<Param*>::iterator Function::get_end ()
-{
-  return m_parameters.end ();
-}
-
-inline std::list<Param*>::iterator Function::erase(const std::list<Param*>::iterator& position)
-{
-  return m_parameters.erase (position);
-}
-
-inline bool Function::has_varargs () const
-{
-  return m_has_varargs;
-}
-
-inline void Function::set_varargs (bool has_varargs)
-{
-  m_has_varargs = has_varargs;
-}
-
-inline bool Function::operator== (const Function& function) const
-{
-  const Id* id (this);
-  return (*id == function);
-}
 
 } // namespace Api
 

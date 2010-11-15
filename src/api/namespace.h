@@ -22,11 +22,12 @@
 #define PROC_API_NAMESPACE_H
 
 // standard
+#include <memory>
 #include <string>
-#include <unordered_map>
 
 // api
-#include "id.h"
+#include "identifiable.h"
+#include "ptrtypes.h"
 
 namespace Proc
 {
@@ -38,46 +39,34 @@ class Enum;
 class Object;
 class Function;
 
-class Namespace : public Id
+class Namespace : public Identifiable
 {
 public:
-                      Namespace (const std::string& id = std::string ());
+  Namespace ();
+  Namespace (const std::string& id);
 
-                      Namespace (const Namespace& ns);
-  Namespace&          operator= (const Namespace& ns);
+  virtual ~Namespace ();
 
-  virtual             ~Namespace ();
+  void add_enum (const EnumPtr& enumeration);
+  EnumPtr get_enum (const std::string& c_name) const;
 
-  bool                add_enum (Enum* enumeration);
-  Enum*               get_enum (const std::string& c_name) const;
+  void add_object (const ObjectPtr& object);
+  ObjectPtr get_object (const std::string& c_name) const;
 
-  bool                add_object (Object* object);
-  Object*             get_object (const std::string& c_name) const;
+  void add_function (const FunctionPtr& function);
+  FunctionPtr get_function (const std::string& c_name) const;
 
-  bool                add_function (Function* function);
-  Function*           get_function (const std::string& c_name) const;
+  static std::string get_namespace_name (const std::string& name);
 
-  inline bool         operator== (const Namespace& ns);
+  void swap (Namespace& ns);
 
-  static std::string  get_namespace_name (const std::string& name);
 private:
-  typedef std::unordered_map<std::string, Enum*> StringEnumMap;
-  typedef std::unordered_map<std::string, Object*> StringObjectMap;
-  typedef std::unordered_map<std::string, Function*> StringFunctionMap;
+  struct NamespaceImpl;
+  std::shared_ptr<NamespaceImpl> m_pimpl;
 
-  static bool         underline_break (const std::string::const_iterator& it);
-  static bool         capital_break (const std::string::const_iterator& it);
-
-  StringEnumMap       m_enums;
-  StringObjectMap     m_objects;
-  StringFunctionMap   m_functions;
+  virtual std::string get_id_vfunc () const;
+  virtual void set_id_vfunc (const std::string& id);
 };
-
-inline bool Namespace::operator== (const Namespace& ns)
-{
-  const Id* id (this);
-  return (*id == ns);
-}
 
 } // namespace Api
 

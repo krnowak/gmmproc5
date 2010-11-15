@@ -22,10 +22,11 @@
 #define PROC_API_PARAM_H
 
 // standard
+#include <memory>
 #include <string>
 
 // api
-#include "id.h"
+#include "identifiable.h"
 
 namespace Proc
 {
@@ -33,23 +34,56 @@ namespace Proc
 namespace Api
 {
 
-class Param : public Id
+/** Class describing one parameter of a function or signal.
+ */
+class Param : public Identifiable
 {
 public:
-                      Param (const std::string& id = std::string ());
+  /** Constructor.
+   *
+   * Sets empty id and type.
+   */
+  Param ();
 
-  virtual             ~Param ();
+  /** Constructor.
+   *
+   * Sets id and empty type.
+   *
+   * @param id An id to set.
+   */
+  explicit Param (const std::string& id);
 
-  inline std::string  get_type () const;
-  bool                set_type (const std::string& type);
+  /** Destructor.
+   *
+   * Not much to say about it.
+   */
+  virtual ~Param ();
+
+  /** Gets parameter type.
+   *
+   * @return A type.
+   */
+  std::string get_type () const;
+
+  /** Sets parameter type.
+   *
+   * @param id A type to set.
+   */
+  void set_type (const std::string& type);
+
+  /** Swaps contents of this parameter and given one.
+   *
+   * @param param Another parameter.
+   */
+  void swap (Param& param);
+
 private:
-  std::string         m_type;
-};
+  struct ParamImpl;
+  std::shared_ptr<ParamImpl> m_pimpl;
 
-std::string Param::get_type () const
-{
-  return m_type;
-}
+  std::string get_id_vfunc () const;
+  void set_id_vfunc (const std::string& id);
+};
 
 } // namespace Api
 

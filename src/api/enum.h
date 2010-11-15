@@ -23,11 +23,12 @@
 
 // standard
 #include <list>
+#include <memory>
 #include <string>
 #include <utility>
 
 // api
-#include "id.h"
+#include "wrappable.h"
 
 namespace Proc
 {
@@ -35,75 +36,96 @@ namespace Proc
 namespace Api
 {
 
-class Enum : public Id
+/* Class describing enumeration/flags.
+ */
+class Enum : public Wrappable
 {
 public:
   typedef std::pair<std::string, std::string> Element;
+  typedef std::shared_ptr<Element> ElementPtr;
+  typedef std::list<ElementPtr> ElementList;
 
-                                              Enum (const std::string& id = std::string ());
+  /** Constructor.
+   *
+   * Sets empty id and empty element list. Marks it as yet unwrapped.
+   */
+  Enum ();
 
-                                              Enum (const Enum& enumeration);
-  Enum&                                       operator= (const Enum& enumeration);
+  /** Constructor.
+   *
+   * Sets id as given and empty element list. Marks it as yet unwrapped.
+   *
+   * @param id An id to set.
+   */
+  explicit Enum (const std::string& id);
 
-  virtual                                     ~Enum();
+  /** Destructor.
+   *
+   * Not much to say about it.
+   */
+  virtual ~Enum();
 
-  inline bool                                 is_flags () const;
-  inline void                                 set_is_flags (bool is_flags = true);
+  /** Gets whether this enumeration is marked as flags.
+   *
+   * Flags means that for this enumeration also some bitwise operators should be
+   * set.
+   *
+   * @return @c true if this enumeration is treated as flags, otherwise
+   * @c false.
+   */
+  bool get_is_flags () const;
 
-  inline std::list<Element*>::const_iterator  get_begin () const;
-  inline std::list<Element*>::iterator        get_begin ();
-  inline std::list<Element*>::const_iterator  get_end () const;
-  inline std::list<Element*>::iterator        get_end ();
+  /** Sets whether this enumeration is marked as flags.
+   *
+   * Flags means that for this enumeration also some bitwise operators should be
+   * set.
+   *
+   * @param is_flags An option to use.
+   */
+  void set_is_flags (bool is_flags);
 
-  bool                                        append_element (Element* element);
-  inline std::list<Element*>::iterator        erase (const std::list<Element*>::iterator& position);
+  /** Gets iterator to first element of this enum.
+   *
+   * @return A const iterator to the beginning.
+   */
+  ElementList::const_iterator get_begin () const;
 
-  inline bool                                 operator== (const Enum& enumeration) const;
+  /** Gets iterator to first element of this enum.
+   *
+   * @return An iterator to the beginning.
+   */
+  ElementList::iterator get_begin ();
+
+  /** Gets iterator to past last element of this enum.
+   *
+   * @return A const iterator to the end.
+   */
+  ElementList::const_iterator get_end () const;
+
+  /** Gets iterator to past last element of this enum.
+   *
+   * @return An iterator to the end.
+   */
+  ElementList::iterator get_end ();
+
+  /** Appends element to the element list.
+   *
+   * Note that no checking of an element validity is done.
+   *
+   * @param element An element to be appended.
+   */
+  void append_element (const ElementPtr& element);
+
+  /** Swaps contents of this enum and given one.
+   *
+   * @param enumeration Another enum.
+   */
+  void swap (Enum& enumeration);
+
 private:
-  std::list<Element* >                        m_elements;
-  bool                                        m_is_flags;
+  struct EnumImpl;
+  std::shared_ptr<EnumImpl> m_pimpl;
 };
-
-inline bool Enum::is_flags () const
-{
-  return m_is_flags;
-}
-
-inline void Enum::set_is_flags (bool is_flags)
-{
-  m_is_flags = is_flags;
-}
-
-inline std::list<Enum::Element*>::const_iterator Enum::get_begin () const
-{
-  return m_elements.begin ();
-}
-
-inline std::list<Enum::Element*>::iterator Enum::get_begin ()
-{
-  return m_elements.begin ();
-}
-
-inline std::list<Enum::Element*>::const_iterator Enum::get_end () const
-{
-  return m_elements.end ();
-}
-
-inline std::list<Enum::Element*>::iterator Enum::get_end ()
-{
-  return m_elements.end ();
-}
-
-inline std::list<Enum::Element*>::iterator Enum::erase(const std::list<Enum::Element*>::iterator& position)
-{
-  return m_elements.erase (position);
-}
-
-inline bool Enum::operator== (const Enum& enumeration) const
-{
-  const Id* id (this);
-  return (*id == enumeration);
-}
 
 } // namespace Api
 
