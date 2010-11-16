@@ -63,7 +63,7 @@ std::list<Statement> StatementizeTask::statementize (const std::list<std::string
 {
   std::list<std::string>::const_iterator tokens_end (tokens.end ());
 
-  for (std::list<std::string>::const_iterator token_iter (tokens.begin ()); token_iter != tokens_end; token_iter++)
+  for (std::list<std::string>::const_iterator token_iter (tokens.begin ()); token_iter != tokens_end; ++token_iter)
   {
     StringFunctionMap::iterator it (m_token_actions.find (*token_iter));
 
@@ -81,7 +81,7 @@ std::list<Statement> StatementizeTask::statementize (const std::list<std::string
 
 void StatementizeTask::on_token_newline ()
 {
-  m_current_line++;
+  ++m_current_line;
 }
 
 void StatementizeTask::on_token_open_paren ()
@@ -133,8 +133,27 @@ void StatementizeTask::on_token_close_paren ()
   {
     case CONTEXT_HEADER:
     {
-      m_current_statement.set_type (m_key);
-      m_current_statement.set_header (m_value);
+      switch (m_long_token_num)
+      {
+        case 0:
+        {
+          throw_syntax_error ("Expected a type and header.");
+        }
+        case 1:
+        {
+          throw_syntax_error ("Got a type, expected a header too.");
+        }
+        case 2:
+        {
+          m_current_statement.set_type (m_key);
+          m_current_statement.set_header (m_value);
+          break;
+        }
+        default:
+        {
+          throw_syntax_error ("Expected only a type and header, nothing more.");
+        }
+      }
       // fall through
     }
     case CONTEXT_LEVEL1:
@@ -194,9 +213,9 @@ void StatementizeTask::on_token_close_paren ()
           {
             size_t val_length (m_value.length ());
 
-            if (val_length < 3)
+            if (val_length < 2)
             {
-              throw_syntax_error ("String values have to be non-empty.");
+              throw_syntax_error ("Malformed string value.");
             }
             m_current_statement.set_value (m_key, m_value.substr (1, val_length - 2));
             break;
@@ -306,13 +325,13 @@ void StatementizeTask::on_token_other (const std::string& token)
           throw_syntax_error (oss.str ());
         }
       }
-      m_long_token_num++;
+      ++m_long_token_num;
       break;
     }
     case CONTEXT_LIST_ELEMENTS:
     {
       m_elements.push_back (token);
-      m_long_token_num++;
+      ++m_long_token_num;
       break;
     }
     default:

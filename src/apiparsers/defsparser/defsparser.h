@@ -37,13 +37,6 @@
 namespace Proc
 {
 
-namespace Api
-{
-
-class Namespace;
-
-} // namespace Api
-
 namespace Parsers
 {
 
@@ -53,47 +46,18 @@ namespace ApiParsers
 class DefsParser : public ApiParser
 {
 public:
-  DefsParser (const std::string& path);
+  DefsParser ();
   virtual ~DefsParser ();
 
 private:
-  typedef std::unordered_map<std::string, std::function<void (const Statement&)> > StringFunctionMap;
-  typedef std::stack<std::pair<std::string, std::string> > FileStack;
-  typedef std::unordered_map<std::string, std::string> StringStringMap;
-  typedef std::stack<std::list<std::string> > TokensStack;
-  typedef std::stack<std::list<Statement> > StatementsStack;
+  struct DefsParserImpl;
+  std::shared_ptr<DefsParserImpl> m_pimpl;
 
-  virtual Api::Namespace*   parse_vfunc ();
-  virtual std::string       get_ext_vfunc () const;
-
-  void                      tokenize ();
-  void                      statementize ();
-  void                      apicize ();
-  void                      parse_round ();
-  std::string               read_contents (const std::string& path);
-  std::string               dirname (const std::string& path);
-
-  void                      on_include (const Statement& statement);
-  void                      on_enum (const Statement& statement);
-  void                      on_flags (const Statement& statement);
-  void                      on_object (const Statement& statement);
-  void                      on_function (const Statement& statement);
-  void                      on_method (const Statement& statement);
-  void                      on_property (const Statement& statement);
-  void                      on_signal (const Statement& statement);
-  void                      on_vfunc (const Statement& statement);
-  void                      on_omit (const Statement& statement);
-
-  void						          create_enum_or_flags (const Statement& statement, bool flags);
-  void						          create_namespace (const Statement& statement);
-
-  TokensStack               m_tokens;
-  StatementsStack           m_statements;
-  std::string               m_directory;
-  Api::Namespace*           m_namespace;
-  StringFunctionMap         m_statement_actions;
-  FileStack                 m_parsed_files;
-  StringStringMap           m_types_ns;
+  virtual void set_file_to_parse_vfunc (const std::string& file_path);
+  virtual void set_string_to_parse_vfunc (const std::string& contents);
+  virtual Api::NamespacePtr parse_vfunc ();
+  virtual std::string get_ext_vfunc () const;
+  virtual void reset_vfunc ();
 };
 
 } // namespace ApiParsers
