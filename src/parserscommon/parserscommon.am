@@ -1,6 +1,7 @@
 libparserscommon_src = \
 	src/parserscommon/syntaxerror.cc \
 	src/parserscommon/syntaxerror.h \
+	src/parserscommon/apiparser.cc \
 	src/parserscommon/apiparser.h
 
 lib_LTLIBRARIES += src/parserscommon/libparserscommon.la
@@ -8,3 +9,6 @@ lib_LTLIBRARIES += src/parserscommon/libparserscommon.la
 src_parserscommon_libparserscommon_la_SOURCES = $(libparserscommon_src)
 
 src_parserscommon_libparserscommon_la_CXXFLAGS = $(common_cxxflags)
+
+src_parserscommon_libparserscommon_la_CPPFLAGS = \
+	-I$(top_srcdir)/src/api

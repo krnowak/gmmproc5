@@ -18,15 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_PARSERS_API_PARSER_H
-#define PROC_PARSERS_API_PARSER_H
-
-// standard
-#include <memory>
-#include <string>
-
-// api
-#include "ptrtypes.h"
+// parserscommon
+#include "apiparser.h"
 
 namespace Proc
 {
@@ -34,27 +27,34 @@ namespace Proc
 namespace Parsers
 {
 
-class ApiParser
+ApiParser::~ApiParser ()
+{}
+
+void ApiParser::set_file_to_parse (const std::string& file_path)
 {
-public:
-  virtual ~ApiParser ();
-  void set_file_to_parse (const std::string& file_path);
-  void set_string_to_parse (const std::string& contents);
-  Api::NamespacePtr parse ();
-  std::string get_ext ();
-  void reset ();
-//  std::shared_ptr<ApiParser> create ();
-protected:
-  virtual void set_file_to_parse_vfunc (const std::string& file_path) = 0;
-  virtual void set_string_to_parse_vfunc (const std::string& file_path) = 0;
-  virtual Api::NamespacePtr parse_vfunc () = 0;
-  virtual std::string get_ext_vfunc () const = 0;
-  virtual void reset_vfunc () = 0;
-//  virtual std::shared_ptr<ApiParser> create ();
-};
+  set_file_to_parse_vfunc (file_path);
+}
+
+void ApiParser::set_string_to_parse (const std::string& contents)
+{
+  set_string_to_parse_vfunc (contents);
+}
+
+Api::NamespacePtr ApiParser::parse ()
+{
+  return parse_vfunc();
+}
+
+std::string ApiParser::get_ext ()
+{
+  return get_ext_vfunc ();
+}
+
+void ApiParser::reset ()
+{
+  reset_vfunc ();
+}
 
 } // namespace Parsers
 
 } // namespace Proc
-
-#endif // PROC_PARSERS_APIPARSERS_H
