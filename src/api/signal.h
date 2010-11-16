@@ -34,7 +34,8 @@ enum RunFlags
 {
   RUN_INVALID = 0,
   RUN_FIRST = 1 << 0,
-  RUN_LAST = 1 << 1
+  RUN_LAST = 1 << 1,
+  RUN_UNKNOWN = 1 << 2
 };
 
 inline RunFlags
@@ -95,6 +96,12 @@ public:
 private:
   struct SignalImpl;
   std::shared_ptr<SignalImpl> m_pimpl;
+
+  virtual std::string get_id_vfunc () const;
+  virtual void set_id_vfunc (const std::string& id);
+
+  virtual bool get_wrapped_vfunc () const;
+  virtual void set_wrapped_vfunc (bool wrapped);
 
   virtual std::string get_ret_type_vfunc () const;
   virtual void set_ret_type_vfunc (const std::string& ret_type);

@@ -34,55 +34,55 @@ namespace Proc
 namespace Api
 {
 
-enum ParamFlags
+enum PropertyFlags
 {
-  PARAM_INVALID = 0,
-  PARAM_READABLE = 1 << 0,
-  PARAM_WRITABLE = 1 << 1,
-  PARAM_CONSTRUCT = 1 << 2,
-  PARAM_CONSTRUCT_ONLY = 1 << 3
+  PROPERTY_INVALID = 0,
+  PROPERTY_READABLE = 1 << 0,
+  PROPERTY_WRITABLE = 1 << 1,
+  PROPERTY_CONSTRUCT = 1 << 2,
+  PROPERTY_CONSTRUCT_ONLY = 1 << 3
 };
 
-inline ParamFlags
-operator& (ParamFlags first, ParamFlags second)
+inline PropertyFlags
+operator& (PropertyFlags first, PropertyFlags second)
 {
-  return static_cast<ParamFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
+  return static_cast<PropertyFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
 }
 
-inline ParamFlags
-operator| (ParamFlags first, ParamFlags second)
+inline PropertyFlags
+operator| (PropertyFlags first, PropertyFlags second)
 {
-  return static_cast<ParamFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
+  return static_cast<PropertyFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
 }
 
-inline ParamFlags
-operator^ (ParamFlags first, ParamFlags second)
+inline PropertyFlags
+operator^ (PropertyFlags first, PropertyFlags second)
 {
-  return static_cast<ParamFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
+  return static_cast<PropertyFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
 }
 
-inline ParamFlags&
-operator|= (ParamFlags& first, ParamFlags second)
+inline PropertyFlags&
+operator|= (PropertyFlags& first, PropertyFlags second)
 {
-  return first = static_cast<ParamFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
+  return first = static_cast<PropertyFlags> (static_cast<unsigned int> (first) | static_cast<unsigned int> (second));
 }
 
-inline ParamFlags&
-operator&= (ParamFlags& first, ParamFlags second)
+inline PropertyFlags&
+operator&= (PropertyFlags& first, PropertyFlags second)
 {
-  return first = static_cast<ParamFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
+  return first = static_cast<PropertyFlags> (static_cast<unsigned int> (first) & static_cast<unsigned int> (second));
 }
 
-inline ParamFlags&
-operator^= (ParamFlags& first, ParamFlags second)
+inline PropertyFlags&
+operator^= (PropertyFlags& first, PropertyFlags second)
 {
-  return first = static_cast<ParamFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
+  return first = static_cast<PropertyFlags> (static_cast<unsigned int> (first) ^ static_cast<unsigned int> (second));
 }
 
-inline ParamFlags
-operator~ (ParamFlags first)
+inline PropertyFlags
+operator~ (PropertyFlags first)
 {
-  return static_cast<ParamFlags> (~static_cast<unsigned int> (first));
+  return static_cast<PropertyFlags> (~static_cast<unsigned int> (first));
 }
 
 class Property : public Wrappable
@@ -96,8 +96,8 @@ public:
   std::string get_type () const;
   void set_type (const std::string& type);
 
-  ParamFlags get_flags () const;
-  void set_flags (ParamFlags param_flags);
+  PropertyFlags get_flags () const;
+  void set_flags (PropertyFlags param_flags);
 
   void swap (Property& property);
 private:

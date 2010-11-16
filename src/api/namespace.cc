@@ -89,9 +89,9 @@ Namespace::Namespace (const std::string& id)
 Namespace::~Namespace ()
 {}
 
-void Namespace::add_function (const FunctionPtr& function)
+bool Namespace::add_function (const FunctionPtr& function)
 {
-  m_pimpl->m_functions.insert (std::make_pair (function->get_id (), function));
+  return m_pimpl->m_functions.insert (std::make_pair (function->get_id (), function)).second;
 }
 
 FunctionPtr Namespace::get_function (const std::string& c_name) const
@@ -105,9 +105,9 @@ FunctionPtr Namespace::get_function (const std::string& c_name) const
   return FunctionPtr ();
 }
 
-void Namespace::add_object (const ObjectPtr& object)
+bool Namespace::add_object (const ObjectPtr& object)
 {
-  m_pimpl->m_objects.insert (std::make_pair (object->get_id (), object));
+  return m_pimpl->m_objects.insert (std::make_pair (object->get_id (), object)).second;
 }
 
 ObjectPtr Namespace::get_object (const std::string& c_name) const
@@ -121,9 +121,9 @@ ObjectPtr Namespace::get_object (const std::string& c_name) const
   return ObjectPtr ();
 }
 
-void Namespace::add_enum (const EnumPtr& enumeration)
+bool Namespace::add_enum (const EnumPtr& enumeration)
 {
-  m_pimpl->m_enums.insert (std::make_pair (enumeration->get_id (), enumeration));
+  return m_pimpl->m_enums.insert (std::make_pair (enumeration->get_id (), enumeration)).second;
 }
 
 EnumPtr Namespace::get_enum (const std::string& c_name) const

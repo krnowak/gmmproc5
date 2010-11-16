@@ -125,6 +125,12 @@ public:
 private:
   struct EnumImpl;
   std::shared_ptr<EnumImpl> m_pimpl;
+
+  virtual std::string get_id_vfunc () const;
+  virtual void set_id_vfunc (const std::string& id);
+
+  virtual bool get_wrapped_vfunc () const;
+  virtual void set_wrapped_vfunc (bool wrapped);
 };
 
 } // namespace Api

@@ -35,21 +35,21 @@ struct Property::PropertyImpl
   std::string m_id;
   bool m_wrapped;
   std::string m_type;
-  ParamFlags m_param_flags;
+  PropertyFlags m_param_flags;
 };
 
 Property::PropertyImpl::PropertyImpl ()
 : m_id (),
   m_wrapped (false),
   m_type (),
-  m_param_flags (PARAM_INVALID)
+  m_param_flags (PROPERTY_INVALID)
 {}
 
 Property::PropertyImpl::PropertyImpl (const std::string& id)
 : m_id (id),
   m_wrapped (false),
   m_type (),
-  m_param_flags (PARAM_INVALID)
+  m_param_flags (PROPERTY_INVALID)
 {}
 
 Property::Property ()
@@ -75,12 +75,12 @@ void Property::set_type (const std::string& type)
   m_pimpl->m_type = type;
 }
 
-ParamFlags Property::get_flags () const
+PropertyFlags Property::get_flags () const
 {
   return m_pimpl->m_param_flags;
 }
 
-void Property::set_flags (ParamFlags param_flags)
+void Property::set_flags (PropertyFlags param_flags)
 {
   m_pimpl->m_param_flags = param_flags;
 }

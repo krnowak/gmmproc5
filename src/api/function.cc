@@ -87,6 +87,26 @@ void Function::swap (Function& function)
   m_pimpl.swap (function.m_pimpl);
 }
 
+std::string Function::get_id_vfunc () const
+{
+  return m_pimpl->m_id;
+}
+
+void Function::set_id_vfunc (const std::string& id)
+{
+  m_pimpl->m_id = id;
+}
+
+bool Function::get_wrapped_vfunc () const
+{
+  return m_pimpl->m_wrapped;
+}
+
+void Function::set_wrapped_vfunc (bool wrapped)
+{
+  m_pimpl->m_wrapped = wrapped;
+}
+
 void Function::set_ret_type_vfunc (const std::string& ret_type)
 {
   m_pimpl->m_ret_type = ret_type;

@@ -83,6 +83,26 @@ void Signal::swap (Signal& signal)
   m_pimpl.swap (signal.m_pimpl);
 }
 
+std::string Signal::get_id_vfunc () const
+{
+  return m_pimpl->m_id;
+}
+
+void Signal::set_id_vfunc (const std::string& id)
+{
+  m_pimpl->m_id = id;
+}
+
+bool Signal::get_wrapped_vfunc () const
+{
+  return m_pimpl->m_wrapped;
+}
+
+void Signal::set_wrapped_vfunc (bool wrapped)
+{
+  m_pimpl->m_wrapped = wrapped;
+}
+
 void Signal::set_ret_type_vfunc (const std::string& ret_type)
 {
   m_pimpl->m_ret_type = ret_type;

@@ -47,13 +47,13 @@ public:
 
   virtual ~Namespace ();
 
-  void add_enum (const EnumPtr& enumeration);
+  bool add_enum (const EnumPtr& enumeration);
   EnumPtr get_enum (const std::string& c_name) const;
 
-  void add_object (const ObjectPtr& object);
+  bool add_object (const ObjectPtr& object);
   ObjectPtr get_object (const std::string& c_name) const;
 
-  void add_function (const FunctionPtr& function);
+  bool add_function (const FunctionPtr& function);
   FunctionPtr get_function (const std::string& c_name) const;
 
   static std::string get_namespace_name (const std::string& name);

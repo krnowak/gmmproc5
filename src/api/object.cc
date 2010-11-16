@@ -116,9 +116,20 @@ void Object::set_gtype (const std::string& gtype)
   m_pimpl->m_gtype = gtype;
 }
 
-void Object::add_constructor (const FunctionPtr& constructor)
+bool Object::add_constructor (const FunctionPtr& constructor)
 {
-  m_pimpl->m_constructors.insert (std::make_pair (constructor->get_id (), constructor));
+  return m_pimpl->m_constructors.insert (std::make_pair (constructor->get_id (), constructor)).second;
+}
+
+FunctionPtr Object::get_constructor (const std::string& name) const
+{
+  ObjectImpl::StringFunctionMap::const_iterator it (m_pimpl->m_constructors.find (name));
+
+  if (it != m_pimpl->m_constructors.end ())
+  {
+    return it->second;
+  }
+  return FunctionPtr ();
 }
 
 void Object::set_destructor (const FunctionPtr& destructor)
@@ -126,28 +137,73 @@ void Object::set_destructor (const FunctionPtr& destructor)
   m_pimpl->m_destructor = destructor;
 }
 
-void Object::add_method (const FunctionPtr& method)
+FunctionPtr Object::get_destructor () const
 {
-  m_pimpl->m_methods.insert (std::make_pair (method->get_id (), method));
-//  m_pimpl->m_methods.push_back (method);
+  return m_pimpl->m_destructor;
 }
 
-void Object::add_signal (const SignalPtr& signal)
+bool Object::add_method (const FunctionPtr& method)
 {
-  m_pimpl->m_signals.insert (std::make_pair (signal->get_id (), signal));
-//  m_pimpl->m_signals.push_back (signal);
+  return m_pimpl->m_methods.insert (std::make_pair (method->get_id (), method)).second;
 }
 
-void Object::add_property (const PropertyPtr& property)
+FunctionPtr Object::get_method (const std::string& name) const
 {
-  m_pimpl->m_properties.insert (std::make_pair (property->get_id (), property));
-//  m_pimpl->m_properties.push_back (property);
+  ObjectImpl::StringFunctionMap::const_iterator it (m_pimpl->m_methods.find (name));
+
+  if (it != m_pimpl->m_methods.end ())
+  {
+    return it->second;
+  }
+  return FunctionPtr ();
 }
 
-void Object::add_vfunc (const FunctionPtr& vfunc)
+bool Object::add_signal (const SignalPtr& signal)
 {
-  m_pimpl->m_vfuncs.insert (std::make_pair (vfunc->get_id (), vfunc));
- // m_pimpl->m_constructors.push_back (constructor);
+  return m_pimpl->m_signals.insert (std::make_pair (signal->get_id (), signal)).second;
+}
+
+SignalPtr Object::get_signal (const std::string& name) const
+{
+  ObjectImpl::StringSignalMap::const_iterator it (m_pimpl->m_signals.find (name));
+
+  if (it != m_pimpl->m_signals.end ())
+  {
+    return it->second;
+  }
+  return SignalPtr ();
+}
+
+bool Object::add_property (const PropertyPtr& property)
+{
+  return m_pimpl->m_properties.insert (std::make_pair (property->get_id (), property)).second;
+}
+
+PropertyPtr Object::get_property (const std::string& name) const
+{
+  ObjectImpl::StringPropertyMap::const_iterator it (m_pimpl->m_properties.find (name));
+
+  if (it != m_pimpl->m_properties.end ())
+  {
+    return it->second;
+  }
+  return PropertyPtr ();
+}
+
+bool Object::add_vfunc (const FunctionPtr& vfunc)
+{
+  return m_pimpl->m_vfuncs.insert (std::make_pair (vfunc->get_id (), vfunc)).second;
+}
+
+FunctionPtr Object::get_vfunc (const std::string& name) const
+{
+  ObjectImpl::StringFunctionMap::const_iterator it (m_pimpl->m_vfuncs.find (name));
+
+  if (it != m_pimpl->m_vfuncs.end ())
+  {
+    return it->second;
+  }
+  return FunctionPtr ();
 }
 
 bool Object::get_is_interface () const

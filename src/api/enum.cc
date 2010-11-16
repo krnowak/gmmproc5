@@ -108,6 +108,26 @@ void Enum::swap (Enum& enumeration)
   m_pimpl.swap (enumeration.m_pimpl);
 }
 
+std::string Enum::get_id_vfunc () const
+{
+  return m_pimpl->m_id;
+}
+
+void Enum::set_id_vfunc (const std::string& id)
+{
+  m_pimpl->m_id = id;
+}
+
+bool Enum::get_wrapped_vfunc () const
+{
+  return m_pimpl->m_wrapped;
+}
+
+void Enum::set_wrapped_vfunc (bool wrapped)
+{
+  m_pimpl->m_wrapped = wrapped;
+}
+
 } // namespace Api
 
 } // namespace Proc

@@ -54,12 +54,18 @@ public:
   std::string get_gtype () const;
   void set_gtype ( const std::string& gtype );
 
-  void add_constructor (const FunctionPtr& constructor);
+  bool add_constructor (const FunctionPtr& constructor);
+  FunctionPtr get_constructor (const std::string& name) const;
   void set_destructor (const FunctionPtr& destructor);
-  void add_method (const FunctionPtr& method);
-  void add_signal (const SignalPtr& signal);
-  void add_property (const PropertyPtr& property);
-  void add_vfunc (const FunctionPtr& vfunc);
+  FunctionPtr get_destructor () const;
+  bool add_method (const FunctionPtr& method);
+  FunctionPtr get_method (const std::string& name) const;
+  bool add_signal (const SignalPtr& signal);
+  SignalPtr get_signal (const std::string& name) const;
+  bool add_property (const PropertyPtr& property);
+  PropertyPtr get_property (const std::string& name) const;
+  bool add_vfunc (const FunctionPtr& vfunc);
+  FunctionPtr get_vfunc (const std::string& name) const;
 
   bool get_is_interface () const;
   void set_is_interface (bool iface);
