@@ -1,6 +1,8 @@
 libcommon_src = \
 	src/common/internalerror.cc \
-	src/common/internalerror.h
+	src/common/internalerror.h \
+	src/common/utilities.cc \
+	src/common/utilities.h
 
 lib_LTLIBRARIES += src/common/libcommon.la
 
