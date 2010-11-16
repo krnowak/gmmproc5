@@ -2,6 +2,10 @@
 #include <iostream>
 #include <memory>
 
+// common
+#include "internalerror.h"
+#include "syntaxerror.h"
+
 // api
 #include "namespace.h"
 
@@ -10,17 +14,17 @@
 
 int main (int argc, char** argv)
 {
-  std::auto_ptr<Proc::Parsers::ApiParsers::DefsParser> parser (0);
+  std::shared_ptr<Proc::Parsers::ApiParsers::DefsParser> parser (new Proc::Parsers::ApiParsers::DefsParser);
 
   if (argc != 2)
   {
     std::cerr << "usage: gmmproc file" << std::endl;
     return 1;
   }
-  parser.reset (new Proc::Parsers::ApiParsers::DefsParser (argv[1]));
+  parser->set_file_to_parse (argv[1]);
   try
   {
-    std::auto_ptr<Proc::Api::Namespace> ns (parser->parse());
+    Proc::Api::NamespacePtr ns (parser->parse());
   }
   catch (Proc::Common::InternalError e)
   {
