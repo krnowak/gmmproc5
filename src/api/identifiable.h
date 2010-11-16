@@ -30,7 +30,7 @@ namespace Proc
 {
 
 /** Namespace containing API definition stuff.
- */ 
+ */
 namespace Api
 {
 
@@ -52,7 +52,7 @@ public:
    * @return An id.
    */
   std::string get_id () const;
-  
+
   /** Sets an id of an object.
    *
    * Base classes should reimplement set_id_vfunc().

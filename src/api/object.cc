@@ -38,7 +38,7 @@ struct Object::ObjectImpl
   typedef std::unordered_map<std::string, FunctionPtr> StringFunctionMap;
   typedef std::unordered_map<std::string, SignalPtr> StringSignalMap;
   typedef std::unordered_map<std::string, PropertyPtr> StringPropertyMap;
-  
+
   ObjectImpl ();
   ObjectImpl (const std::string& id);
 

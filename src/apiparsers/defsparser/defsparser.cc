@@ -1047,7 +1047,6 @@ void DefsParser::reset_vfunc ()
 
     m_pimpl->m_parsed_files.swap (empty);
   }
-  
 }
 
 } // namespace ApiParsers
