@@ -1,6 +1,9 @@
 libcommon_src = \
+	src/common/dfsmerror.cc \
+	src/common/dfsmerror.h \
 	src/common/internalerror.cc \
 	src/common/internalerror.h \
+	src/common/simpledfsm.h \
 	src/common/utilities.cc \
 	src/common/utilities.h
 

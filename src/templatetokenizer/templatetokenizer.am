@@ -1,0 +1,9 @@
+libtemplatetokenizer_src = 
+
+lib_LTLIBRARIES += src/templatetokenizer/libtemplatetokenizer.la
+
+src_templatetokenizer_libtemplatetokenizer_la_SOURCES = $(libtemplatetokenizer_src)
+
+src_templatetokenizer_libtemplatetokenizer_la_CPPFLAGS = -I$(top_srcdir)/src/common
+
+src_templatetokenizer_libtemplatetokenizer_la_CXXFLAGS = $(common_cxxflags)
