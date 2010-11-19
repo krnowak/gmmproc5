@@ -37,11 +37,11 @@ struct TemplateToken
     TOKEN_MULTILINE_COMMENT, // /* ajwaj */
     TOKEN_SINGLE_LINE_COMMENT, // // ajwaj
     TOKEN_DOXYGEN, // /** ajwaj */
-    TOKEN_MISC, // parens, braces, newlines and semicolons
+    TOKEN_MISC, // parens, braces, newlines, semicolons and commas
     TOKEN_DOUBLY_QUOTED_STRING, // "ajwaj"
     TOKEN_SINGLY_QUOTED_STRING, // 'a'
-    TOKEN_FUNNY_QUOTED_STRING // `ajwaj'
-    TOKEN_USELESS // tokens you probably don't care about.
+    TOKEN_FUNNY_QUOTED_STRING, // `ajwaj'
+    TOKEN_OTHER // other tokens (whitespace, dots, angle brackets and so on).
   };
 
   Type type;

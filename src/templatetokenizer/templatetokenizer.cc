@@ -263,6 +263,7 @@ Inputs TemplateTokenizer::TemplateTokenizerImpl::Translator::operator() (const s
     case '(':
     case ')':
     case ';':
+    case ',':
     {
       return INPUT_MISC;
     }
