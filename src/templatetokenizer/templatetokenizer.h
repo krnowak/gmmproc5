@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_TEMPLATE_TOKENIZER
-#define PROC_TEMPLATE_TOKENIZER
+#ifndef PROC_TEMPLATE_TOKENIZER_H
+#define PROC_TEMPLATE_TOKENIZER_H
 
 // standard
 #include <list>
@@ -52,7 +52,7 @@ struct TemplateToken
 class TemplateTokenizer
 {
 public:
-  typedef std::list<TemplateToken>> TokensList;
+  typedef std::list<TemplateToken> TokensList;
   typedef std::shared_ptr<TokensList> TokensListPtr;
 
   TemplateTokenizer ();
@@ -71,4 +71,4 @@ private:
 
 } // namespace Proc
 
-#endif // PROC_TEMPLATE_TOKENIZER
+#endif // PROC_TEMPLATE_TOKENIZER_H

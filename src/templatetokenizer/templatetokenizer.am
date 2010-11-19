@@ -1,4 +1,6 @@
-libtemplatetokenizer_src = 
+libtemplatetokenizer_src = \
+	src/templatetokenizer/templatetokenizer.cc \
+	src/templatetokenizer/templatetokenizer.h
 
 lib_LTLIBRARIES += src/templatetokenizer/libtemplatetokenizer.la
 

@@ -72,7 +72,7 @@ struct TemplateTokenizer::TemplateTokenizerImpl
   typedef Proc::Common::SimpleDFSM<States, Inputs, std::string> GDFSM;
   struct Translator
   {
-    TemplateTokenizer::TemplateTokenizerImpl::Inputs operator() (const std::string::const_iterator& iter) const
+    TemplateTokenizer::TemplateTokenizerImpl::Inputs operator() (const std::string::const_iterator& iter) const;
   };
   struct EntryFunction
   {
@@ -95,11 +95,10 @@ struct TemplateTokenizer::TemplateTokenizerImpl
 
   TemplateTokenizer::TokensListPtr m_tokens;
   GDFSM m_dfsm;
-}
+};
 
 TemplateTokenizer::TemplateTokenizerImpl::TemplateTokenizerImpl ()
-: m_tokens (),
-  m_token (),
+: m_tokens (new TemplateTokenizer::TokensList),
   m_dfsm ()
 {
   m_dfsm.add_state (STATE_START);
@@ -220,11 +219,11 @@ TemplateTokenizer::TemplateTokenizerImpl::TemplateTokenizerImpl ()
 
   m_dfsm.set_input_translator (Translator ());
 
-  m_dfsm.set_entry_function (EntryFunction (*this));
-  m_dfsm.set_exit_function (ExitFunction (*this));
+  m_dfsm.set_entry_callback (EntryFunction (*this));
+  m_dfsm.set_exit_callback (ExitFunction (*this));
 }
 
-Inputs TemplateTokenizer::TemplateTokenizerImpl::Translator::operator() (const std::string::const_iterator& iter) const
+TemplateTokenizer::TemplateTokenizerImpl::Inputs TemplateTokenizer::TemplateTokenizerImpl::Translator::operator() (const std::string::const_iterator& iter) const
 {
   const char c (*iter);
 
@@ -278,26 +277,26 @@ Inputs TemplateTokenizer::TemplateTokenizerImpl::Translator::operator() (const s
   }
 }
 
-TemplateTokenizer::TemplateTokenizerImpl::EntryFunction (TemplateTokenizer::TemplateTokenizerImpl& owner)
+TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::EntryFunction (TemplateTokenizer::TemplateTokenizerImpl& owner)
 : m_owner (owner)
 {}
 
-void TemplateTokenizer::TemplateTokenizerImpl::operator() (const States& state, const Inputs& input, const std::string::const_iterator& input_char)
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::operator() (const States& /*state*/, const Inputs& /*input*/, const std::string::const_iterator& /*input_char*/)
 {
   
 }
 
-TemplateTokenizer::TemplateTokenizerImpl::ExitFunction (TemplateTokenizer::TemplateTokenizerImpl& owner)
+TemplateTokenizer::TemplateTokenizerImpl::ExitFunction::ExitFunction (TemplateTokenizer::TemplateTokenizerImpl& owner)
 : m_owner (owner)
 {}
 
-void TemplateTokenizer::TemplateTokenizerImpl::operator() (const States& state, const Inputs& input, const std::string::const_iterator& input_char)
+void TemplateTokenizer::TemplateTokenizerImpl::ExitFunction::operator() (const States& /*state*/, const Inputs& /*input*/, const std::string::const_iterator& /*input_char*/)
 {
   
 }
 
 TemplateTokenizer::TemplateTokenizer()
-: m_pimpl (new TemplateTokenizerImpl);
+: m_pimpl (new TemplateTokenizerImpl)
 {}
 
 TemplateTokenizer::~TemplateTokenizer()
@@ -305,23 +304,27 @@ TemplateTokenizer::~TemplateTokenizer()
 
 void TemplateTokenizer::set_file (const std::string& file_path)
 {
-  set_contents (Common::Utilites::read_contents (file_path));
+  set_contents (Common::Utilities::read_contents (file_path));
 }
 
 void TemplateTokenizer::set_contents (const std::string& contents)
 {
-  m_pimpl->m_dfsn.load_string (contents);
+  m_pimpl->m_dfsm.load_string (contents);
 }
 
 TemplateTokenizer::TokensListPtr TemplateTokenizer::tokenize ()
 {
-  if (!m_pimpl->m_tokens.empty())
+  if (!m_pimpl->m_tokens->empty ())
   {
-    TokensListPtr empty;
+    TokensListPtr empty (new TemplateTokenizer::TokensList);
 
     m_pimpl->m_tokens.swap (empty);
   }
-  m_pimpl->tokenize();
+  m_pimpl->m_dfsm.process_whole ();
+  if (!m_pimpl->m_dfsm.is_current_state_accepting ())
+  {
+    // throw something
+  }
 
   TokensListPtr tokens;
 
