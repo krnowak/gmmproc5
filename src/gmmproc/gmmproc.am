@@ -7,7 +7,8 @@ src_gmmproc_gmmproc5_CPPFLAGS = \
 	-I$(top_srcdir)/src/apiparsers/defsparser \
 	-I$(top_srcdir)/src/apiparsers \
 	-I$(top_srcdir)/src/parserscommon \
-	-I$(top_srcdir)/src/common
+	-I$(top_srcdir)/src/common \
+	-I$(top_srcdir)/src/templatetokenizer
 
 src_gmmproc_gmmproc5_CXXFLAGS = $(common_cxxflags)
 
@@ -15,4 +16,5 @@ src_gmmproc_gmmproc5_LDADD = \
 	$(top_builddir)/src/api/libapi.la \
 	$(top_builddir)/src/apiparsers/defsparser/libdefsparser.la \
 	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/parserscommon/libparserscommon.la
+	$(top_builddir)/src/parserscommon/libparserscommon.la \
+	$(top_builddir)/src/templatetokenizer/libtemplatetokenizer.la
