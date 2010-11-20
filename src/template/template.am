@@ -1,4 +1,6 @@
 libtemplate_src = \
+	src/template/error.cc \
+	src/template/error.h \
 	src/template/tokenizer.cc \
 	src/template/tokenizer.h \
 	src/template/token.cc \

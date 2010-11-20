@@ -22,10 +22,12 @@
 #include <sstream>
 
 // common
+#include "internalerror.h"
 #include "simpledfsm.h"
 #include "utilities.h"
 
 // template
+#include "error.h"
 #include "tokenizer.h"
 
 namespace Proc
@@ -107,6 +109,11 @@ struct Tokenizer::TokenizerImpl
 
   TokenizerImpl ();
 
+  void throw_bad_route_exception (const char* file, const char* function, unsigned int line) const;
+
+  static const char* get_state_name (States state);
+  static const char* get_input_name (Inputs input);
+
   Tokenizer::TokensListPtr m_tokens;
   std::string::const_iterator m_token_begin;
   std::string::const_iterator m_maybe_token_begin;
@@ -124,126 +131,379 @@ Tokenizer::TokenizerImpl::TokenizerImpl ()
   m_previous_state (STATE_START),
   m_dfsm ()
 {
-  m_dfsm.add_state (STATE_START);
-  m_dfsm.add_state (STATE_SLASH);
-  m_dfsm.add_state (STATE_SINGLE_LINE_COMMENT);
-  m_dfsm.add_state (STATE_MULTI_LINE_ANY);
-  m_dfsm.add_state (STATE_DOXYGEN_MAYBE);
-  m_dfsm.add_state (STATE_DOXYGEN);
-  m_dfsm.add_state (STATE_DOXY_STAR);
-  m_dfsm.add_state (STATE_MULTI_LINE_COMMENT);
-  m_dfsm.add_state (STATE_MC_STAR);
-  m_dfsm.add_state (STATE_WORD);
-  m_dfsm.add_state (STATE_DQ_STRING);
-  m_dfsm.add_state (STATE_DQ_ESCAPE);
-  m_dfsm.add_state (STATE_SQ_STRING);
-  m_dfsm.add_state (STATE_SQ_ESCAPE);
-  m_dfsm.add_state (STATE_FQ_STRING);
-  m_dfsm.add_state (STATE_FQ_ESCAPE);
-  m_dfsm.add_state (STATE_OTHER);
+  bool succeeded (true);
 
-  m_dfsm.add_input (INPUT_SLASH);
-  m_dfsm.add_input (INPUT_STAR);
-  m_dfsm.add_input (INPUT_NEWLINE);
-  m_dfsm.add_input (INPUT_DQ);
-  m_dfsm.add_input (INPUT_SQ);
-  m_dfsm.add_input (INPUT_BACKTICK);
-  m_dfsm.add_input (INPUT_ESCAPE);
-  m_dfsm.add_input (INPUT_WORD);
-  m_dfsm.add_input (INPUT_MISC);
-  m_dfsm.add_input (INPUT_OTHER);
+  // states
+  succeeded &= m_dfsm.add_state (STATE_START);
+  succeeded &= m_dfsm.add_state (STATE_SLASH);
+  succeeded &= m_dfsm.add_state (STATE_SINGLE_LINE_COMMENT);
+  succeeded &= m_dfsm.add_state (STATE_MULTI_LINE_ANY);
+  succeeded &= m_dfsm.add_state (STATE_DOXYGEN_MAYBE);
+  succeeded &= m_dfsm.add_state (STATE_DOXYGEN);
+  succeeded &= m_dfsm.add_state (STATE_DOXY_STAR);
+  succeeded &= m_dfsm.add_state (STATE_MULTI_LINE_COMMENT);
+  succeeded &= m_dfsm.add_state (STATE_MC_STAR);
+  succeeded &= m_dfsm.add_state (STATE_WORD);
+  succeeded &= m_dfsm.add_state (STATE_DQ_STRING);
+  succeeded &= m_dfsm.add_state (STATE_DQ_ESCAPE);
+  succeeded &= m_dfsm.add_state (STATE_SQ_STRING);
+  succeeded &= m_dfsm.add_state (STATE_SQ_ESCAPE);
+  succeeded &= m_dfsm.add_state (STATE_FQ_STRING);
+  succeeded &= m_dfsm.add_state (STATE_FQ_ESCAPE);
+  succeeded &= m_dfsm.add_state (STATE_OTHER);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to add states to DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_START, STATE_OTHER);
-  m_dfsm.set_route (STATE_START, STATE_SLASH, INPUT_SLASH);
-  m_dfsm.set_route (STATE_START, STATE_START, INPUT_NEWLINE);
-  m_dfsm.set_route (STATE_START, STATE_DQ_STRING, INPUT_DQ);
-  m_dfsm.set_route (STATE_START, STATE_SQ_STRING, INPUT_SQ);
-  m_dfsm.set_route (STATE_START, STATE_FQ_STRING, INPUT_BACKTICK);
-  m_dfsm.set_route (STATE_START, STATE_WORD, INPUT_WORD);
-  m_dfsm.set_route (STATE_START, STATE_START, INPUT_MISC);
+  // inputs
+  succeeded &= m_dfsm.add_input (INPUT_SLASH);
+  succeeded &= m_dfsm.add_input (INPUT_STAR);
+  succeeded &= m_dfsm.add_input (INPUT_NEWLINE);
+  succeeded &= m_dfsm.add_input (INPUT_DQ);
+  succeeded &= m_dfsm.add_input (INPUT_SQ);
+  succeeded &= m_dfsm.add_input (INPUT_BACKTICK);
+  succeeded &= m_dfsm.add_input (INPUT_ESCAPE);
+  succeeded &= m_dfsm.add_input (INPUT_WORD);
+  succeeded &= m_dfsm.add_input (INPUT_MISC);
+  succeeded &= m_dfsm.add_input (INPUT_OTHER);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to add inputs to DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_SLASH, STATE_OTHER);
-  m_dfsm.set_route (STATE_SLASH, STATE_SINGLE_LINE_COMMENT, INPUT_SLASH);
-  m_dfsm.set_route (STATE_SLASH, STATE_MULTI_LINE_ANY, INPUT_STAR);
-  m_dfsm.set_route (STATE_SLASH, STATE_START, INPUT_NEWLINE);
-  m_dfsm.set_route (STATE_SLASH, STATE_DQ_STRING, INPUT_DQ);
-  m_dfsm.set_route (STATE_SLASH, STATE_SQ_STRING, INPUT_SQ);
-  m_dfsm.set_route (STATE_SLASH, STATE_FQ_STRING, INPUT_BACKTICK);
-  m_dfsm.set_route (STATE_SLASH, STATE_WORD, INPUT_WORD);
-  m_dfsm.set_route (STATE_SLASH, STATE_START, INPUT_MISC);
+  // routes for STATE_START
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_START, STATE_OTHER);
+  succeeded &= m_dfsm.set_route (STATE_START, STATE_SLASH, INPUT_SLASH);
+  succeeded &= m_dfsm.set_route (STATE_START, STATE_START, INPUT_NEWLINE);
+  succeeded &= m_dfsm.set_route (STATE_START, STATE_DQ_STRING, INPUT_DQ);
+  succeeded &= m_dfsm.set_route (STATE_START, STATE_SQ_STRING, INPUT_SQ);
+  succeeded &= m_dfsm.set_route (STATE_START, STATE_FQ_STRING, INPUT_BACKTICK);
+  succeeded &= m_dfsm.set_route (STATE_START, STATE_WORD, INPUT_WORD);
+  succeeded &= m_dfsm.set_route (STATE_START, STATE_START, INPUT_MISC);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_START in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_SINGLE_LINE_COMMENT, STATE_SINGLE_LINE_COMMENT);
-  m_dfsm.set_route (STATE_SINGLE_LINE_COMMENT, STATE_START, INPUT_NEWLINE);
+  // routes for STATE_SLASH
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_SLASH, STATE_OTHER);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_SINGLE_LINE_COMMENT, INPUT_SLASH);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_MULTI_LINE_ANY, INPUT_STAR);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_START, INPUT_NEWLINE);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_DQ_STRING, INPUT_DQ);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_SQ_STRING, INPUT_SQ);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_FQ_STRING, INPUT_BACKTICK);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_WORD, INPUT_WORD);
+  succeeded &= m_dfsm.set_route (STATE_SLASH, STATE_START, INPUT_MISC);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_SLASH in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_MULTI_LINE_ANY, STATE_MULTI_LINE_COMMENT);
-  m_dfsm.set_route (STATE_MULTI_LINE_ANY, STATE_DOXYGEN_MAYBE, INPUT_STAR);
+  // routes for STATE_SINGLE_LINE_COMMENT
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_SINGLE_LINE_COMMENT, STATE_SINGLE_LINE_COMMENT);
+  succeeded &= m_dfsm.set_route (STATE_SINGLE_LINE_COMMENT, STATE_START, INPUT_NEWLINE);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_SINGLE_LINE_COMMENT in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_MULTI_LINE_COMMENT, STATE_MULTI_LINE_COMMENT);
-  m_dfsm.set_route (STATE_MULTI_LINE_COMMENT, STATE_MC_STAR, INPUT_STAR);
+  // routes for STATE_MULTI_LINE_ANY
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_MULTI_LINE_ANY, STATE_MULTI_LINE_COMMENT);
+  succeeded &= m_dfsm.set_route (STATE_MULTI_LINE_ANY, STATE_DOXYGEN_MAYBE, INPUT_STAR);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_MULTI_LINE_ANY in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_MC_STAR, STATE_MULTI_LINE_COMMENT);
-  m_dfsm.set_route (STATE_MC_STAR, STATE_START, INPUT_SLASH);
-  m_dfsm.set_route (STATE_MC_STAR, STATE_MC_STAR, INPUT_STAR);
+  // routes for STATE_MULTI_LINE_COMMENT
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_MULTI_LINE_COMMENT, STATE_MULTI_LINE_COMMENT);
+  succeeded &= m_dfsm.set_route (STATE_MULTI_LINE_COMMENT, STATE_MC_STAR, INPUT_STAR);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_MULTI_LINE_COMMENT in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_DOXYGEN_MAYBE, STATE_DOXYGEN);
-  m_dfsm.set_route (STATE_DOXYGEN_MAYBE, STATE_START, INPUT_SLASH);
+  // routes for STATE_MC_STAR
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_MC_STAR, STATE_MULTI_LINE_COMMENT);
+  succeeded &= m_dfsm.set_route (STATE_MC_STAR, STATE_START, INPUT_SLASH);
+  succeeded &= m_dfsm.set_route (STATE_MC_STAR, STATE_MC_STAR, INPUT_STAR);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_MC_STAR in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_DOXYGEN, STATE_DOXYGEN);
-  m_dfsm.set_route (STATE_DOXYGEN, STATE_DOXY_STAR, INPUT_STAR);
+  // routes for STATE_DOXYGEN_MAYBE
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_DOXYGEN_MAYBE, STATE_DOXYGEN);
+  succeeded &= m_dfsm.set_route (STATE_DOXYGEN_MAYBE, STATE_START, INPUT_SLASH);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_DOXYGEN_MAYBE in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_DOXY_STAR, STATE_DOXYGEN);
-  m_dfsm.set_route (STATE_DOXY_STAR, STATE_START, INPUT_SLASH);
-  m_dfsm.set_route (STATE_DOXY_STAR, STATE_DOXY_STAR, INPUT_STAR);
+  // routes for STATE_DOXYGEN
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_DOXYGEN, STATE_DOXYGEN);
+  succeeded &= m_dfsm.set_route (STATE_DOXYGEN, STATE_DOXY_STAR, INPUT_STAR);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_DOXYGEN in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_OTHER, STATE_OTHER);
-  m_dfsm.set_route (STATE_OTHER, STATE_SLASH, INPUT_SLASH);
-  m_dfsm.set_route (STATE_OTHER, STATE_START, INPUT_NEWLINE);
-  m_dfsm.set_route (STATE_OTHER, STATE_DQ_STRING, INPUT_DQ);
-  m_dfsm.set_route (STATE_OTHER, STATE_SQ_STRING, INPUT_SQ);
-  m_dfsm.set_route (STATE_OTHER, STATE_FQ_STRING, INPUT_BACKTICK);
-  m_dfsm.set_route (STATE_OTHER, STATE_WORD, INPUT_WORD);
-  m_dfsm.set_route (STATE_OTHER, STATE_START, INPUT_MISC);
+  // routes for STATE_DOXY_STAR
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_DOXY_STAR, STATE_DOXYGEN);
+  succeeded &= m_dfsm.set_route (STATE_DOXY_STAR, STATE_START, INPUT_SLASH);
+  succeeded &= m_dfsm.set_route (STATE_DOXY_STAR, STATE_DOXY_STAR, INPUT_STAR);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_DOXY_STAR in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_WORD, STATE_OTHER);
-  m_dfsm.set_route (STATE_WORD, STATE_SLASH, INPUT_SLASH);
-  m_dfsm.set_route (STATE_WORD, STATE_START, INPUT_NEWLINE);
-  m_dfsm.set_route (STATE_WORD, STATE_DQ_STRING, INPUT_DQ);
-  m_dfsm.set_route (STATE_WORD, STATE_SQ_STRING, INPUT_SQ);
-  m_dfsm.set_route (STATE_WORD, STATE_FQ_STRING, INPUT_BACKTICK);
-  m_dfsm.set_route (STATE_WORD, STATE_WORD, INPUT_WORD);
-  m_dfsm.set_route (STATE_WORD, STATE_START, INPUT_MISC);
+  // routes for STATE_OTHER
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_OTHER, STATE_OTHER);
+  succeeded &= m_dfsm.set_route (STATE_OTHER, STATE_SLASH, INPUT_SLASH);
+  succeeded &= m_dfsm.set_route (STATE_OTHER, STATE_START, INPUT_NEWLINE);
+  succeeded &= m_dfsm.set_route (STATE_OTHER, STATE_DQ_STRING, INPUT_DQ);
+  succeeded &= m_dfsm.set_route (STATE_OTHER, STATE_SQ_STRING, INPUT_SQ);
+  succeeded &= m_dfsm.set_route (STATE_OTHER, STATE_FQ_STRING, INPUT_BACKTICK);
+  succeeded &= m_dfsm.set_route (STATE_OTHER, STATE_WORD, INPUT_WORD);
+  succeeded &= m_dfsm.set_route (STATE_OTHER, STATE_START, INPUT_MISC);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_OTHER in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_DQ_STRING, STATE_DQ_STRING);
-  m_dfsm.set_route (STATE_DQ_STRING, STATE_START, INPUT_NEWLINE);
-  m_dfsm.set_route (STATE_DQ_STRING, STATE_START, INPUT_DQ);
-  m_dfsm.set_route (STATE_DQ_STRING, STATE_DQ_ESCAPE, INPUT_ESCAPE);
+  // routes for STATE_WORD
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_WORD, STATE_OTHER);
+  succeeded &= m_dfsm.set_route (STATE_WORD, STATE_SLASH, INPUT_SLASH);
+  succeeded &= m_dfsm.set_route (STATE_WORD, STATE_START, INPUT_NEWLINE);
+  succeeded &= m_dfsm.set_route (STATE_WORD, STATE_DQ_STRING, INPUT_DQ);
+  succeeded &= m_dfsm.set_route (STATE_WORD, STATE_SQ_STRING, INPUT_SQ);
+  succeeded &= m_dfsm.set_route (STATE_WORD, STATE_FQ_STRING, INPUT_BACKTICK);
+  succeeded &= m_dfsm.set_route (STATE_WORD, STATE_WORD, INPUT_WORD);
+  succeeded &= m_dfsm.set_route (STATE_WORD, STATE_START, INPUT_MISC);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_WORD in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_DQ_ESCAPE, STATE_DQ_STRING);
+  // routes for STATE_DQ_STRING
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_DQ_STRING, STATE_DQ_STRING);
+  succeeded &= m_dfsm.set_route (STATE_DQ_STRING, STATE_START, INPUT_NEWLINE);
+  succeeded &= m_dfsm.set_route (STATE_DQ_STRING, STATE_START, INPUT_DQ);
+  succeeded &= m_dfsm.set_route (STATE_DQ_STRING, STATE_DQ_ESCAPE, INPUT_ESCAPE);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_DQ_STRING in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_SQ_STRING, STATE_SQ_STRING);
-  m_dfsm.set_route (STATE_SQ_STRING, STATE_START, INPUT_NEWLINE);
-  m_dfsm.set_route (STATE_SQ_STRING, STATE_START, INPUT_SQ);
-  m_dfsm.set_route (STATE_SQ_STRING, STATE_SQ_ESCAPE, INPUT_ESCAPE);
+  // routes for STATE_DQ_ESCAPE
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_DQ_ESCAPE, STATE_DQ_STRING);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_DQ_ESCAPE in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_SQ_ESCAPE, STATE_SQ_STRING);
+  // routes for STATE_SQ_STRING
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_SQ_STRING, STATE_SQ_STRING);
+  succeeded &= m_dfsm.set_route (STATE_SQ_STRING, STATE_START, INPUT_NEWLINE);
+  succeeded &= m_dfsm.set_route (STATE_SQ_STRING, STATE_START, INPUT_SQ);
+  succeeded &= m_dfsm.set_route (STATE_SQ_STRING, STATE_SQ_ESCAPE, INPUT_ESCAPE);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_SQ_STRING in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_FQ_STRING, STATE_FQ_STRING);
-  m_dfsm.set_route (STATE_FQ_STRING, STATE_START, INPUT_NEWLINE);
-  m_dfsm.set_route (STATE_FQ_STRING, STATE_START, INPUT_SQ);
-  m_dfsm.set_route (STATE_FQ_STRING, STATE_FQ_ESCAPE, INPUT_ESCAPE);
+  // routes for STATE_SQ_ESCAPE
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_SQ_ESCAPE, STATE_SQ_STRING);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_SQ_ESCAPE in DFSM.");
+  }
 
-  m_dfsm.set_default_next_state_for (STATE_FQ_ESCAPE, STATE_FQ_STRING);
+  // routes for STATE_FQ_STRING
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_FQ_STRING, STATE_FQ_STRING);
+  succeeded &= m_dfsm.set_route (STATE_FQ_STRING, STATE_START, INPUT_NEWLINE);
+  succeeded &= m_dfsm.set_route (STATE_FQ_STRING, STATE_START, INPUT_SQ);
+  succeeded &= m_dfsm.set_route (STATE_FQ_STRING, STATE_FQ_ESCAPE, INPUT_ESCAPE);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_FQ_STRING in DFSM.");
+  }
 
-  m_dfsm.add_accept_state (STATE_START);
-  m_dfsm.add_accept_state (STATE_OTHER);
-  m_dfsm.add_accept_state (STATE_WORD);
+  // routes for STATE_FQ_ESCAPE
+  succeeded &= m_dfsm.set_default_next_state_for (STATE_FQ_ESCAPE, STATE_FQ_STRING);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set routes for STATE_FQ_ESCAPE in DFSM.");
+  }
 
-  m_dfsm.set_start_state (STATE_START);
+  // accepts states
+  succeeded &= m_dfsm.add_accept_state (STATE_START);
+  succeeded &= m_dfsm.add_accept_state (STATE_OTHER);
+  succeeded &= m_dfsm.add_accept_state (STATE_WORD);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to add accept states to DFSM.");
+  }
 
-  m_dfsm.set_input_translator (Translator ());
+  // start state
+  succeeded &= m_dfsm.set_start_state (STATE_START);
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set start state in DFSM.");
+  }
 
-  m_dfsm.set_entry_callback (EntryFunction (*this));
-  m_dfsm.set_exit_callback (ExitFunction (*this));
+  // input translator
+  succeeded &= m_dfsm.set_input_translator (Translator ());
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set input translator in DFSM.");
+  }
+
+  // callbacks
+  succeeded &= m_dfsm.set_entry_callback (EntryFunction (*this));
+  succeeded &= m_dfsm.set_exit_callback (ExitFunction (*this));
+  if (!succeeded)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, "Failed to set callbacks in DFSM.");
+  }
+}
+
+void Tokenizer::TokenizerImpl::throw_bad_route_exception (const char* file, const char* function, unsigned int line) const
+{
+  std::ostringstream oss;
+
+  oss << "Bad route from " << get_state_name (m_previous_state) << " to " << get_state_name (m_dfsm.get_current_state ()) << " by " << get_input_name (m_dfsm.get_current_input ()) << ".";
+  throw Common::InternalError (file, function, line, oss.str ());
+}
+
+const char* Tokenizer::TokenizerImpl::get_state_name (States state)
+{
+  switch (state)
+  {
+    case STATE_START:
+    {
+      return "STATE_START";
+    }
+    case STATE_SLASH:
+    {
+      return "STATE_SLASH";
+    }
+    case STATE_SINGLE_LINE_COMMENT:
+    {
+      return "STATE_SINGLE_LINE_COMMENT";
+    }
+    case STATE_MULTI_LINE_ANY:
+    {
+      return "STATE_MULTI_LINE_ANY";
+    }
+    case STATE_DOXYGEN_MAYBE:
+    {
+      return "STATE_DOXYGEN_MAYBE";
+    }
+    case STATE_DOXYGEN:
+    {
+      return "STATE_DOXYGEN";
+    }
+    case STATE_DOXY_STAR:
+    {
+      return "STATE_DOXY_STAR";
+    }
+    case STATE_MULTI_LINE_COMMENT:
+    {
+      return "STATE_MULTI_LINE_COMMENT";
+    }
+    case STATE_MC_STAR:
+    {
+      return "STATE_MC_STAR";
+    }
+    case STATE_WORD:
+    {
+      return "STATE_WORD";
+    }
+    case STATE_DQ_STRING:
+    {
+      return "STATE_DQ_STRING";
+    }
+    case STATE_DQ_ESCAPE:
+    {
+      return "STATE_DQ_ESCAPE";
+    }
+    case STATE_SQ_STRING:
+    {
+      return "STATE_SQ_STRING";
+    }
+    case STATE_SQ_ESCAPE:
+    {
+      return "STATE_SQ_ESCAPE";
+    }
+    case STATE_FQ_STRING:
+    {
+      return "STATE_FQ_STRING";
+    }
+    case STATE_FQ_ESCAPE:
+    {
+      return "STATE_FQ_ESCAPE";
+    }
+    case STATE_OTHER:
+    {
+      return "STATE_OTHER";
+    }
+  }
+  return "STATE_UNKNOWN";
+}
+
+const char* Tokenizer::TokenizerImpl::get_input_name (Inputs input)
+{
+  switch (input)
+  {
+    case INPUT_SLASH:
+    {
+      return "INPUT_SLASH";
+    }
+    case INPUT_STAR:
+    {
+      return "INPUT_STAR";
+    }
+    case INPUT_NEWLINE:
+    {
+      return "INPUT_NEWLINE";
+    }
+    case INPUT_DQ:
+    {
+      return "INPUT_DQ";
+    }
+    case INPUT_SQ:
+    {
+      return "INPUT_SQ";
+    }
+    case INPUT_BACKTICK:
+    {
+      return "INPUT_BACKTICK";
+    }
+    case INPUT_ESCAPE:
+    {
+      return "INPUT_ESCAPE";
+    }
+    case INPUT_WORD:
+    {
+      return "INPUT_WORD";
+    }
+    case INPUT_MISC:
+    {
+      return "INPUT_MISC";
+    }
+    case INPUT_OTHER:
+    {
+      return "INPUT_OTHER";
+    }
+    default:
+    {
+      break;
+    }
+  }
+  return "INPUT_UNKNOWN";
 }
 
 Tokenizer::TokenizerImpl::Inputs Tokenizer::TokenizerImpl::Translator::operator() (const std::string::value_type& c) const
@@ -364,13 +624,13 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_word_state (const Tokenizer
     }
     case STATE_WORD:
     {
-      // nothing
+      // nothing.
       break;
     }
     default:
     {
       // should not happen.
-      // throw something.
+      m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
     }
   }
 }
@@ -393,13 +653,13 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_other_state (const Tokenize
     case STATE_OTHER:
     case STATE_SLASH:
     {
-      // nothing
+      // nothing.
       break;
     }
     default:
     {
       // should not happen.
-      // throw something.
+      m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
     }
   }
 }
@@ -433,8 +693,8 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_string_state (const Tokeniz
     {
       if (string_state != STATE_DQ_STRING)
       {
-        // shouldn't happen
-        // throw something.
+        // shouldn't happen.
+        m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
       }
       break;
     }
@@ -443,8 +703,8 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_string_state (const Tokeniz
     {
       if (string_state != STATE_SQ_STRING)
       {
-        // shouldn't happen
-        // throw something.
+        // shouldn't happen.
+        m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
       }
       break;
     }
@@ -453,15 +713,15 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_string_state (const Tokeniz
     {
       if (string_state != STATE_FQ_STRING)
       {
-        // shouldn't happen
-        // throw something.
+        // shouldn't happen.
+        m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
       }
       break;
     }
     default:
     {
       // should not happen.
-      // throw something.
+      m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
     }
   }
 }
@@ -491,7 +751,7 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_slash_state (const Tokenize
     default:
     {
       // should not happen.
-      // throw something.
+      m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
     }
   }
 }
@@ -508,7 +768,7 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_comment_state (const Tokeni
     default:
     {
       // should not happen.
-      // throw something.
+      m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
     }
   }
 }
@@ -571,7 +831,7 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_start_state (const Tokenize
     default:
     {
       // should not happen.
-      // throw something.
+      m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
     }
   }
   if (check_current_input)
@@ -587,7 +847,7 @@ void Tokenizer::TokenizerImpl::EntryFunction::handle_start_state (const Tokenize
       default:
       {
         // should not happen.
-        // throw something.
+        m_owner.throw_bad_route_exception (__FILE__, __PRETTY_FUNCTION__, __LINE__);
       }
     }
   }
@@ -633,10 +893,37 @@ Tokenizer::TokensListPtr Tokenizer::tokenize ()
 
     m_pimpl->m_tokens.swap (empty);
   }
-  m_pimpl->m_dfsm.process_whole ();
+  try
+  {
+    m_pimpl->m_dfsm.process_whole ();
+  }
+  catch (TokenizerImpl::GDFSM::RouteError& e)
+  {
+    std::ostringstream oss;
+    const TokenizerImpl::GDFSM::RouteError::DanglingConnectionsPtr d_c (e.get_dangling_connections ());
+    const TokenizerImpl::GDFSM::RouteError::DanglingConnections::const_iterator d_c_end (d_c->end ());
+
+    oss << e.what () << "\n BEGIN\n";
+    for (TokenizerImpl::GDFSM::RouteError::DanglingConnections::const_iterator d_c_iter (d_c->begin ()); d_c_iter != d_c_end; ++d_c_iter)
+    {
+      const TokenizerImpl::GDFSM::RouteError::InputsList& i_l (d_c_iter->second);
+      const TokenizerImpl::GDFSM::RouteError::InputsList::const_iterator i_l_end (i_l.end ());
+
+      for (TokenizerImpl::GDFSM::RouteError::InputsList::const_iterator i_l_iter (i_l.begin ()); i_l_iter != i_l_end; ++i_l_iter)
+      {
+        oss << "  From " << TokenizerImpl::get_state_name (d_c_iter->first) << " by " << TokenizerImpl::get_input_name (*i_l_iter) << ".\n";
+      }
+    }
+    oss << " END";
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, oss.str ());
+  }
+  catch (Common::DFSMError& e)
+  {
+    throw Common::InternalError (__FILE__, __PRETTY_FUNCTION__, __LINE__, e.what ());
+  }
   if (!m_pimpl->m_dfsm.is_current_state_accepting ())
   {
-    // throw something
+    throw Error ("The file was rejected. Make sure it is proper.");
   }
 
   TokensListPtr tokens;

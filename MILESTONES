@@ -2,7 +2,7 @@ alpha - simple mm module sources can be generated (without documentation)
 and compiled without warnings with g++ using -Wall -Wextra -pedantic flags
 that means:
   - write a defs parser - DONE
-  - write a template files (hg, ccg) tokenizer
+  - write a template files (hg, ccg) tokenizer - DONE
   - write a plugin system for template commands
   - write plugins for basic template commands
   - write conversions parsers
