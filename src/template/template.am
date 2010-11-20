@@ -1,0 +1,13 @@
+libtemplate_src = \
+	src/template/tokenizer.cc \
+	src/template/tokenizer.h \
+	src/template/token.cc \
+	src/template/token.h
+
+lib_LTLIBRARIES += src/template/libtemplate.la
+
+src_template_libtemplate_la_SOURCES = $(libtemplate_src)
+
+src_template_libtemplate_la_CPPFLAGS = -I$(top_srcdir)/src/common
+
+src_template_libtemplate_la_CXXFLAGS = $(common_cxxflags)

@@ -34,8 +34,8 @@
 // defsparser
 #include "defsparser.h"
 
-// template tokenizer
-#include "templatetokenizer.h"
+// template
+#include "tokenizer.h"
 
 namespace
 {
@@ -55,47 +55,47 @@ std::string get_val_for_opt (int& iter, int& argc, char**& argv)
   return argv[iter];
 }
 
-std::string get_token_name (Proc::TemplateToken::Type type)
+std::string get_token_name (Proc::Template::Token::Type type)
 {
   switch (type)
   {
-    case Proc::TemplateToken::TOKEN_WORD:
+    case Proc::Template::Token::TOKEN_WORD:
     {
       return "word";
     }
-    case Proc::TemplateToken::TOKEN_MULTILINE_COMMENT:
+    case Proc::Template::Token::TOKEN_MULTILINE_COMMENT:
     {
       return "multiline_comment";
     }
-    case Proc::TemplateToken::TOKEN_SINGLE_LINE_COMMENT:
+    case Proc::Template::Token::TOKEN_SINGLE_LINE_COMMENT:
     {
       return "singleline comment";
     }
-    case Proc::TemplateToken::TOKEN_DOXYGEN:
+    case Proc::Template::Token::TOKEN_DOXYGEN:
     {
       return "doxygen";
     }
-    case Proc::TemplateToken::TOKEN_MISC:
+    case Proc::Template::Token::TOKEN_MISC:
     {
       return "misc";
     }
-    case Proc::TemplateToken::TOKEN_DOUBLY_QUOTED_STRING:
+    case Proc::Template::Token::TOKEN_DOUBLY_QUOTED_STRING:
     {
       return "doubly-quoted string";
     }
-    case Proc::TemplateToken::TOKEN_SINGLY_QUOTED_STRING:
+    case Proc::Template::Token::TOKEN_SINGLY_QUOTED_STRING:
     {
       return "singly-linked string";
     }
-    case Proc::TemplateToken::TOKEN_FUNNY_QUOTED_STRING:
+    case Proc::Template::Token::TOKEN_FUNNY_QUOTED_STRING:
     {
       return "funny-quoted string";
     }
-    case Proc::TemplateToken::TOKEN_OTHER:
+    case Proc::Template::Token::TOKEN_OTHER:
     {
       return "other";
     }
-    case Proc::TemplateToken::TOKEN_INVALID:
+    case Proc::Template::Token::TOKEN_INVALID:
     {
       return "invalid";
     }
@@ -173,20 +173,22 @@ int main (int argc, char** argv)
       }
       case TEMPLATES:
       {
-        Proc::TemplateTokenizer tokenizer;
+        Proc::Template::Tokenizer tokenizer;
 
         tokenizer.set_file (file);
         try
         {
-          Proc::TemplateTokenizer::TokensListPtr tokens (tokenizer.tokenize ());
+          Proc::Template::Tokenizer::TokensListPtr tokens (tokenizer.tokenize ());
 
           if (tokens)
           {
-            Proc::TemplateTokenizer::TokensList::const_iterator end (tokens->end ());
+            Proc::Template::Tokenizer::TokensList::const_iterator end (tokens->end ());
+            unsigned int token_num (1);
 
-            for (Proc::TemplateTokenizer::TokensList::const_iterator iter (tokens->begin ()); iter != end; ++iter)
+            for (Proc::Template::Tokenizer::TokensList::const_iterator iter (tokens->begin ()); iter != end; ++iter)
             {
-              std::cout << iter->m_line << ": (" << get_token_name (iter->m_type) << ")?" << iter->m_contents << "?\n";
+              std::cout << "[" << token_num << "] " << iter->get_line () << ": (" << get_token_name (iter->get_type ()) << ")?" << iter->get_contents () << "?\n";
+              ++token_num;
             }
           }
         }

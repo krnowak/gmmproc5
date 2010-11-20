@@ -18,19 +18,21 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef PROC_TEMPLATE_TOKENIZER_H
-#define PROC_TEMPLATE_TOKENIZER_H
+#ifndef PROC_TEMPLATE_TOKEN_H
+#define PROC_TEMPLATE_TOKEN_H
 
-// standard
-#include <list>
 #include <memory>
 #include <string>
 
 namespace Proc
 {
 
-struct TemplateToken
+namespace Template
 {
+
+class Token
+{
+public:
   enum Type
   {
     TOKEN_WORD, // any word containing alnums, _ and #
@@ -45,33 +47,19 @@ struct TemplateToken
     TOKEN_INVALID // invalid token
   };
 
-  TemplateToken (Type type, int line, const std::string& contents) : m_type (type), m_line (line), m_contents (contents) {}
+  Token (Type type, int line, const std::string& contents);
 
-  Type m_type;
-  unsigned int m_line;
-  std::string m_contents;
-};
+  Type get_type () const;
+  unsigned int get_line () const;
+  std::string get_contents () const;
 
-class TemplateTokenizer
-{
-public:
-  typedef std::list<TemplateToken> TokensList;
-  typedef std::shared_ptr<TokensList> TokensListPtr;
-
-  TemplateTokenizer ();
-  ~TemplateTokenizer ();
-
-  void set_file (const std::string& file_path);
-  void set_contents (const std::string& contents);
-
-  TokensListPtr tokenize ();
-
-  void reset ();
 private:
-  struct TemplateTokenizerImpl;
-  std::shared_ptr<TemplateTokenizerImpl> m_pimpl;
+  struct TokenImpl;
+  std::shared_ptr<TokenImpl> m_pimpl;
 };
+
+} // namespace Template
 
 } // namespace Proc
 
-#endif // PROC_TEMPLATE_TOKENIZER_H
+#endif // PROC_TEMPLATE_TOKEN_H
