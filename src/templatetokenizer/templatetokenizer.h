@@ -41,12 +41,15 @@ struct TemplateToken
     TOKEN_DOUBLY_QUOTED_STRING, // "ajwaj"
     TOKEN_SINGLY_QUOTED_STRING, // 'a'
     TOKEN_FUNNY_QUOTED_STRING, // `ajwaj'
-    TOKEN_OTHER // other tokens (whitespace, dots, angle brackets and so on).
+    TOKEN_OTHER, // other tokens (whitespace, dots, angle brackets and so on).
+    TOKEN_INVALID // invalid token
   };
 
-  Type type;
-  unsigned int line;
-  std::string contents;
+  TemplateToken (Type type, int line, const std::string& contents) : m_type (type), m_line (line), m_contents (contents) {}
+
+  Type m_type;
+  unsigned int m_line;
+  std::string m_contents;
 };
 
 class TemplateTokenizer

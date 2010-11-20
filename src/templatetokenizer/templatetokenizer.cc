@@ -47,13 +47,10 @@ struct TemplateTokenizer::TemplateTokenizerImpl
     STATE_WORD,
     STATE_DQ_STRING,
     STATE_DQ_ESCAPE,
-    STATE_DQ_IGNORE,
     STATE_SQ_STRING,
     STATE_SQ_ESCAPE,
-    STATE_SQ_IGNORE,
     STATE_FQ_STRING,
     STATE_FQ_ESCAPE,
-    STATE_FQ_IGNORE,
     STATE_OTHER
   };
   enum Inputs
@@ -70,35 +67,58 @@ struct TemplateTokenizer::TemplateTokenizerImpl
     INPUT_OTHER
   };
   typedef Proc::Common::SimpleDFSM<States, Inputs, std::string> GDFSM;
-  struct Translator
+  class Translator
   {
-    TemplateTokenizer::TemplateTokenizerImpl::Inputs operator() (const std::string::const_iterator& iter) const;
+  public:
+    TemplateTokenizer::TemplateTokenizerImpl::Inputs operator() (const std::string::value_type& c) const;
   };
-  struct EntryFunction
+  class EntryFunction
   {
+  public:
     EntryFunction (TemplateTokenizer::TemplateTokenizerImpl& owner);
 
-    void operator() (const States& state, const Inputs& input, const std::string::const_iterator& input_char);
+    void operator() (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm);
+
+  private:
+    void handle_word_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm);
+    void handle_other_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm);
+    void handle_string_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm, States string_state);
+    void handle_slash_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm);
+    void handle_comment_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm);
+    void handle_start_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm);
+
+    void set_begin_to_current ();
 
     TemplateTokenizer::TemplateTokenizerImpl& m_owner;
   };
-  struct ExitFunction
+  class ExitFunction
   {
+  public:
     ExitFunction (TemplateTokenizer::TemplateTokenizerImpl& owner);
 
-    void operator() (const States& state, const Inputs& input, const std::string::const_iterator& input_char);
+    void operator() (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm);
 
+  private:
     TemplateTokenizer::TemplateTokenizerImpl& m_owner;
   };
 
   TemplateTokenizerImpl ();
 
   TemplateTokenizer::TokensListPtr m_tokens;
+  std::string::const_iterator m_token_begin;
+  std::string::const_iterator m_maybe_token_begin;
+  unsigned int m_current_line;
+  unsigned int m_token_begin_line;
+  States m_previous_state;
   GDFSM m_dfsm;
 };
 
 TemplateTokenizer::TemplateTokenizerImpl::TemplateTokenizerImpl ()
 : m_tokens (new TemplateTokenizer::TokensList),
+  m_token_begin (),
+  m_current_line (1),
+  m_token_begin_line (1),
+  m_previous_state (STATE_START),
   m_dfsm ()
 {
   m_dfsm.add_state (STATE_START);
@@ -223,10 +243,8 @@ TemplateTokenizer::TemplateTokenizerImpl::TemplateTokenizerImpl ()
   m_dfsm.set_exit_callback (ExitFunction (*this));
 }
 
-TemplateTokenizer::TemplateTokenizerImpl::Inputs TemplateTokenizer::TemplateTokenizerImpl::Translator::operator() (const std::string::const_iterator& iter) const
+TemplateTokenizer::TemplateTokenizerImpl::Inputs TemplateTokenizer::TemplateTokenizerImpl::Translator::operator() (const std::string::value_type& c) const
 {
-  const char c (*iter);
-
   switch (c)
   {
     case '/':
@@ -281,18 +299,310 @@ TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::EntryFunction (Template
 : m_owner (owner)
 {}
 
-void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::operator() (const States& /*state*/, const Inputs& /*input*/, const std::string::const_iterator& /*input_char*/)
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::operator() (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm)
 {
-  
+  States state (dfsm.get_current_state ());
+
+  switch (state)
+  {
+    case STATE_SLASH:
+    {
+      handle_slash_state (dfsm);
+      break;
+    }
+    case STATE_START:
+    {
+      handle_start_state (dfsm);
+      break;
+    }
+    case STATE_WORD:
+    {
+      handle_word_state (dfsm);
+      break;
+    }
+    case STATE_OTHER:
+    {
+      handle_other_state (dfsm);
+      break;
+    }
+    case STATE_DQ_STRING:
+    case STATE_SQ_STRING:
+    case STATE_FQ_STRING:
+    {
+      handle_string_state (dfsm, state);
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
+  if (dfsm.get_current_input () == INPUT_NEWLINE)
+  {
+    ++m_owner.m_current_line;
+  }
+}
+
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::handle_word_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm)
+{
+  switch (m_owner.m_previous_state)
+  {
+    case STATE_SLASH:
+    case STATE_OTHER:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_OTHER, m_owner.m_token_begin_line, std::string(m_owner.m_token_begin, dfsm.get_current_raw_string_iterator ())));
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_START:
+    {
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_WORD:
+    {
+      // nothing
+      break;
+    }
+    default:
+    {
+      // should not happen.
+      // throw something.
+    }
+  }
+}
+
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::handle_other_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm)
+{
+  switch (m_owner.m_previous_state)
+  {
+    case STATE_WORD:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_WORD, m_owner.m_token_begin_line, std::string(m_owner.m_token_begin, dfsm.get_current_raw_string_iterator ())));
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_START:
+    {
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_OTHER:
+    case STATE_SLASH:
+    {
+      // nothing
+      break;
+    }
+    default:
+    {
+      // should not happen.
+      // throw something.
+    }
+  }
+}
+
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::handle_string_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm, States string_state)
+{
+  const std::string::const_iterator current (dfsm.get_current_raw_string_iterator ());
+
+  switch (m_owner.m_previous_state)
+  {
+    case STATE_SLASH:
+    case STATE_OTHER:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_OTHER, m_owner.m_token_begin_line, std::string(m_owner.m_token_begin, current)));
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_WORD:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_WORD, m_owner.m_token_begin_line, std::string(m_owner.m_token_begin, current)));
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_START:
+    {
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_DQ_STRING:
+    case STATE_DQ_ESCAPE:
+    {
+      if (string_state != STATE_DQ_STRING)
+      {
+        // shouldn't happen
+        // throw something.
+      }
+      break;
+    }
+    case STATE_SQ_STRING:
+    case STATE_SQ_ESCAPE:
+    {
+      if (string_state != STATE_SQ_STRING)
+      {
+        // shouldn't happen
+        // throw something.
+      }
+      break;
+    }
+    case STATE_FQ_STRING:
+    case STATE_FQ_ESCAPE:
+    {
+      if (string_state != STATE_FQ_STRING)
+      {
+        // shouldn't happen
+        // throw something.
+      }
+      break;
+    }
+    default:
+    {
+      // should not happen.
+      // throw something.
+    }
+  }
+}
+
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::handle_slash_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm)
+{
+  const std::string::const_iterator current (dfsm.get_current_raw_string_iterator ());
+
+  switch (m_owner.m_previous_state)
+  {
+    case STATE_WORD:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_WORD, m_owner.m_token_begin_line, std::string(m_owner.m_token_begin, current)));
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_START:
+    {
+      set_begin_to_current ();
+      break;
+    }
+    case STATE_OTHER:
+    {
+      m_owner.m_maybe_token_begin = current;
+      break;
+    }
+    default:
+    {
+      // should not happen.
+      // throw something.
+    }
+  }
+}
+
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::handle_comment_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& /* dfsm */)
+{
+  switch (m_owner.m_previous_state)
+  {
+    case STATE_SLASH:
+    {
+      m_owner.m_token_begin = m_owner.m_maybe_token_begin;
+      break;
+    }
+    default:
+    {
+      // should not happen.
+      // throw something.
+    }
+  }
+}
+
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::handle_start_state (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm)
+{
+  const std::string::const_iterator current (dfsm.get_current_raw_string_iterator ());
+  bool check_current_input (false);
+
+  switch (m_owner.m_previous_state)
+  {
+    case STATE_SINGLE_LINE_COMMENT:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_SINGLE_LINE_COMMENT, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current + 1)));
+      break;
+    }
+    case STATE_MC_STAR:
+    case STATE_DOXYGEN_MAYBE:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_MULTILINE_COMMENT, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current + 1)));
+      break;
+    }
+    case STATE_DOXY_STAR:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_DOXYGEN, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current + 1)));
+      break;
+    }
+    case STATE_DQ_STRING:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_DOUBLY_QUOTED_STRING, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current + 1)));
+      break;
+    }
+    case STATE_SQ_STRING:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_SINGLY_QUOTED_STRING, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current + 1)));
+      break;
+    }
+    case STATE_FQ_STRING:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_FUNNY_QUOTED_STRING, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current + 1)));
+      break;
+    }
+    case STATE_WORD:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_WORD, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current)));
+      check_current_input = true;
+      break;
+    }
+    case STATE_OTHER:
+    {
+      m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_OTHER, m_owner.m_token_begin_line, std::string (m_owner.m_token_begin, current)));
+      check_current_input = true;
+      break;
+    }
+    case STATE_START:
+    {
+      check_current_input = true;
+      break;
+    }
+    default:
+    {
+      // should not happen.
+      // throw something.
+    }
+  }
+  if (check_current_input)
+  {
+    switch (dfsm.get_current_input ())
+    {
+      case INPUT_NEWLINE:
+      case INPUT_MISC:
+      {
+        m_owner.m_tokens->push_back (TemplateToken (TemplateToken::TOKEN_MISC, m_owner.m_current_line, std::string (1, *(dfsm.get_current_raw_string_iterator ()))));
+        break;
+      }
+      default:
+      {
+        // should not happen.
+        // throw something.
+      }
+    }
+  }
+}
+
+void TemplateTokenizer::TemplateTokenizerImpl::EntryFunction::set_begin_to_current ()
+{
+  m_owner.m_token_begin = m_owner.m_dfsm.get_current_raw_string_iterator ();
+  m_owner.m_token_begin_line = m_owner.m_current_line;
 }
 
 TemplateTokenizer::TemplateTokenizerImpl::ExitFunction::ExitFunction (TemplateTokenizer::TemplateTokenizerImpl& owner)
 : m_owner (owner)
 {}
 
-void TemplateTokenizer::TemplateTokenizerImpl::ExitFunction::operator() (const States& /*state*/, const Inputs& /*input*/, const std::string::const_iterator& /*input_char*/)
+void TemplateTokenizer::TemplateTokenizerImpl::ExitFunction::operator() (const TemplateTokenizer::TemplateTokenizerImpl::GDFSM& dfsm)
 {
-  
+  m_owner.m_previous_state = dfsm.get_current_state ();
 }
 
 TemplateTokenizer::TemplateTokenizer()
@@ -309,7 +619,7 @@ void TemplateTokenizer::set_file (const std::string& file_path)
 
 void TemplateTokenizer::set_contents (const std::string& contents)
 {
-  m_pimpl->m_dfsm.load_string (contents);
+  m_pimpl->m_dfsm.load_raw_string (contents);
 }
 
 TemplateTokenizer::TokensListPtr TemplateTokenizer::tokenize ()
