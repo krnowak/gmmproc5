@@ -55,6 +55,54 @@ std::string get_val_for_opt (int& iter, int& argc, char**& argv)
   return argv[iter];
 }
 
+std::string get_token_name (Proc::TemplateToken::Type type)
+{
+  switch (type)
+  {
+    case Proc::TemplateToken::TOKEN_WORD:
+    {
+      return "word";
+    }
+    case Proc::TemplateToken::TOKEN_MULTILINE_COMMENT:
+    {
+      return "multiline_comment";
+    }
+    case Proc::TemplateToken::TOKEN_SINGLE_LINE_COMMENT:
+    {
+      return "singleline comment";
+    }
+    case Proc::TemplateToken::TOKEN_DOXYGEN:
+    {
+      return "doxygen";
+    }
+    case Proc::TemplateToken::TOKEN_MISC:
+    {
+      return "misc";
+    }
+    case Proc::TemplateToken::TOKEN_DOUBLY_QUOTED_STRING:
+    {
+      return "doubly-quoted string";
+    }
+    case Proc::TemplateToken::TOKEN_SINGLY_QUOTED_STRING:
+    {
+      return "singly-linked string";
+    }
+    case Proc::TemplateToken::TOKEN_FUNNY_QUOTED_STRING:
+    {
+      return "funny-quoted string";
+    }
+    case Proc::TemplateToken::TOKEN_OTHER:
+    {
+      return "other";
+    }
+    case Proc::TemplateToken::TOKEN_INVALID:
+    {
+      return "invalid";
+    }
+  }
+  return "unknown";
+}
+
 } // namespace
 
 enum MODE
@@ -131,6 +179,16 @@ int main (int argc, char** argv)
         try
         {
           Proc::TemplateTokenizer::TokensListPtr tokens (tokenizer.tokenize ());
+
+          if (tokens)
+          {
+            Proc::TemplateTokenizer::TokensList::const_iterator end (tokens->end ());
+
+            for (Proc::TemplateTokenizer::TokensList::const_iterator iter (tokens->begin ()); iter != end; ++iter)
+            {
+              std::cout << iter->m_line << ": (" << get_token_name (iter->m_type) << ")?" << iter->m_contents << "?\n";
+            }
+          }
         }
         catch (Proc::Common::DFSMError& e)
         {
