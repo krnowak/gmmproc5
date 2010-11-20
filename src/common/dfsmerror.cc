@@ -63,6 +63,10 @@ const char* DFSMError::DFSMErrorImpl::create_message (DFSMErrorCode error_code)
     {
       return "No translator specified.";
     }
+    case DFSM_BUGGY_TRANSLATOR:
+    {
+      return "Translator returned wrong input.";
+    }
     case DFSM_NO_ROUTE:
     {
       return "No route specified.";
