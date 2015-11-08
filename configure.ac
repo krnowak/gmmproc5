@@ -1,24 +1,28 @@
-dnl Process this file with autoconf to produce a configure script.
-dnl Created by Anjuta application wizard.
-
-AC_INIT([gmmproc5],[0.1])
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+AC_INIT([gmmproc5], [0.0.1], [qdlacz@gmail.com])
+AC_PREREQ([2.68])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/gmmproc/main.cc])
-AC_CONFIG_AUX_DIR([build])
+AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_MACRO_DIR([build])
 
-AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
-AM_MAINTAINER_MODE
+AM_INIT_AUTOMAKE([1.12 check-news dist-xz no-dist-gzip silent-rules subdir-objects tar-pax no-define std-options -Wall])
 
 AC_PROG_CXX
 AC_PROG_CXXCPP
+AC_LANG_PUSH([C++])
+AX_CXX_COMPILE_STDCXX_11([noext])
+
+AC_CHECK_HEADER([pugixml.hpp],
+		dnl pugixml header found, alright
+		[],
+		[AC_MSG_ERROR([*** pugixml header not found])])
+
+AC_LANG_POP([C++])
 
 LT_INIT
 
 AC_CONFIG_FILES([
-Makefile
+  Makefile
 ])
-
 AC_OUTPUT

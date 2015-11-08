@@ -1,0 +1,5 @@
+bin_PROGRAMS = src/gmmproc/gmmproc5
+
+src_gmmproc_gmmproc5_SOURCES = src/gmmproc/main.cc
+src_gmmproc_gmmproc5_CXXFLAGS = $(common_cxxflags)
+src_gmmproc_gmmproc5_LDADD = -lpugixml

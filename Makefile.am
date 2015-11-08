@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_DEFAULT_SOURCE_EXT = .cc
 
-common_cxxflags = -Wall -Wextra -pedantic -Werror -std=c++0x
+common_cxxflags = -Wall -Wextra -pedantic -Werror -std=c++11
 
 ACLOCAL_AMFLAGS = -I build ${ACLOCAL_FLAGS}
 
@@ -20,7 +20,7 @@ EXTRA_DIST = $(gmmproc5doc_DATA)
 
 # Remove doc directory on uninstall
 uninstall-local:
-	-rm -r $(gmmproc5docdir)
+	-rm -rf $(gmmproc5docdir)
 
 lib_LTLIBRARIES =
 
