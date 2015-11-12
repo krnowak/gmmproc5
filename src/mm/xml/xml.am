@@ -1,0 +1,12 @@
+include $(top_srcdir)/src/mm/xml/base/base.am
+
+noinst_LTLIBRARIES += src/mm/xml/libxml.la
+
+src_mm_xml_libxml_la_SOURCES = \
+  src/mm/xml/exceptions.cc \
+  src/mm/xml/generic-attr.cc \
+  src/mm/xml/generic-child.cc
+
+src_mm_xml_libxml_la_CPPFLAGS = $(common_cppflags)
+src_mm_xml_libxml_la_CXXFLAGS = $(common_cxxflags)
+src_mm_xml_libxml_la_LIBADD = -lpugixml

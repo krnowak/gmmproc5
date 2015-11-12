@@ -1,5 +1,7 @@
-bin_PROGRAMS = src/gmmproc/gmmproc5
+bin_PROGRAMS += src/mm/main/main
 
-src_gmmproc_gmmproc5_SOURCES = src/gmmproc/main.cc
-src_gmmproc_gmmproc5_CXXFLAGS = $(common_cxxflags)
-src_gmmproc_gmmproc5_LDADD = -lpugixml
+src_mm_main_main_SOURCES = src/mm/main/main.cc
+src_mm_main_main_CXXFLAGS = $(common_cxxflags)
+src_mm_main_main_CPPFLAGS = $(common_cppflags)
+src_mm_main_main_LDADD =  -lpugixml \
+  $(top_builddir)/src/mm/xml/libxml.la

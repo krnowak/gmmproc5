@@ -1,0 +1,3 @@
+include $(top_srcdir)/src/mm/utils/utils.am
+include $(top_srcdir)/src/mm/xml/xml.am
+include $(top_srcdir)/src/mm/main/main.am
