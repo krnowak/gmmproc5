@@ -2,14 +2,16 @@
 #define MM_XML_GENERIC_CHILD_HH
 
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include <experimental/optional>
 
+#include <boost/range/iterator_range_core.hpp>
+
 #include <ext/kr/kr.hh>
-#include <mm/utils/range.hh>
 
 #include "base/xml.hh"
 #include "exceptions.hh"
@@ -36,6 +38,7 @@ class SingleChildTag;
 class VectorChildTag;
 class MapChildTag;
 class VectorMapChildTag;
+class OptionalChildTag;
 
 template <typename ChildType>
 class CommonChildImpl
@@ -56,18 +59,74 @@ public:
   using Tag = SingleChildTag;
   using ContainerType = ChildType;
 
-  // we usually use ContainerType, but for this class we use ChildType
-  // for clarity, since ContainerType = ChildType.
-  static ChildType
-  get (ChildType const& child)
+  static auto const&
+  get (ContainerType const& child)
   {
     return child;
   }
 
   static void
-  set (ChildType& child, Base::Node& raw_child)
+  set (ContainerType& child, Base::Node& raw_child)
   {
     CommonChildImpl<ChildType>::set (child, raw_child);
+    remove_one (raw_child);
+  }
+};
+
+template <bool use_optional>
+class OptionalContainer
+{
+public:
+  template <typename ChildType>
+  using Type = std::experimental::optional<ChildType>;
+
+  template <typename ChildType>
+  static void
+  set (Type<ChildType>& container, Base::Node& raw_child)
+  {
+    ChildType child;
+    CommonChildImpl<ChildType>::set (child, raw_child);
+    container = std::move (child);
+  }
+};
+
+template <>
+class OptionalContainer<false>
+{
+public:
+  template <typename ChildType>
+  using Type = std::unique_ptr<ChildType>;
+
+  template <typename ChildType>
+  static void
+  set (Type<ChildType>& container, Base::Node& raw_child)
+  {
+    auto tmp_container = std::make_unique<ChildType> ();
+    auto& child = *(tmp_container.get ());
+    CommonChildImpl<ChildType>::set (child, raw_child);
+    container.swap (tmp_container);
+  }
+};
+
+template <typename ChildType, bool use_optional>
+class OptionalChildImpl
+{
+  using OptCont = OptionalContainer<use_optional>;
+
+public:
+  using Tag = OptionalChildTag;
+  using ContainerType = typename OptCont::template Type<ChildType>;
+
+  static auto const&
+  get (ContainerType const& opt_child)
+  {
+    return opt_child;
+  }
+
+  static void
+  set (ContainerType& opt_child, Base::Node& raw_child)
+  {
+    OptCont::set (opt_child, raw_child);
     remove_one (raw_child);
   }
 };
@@ -82,7 +141,7 @@ public:
   using Tag = VectorChildTag;
   using ContainerType = VType;
 
-  static ChildType
+  static auto const&
   get (ContainerType const& children, IdxType idx)
   {
     return children[idx];
@@ -97,13 +156,13 @@ public:
   static auto
   range (ContainerType& children)
   {
-    return Utils::Range<typename VType::iterator> (std::begin (children), std::end (children));
+    return boost::make_iterator_range (std::begin (children), std::end (children));
   }
 
   static auto
   range (ContainerType const& children)
   {
-    return Utils::Range<typename VType::const_iterator> (std::cbegin (children), std::cend (children));
+    return boost::make_iterator_range (std::cbegin (children), std::cend (children));
   }
 
   static void
@@ -136,15 +195,15 @@ public:
   using Tag = MapChildTag;
   using ContainerType = MType;
 
-  static auto
+  static ChildType const*
   get (ContainerType const& children, KeyType const& name)
   {
     auto iter = children.find (name);
     if (iter != std::end (children))
     {
-      return std::experimental::make_optional (iter->second);
+      return &iter->second;
     }
-    return std::experimental::optional<ChildType> {};
+    return nullptr;
   }
 
   static void
@@ -196,7 +255,7 @@ public:
   using Tag = VectorMapChildTag;
   using ContainerType = TupleType;
 
-  static ChildType
+  static auto const&
   get (ContainerType const& children, IdxType idx)
   {
     return std::get<VType>(children)[idx];
@@ -208,7 +267,7 @@ public:
     return std::get<VType>(children).size ();
   };
 
-  static auto
+  static ChildType const*
   get (ContainerType const& children, KeyType const& key)
   {
     auto const& map_children = std::get<MType>(children);
@@ -216,23 +275,23 @@ public:
 
     if (iter != std::cend (map_children))
     {
-      return std::experimental::make_optional (iter->second.get ());
+      return &iter->second.get ();
     }
-    return std::experimental::optional<ChildType> {};
+    return nullptr;
   }
 
   static auto
   range (ContainerType& children)
   {
     auto& vector_children = std::get<VType> (children);
-    return Utils::Range<typename VType::iterator> (std::begin (vector_children), std::end (vector_children));
+    return boost::make_iterator_range (std::begin (vector_children), std::end (vector_children));
   }
 
   static auto
   range (ContainerType const& children)
   {
     auto const& vector_children = std::get<VType> (children);
-    return Utils::Range<typename VType::const_iterator> (std::cbegin (vector_children), std::cend (vector_children));
+    return boost::make_iterator_range (std::cbegin (vector_children), std::cend (vector_children));
   }
 
   static void
@@ -294,7 +353,15 @@ public:
   using VectorMapType = VectorMapChildBaseImpl<ChildType, Name>;
 };
 
-template <typename NameString, typename ChildType, template <typename> class ChildImpl>
+template <bool use_optional>
+class GetOptionalChildImpl
+{
+public:
+  template <typename ChildType>
+  using Type = OptionalChildImpl<ChildType, use_optional>;
+};
+
+template <typename NameString, typename ChildType, template <typename> class ChildImpl, typename TextNode = std::false_type>
 class GenericChild
 {
 public:
@@ -327,6 +394,9 @@ using MapChild = GenericChild<NameString, ChildType, GetKeyedChildImpl<Name>::te
 
 template <typename NameString, typename ChildType, typename Name>
 using VectorMapChild = GenericChild<NameString, ChildType, GetKeyedChildImpl<Name>::template VectorMapType>;
+
+template <typename NameString, typename ChildType, bool use_optional>
+using OptionalChild = GenericChild<NameString, ChildType, GetOptionalChildImpl<use_optional>::template Type>;
 
 } // namespace Xml
 

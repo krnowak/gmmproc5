@@ -11,25 +11,34 @@ std::size_t
 siblings_count (Base::Node const& node)
 {
   auto r = node.siblings (node.name ());
+  auto b = std::cbegin (r);
+  auto e = std::cend (r);
+  auto c = 0u;
 
-  return std::distance (r.begin (), r.end ());
+  // not using distance - it returns a signed value
+  while (b != e)
+  {
+    ++c;
+    ++b;
+  }
+  return c;
 }
 
 void
-ensure_empty (Base::Node const&)
+ensure_empty (Base::Node const& node)
 {
-  /*
-  auto attr = node.first_attribute ();
-  if (attr)
+  if (!node.text ().empty ())
   {
-    throw InvalidParserAssumption (Attrs, node, attr.name ());
+    throw InvalidParserAssumption (Data, node);
   }
-  auto child = node.first_child ();
-  if (child)
+  for (auto c : node.children ())
   {
-    throw InvalidParserAssumption (Children, node, child.name ());
+    throw InvalidParserAssumption (Children, node, c.name ());
   }
-  */
+  for (auto a : node.attributes ())
+  {
+    throw InvalidParserAssumption (Attrs, node, a.name ());
+  }
 }
 
 void

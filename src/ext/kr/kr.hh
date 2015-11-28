@@ -27,6 +27,9 @@ public:
   using Type = std::tuple<Types...>;
 };
 
+template <typename List>
+using ToStdTupleT = typename ToStdTuple<List>::Type;
+
 // len
 
 template <std::size_t value>
@@ -45,6 +48,9 @@ public:
   using Type = IndexType<sizeof...(Types)>;
 };
 
+template <typename List>
+using LenT = typename Len<List>::Type;
+
 // first
 
 template <typename List>
@@ -56,6 +62,9 @@ class First<TypeList<Head, Tail...>>
 public:
   using Type = Head;
 };
+
+template <typename List>
+using FirstT = typename First<List>::Type;
 
 // rest
 
@@ -76,6 +85,9 @@ public:
   using Type = TypeList<>;
 };
 
+template <typename List>
+using RestT = typename Rest<List>::Type;
+
 // nth
 
 namespace NthDetails
@@ -84,18 +96,17 @@ namespace NthDetails
 template <typename List, typename IdxType>
 class Nth
 {
-  using T = typename Rest<List>::Type;
   using IdxOneLess = IndexType<IdxType::value - 1>;
 
 public:
-  using Type = typename Nth<T, IdxOneLess>::Type;
+  using Type = typename Nth<RestT<List>, IdxOneLess>::Type;
 };
 
 template <typename List>
 class Nth<List, ZeroIndexType>
 {
 public:
-  using Type = typename First<List>::Type;
+  using Type = FirstT<List>;
 };
 
 } // namespace NthDetails
@@ -109,6 +120,9 @@ class Nth
 public:
   using Type = typename NthDetails::Nth<List, Idx>::Type;
 };
+
+template <typename List, typename Idx>
+using NthT = typename Nth<List, Idx>::Type;
 
 // generic finder
 
@@ -154,25 +168,22 @@ public:
 template <typename List, template <typename Type> class Predicate, typename BreakOn>
 class GFContinue<List, Predicate, BreakOn, std::false_type>
 {
-  using Tail = typename Rest<List>::Type;
-
 public:
-  using Type = typename GenericFinder<Tail, Predicate, BreakOn>::Type;
+  using Type = typename GenericFinder<RestT<List>, Predicate, BreakOn>::Type;
 };
 
 template <typename List, template <typename Type> class Predicate, typename BreakOn>
 class GenericFinder
 {
-  using Head = typename First<List>::Type;
-  using PredicateResult = typename Predicate<Head>::Type;
+  using PredicateResult = typename Predicate<FirstT<List>>::Type;
   using Found = BoolConstant<std::is_same<BreakOn, PredicateResult>::value>;
-  using Results = typename GenerateGFR<BreakOn, Head, Found>::Type;
+  using Results = typename GenerateGFR<BreakOn, FirstT<List>, Found>::Type;
   using Continuation = typename GFContinue<List, Predicate, BreakOn, Found>::Type;
 
 public:
-  using Type = typename std::conditional<Found::value,
-                                         Results,
-                                         Continuation>::type;
+  using Type = std::conditional_t<Found::value,
+                                  Results,
+                                  Continuation>;
 };
 
 template <template <typename Type> class Predicate, bool BreakOnValue>
@@ -224,12 +235,11 @@ public:
 template <typename Needle, typename Haystack, typename IdxType>
 class IContinue<Needle, Haystack, IdxType, std::false_type>
 {
-  using Tail = typename Rest<Haystack>::Type;
   using NextIndex = IndexType<IdxType::value + 1>;
 
 public:
   using Type = typename Index<Needle,
-                              Tail,
+                              RestT<Haystack>,
                               NextIndex>::Type;
 };
 
@@ -238,14 +248,13 @@ class Index
 {
   static_assert (!std::is_same<IdxType, MaxIndexType>::value, "index is not overflowing");
 
-  using Head = typename First<Haystack>::Type;
-  using Found = BoolConstant<std::is_same<Needle, Head>::value>;
+  using Found = BoolConstant<std::is_same<Needle, FirstT<Haystack>>::value>;
   using Continuation = typename IContinue<Needle, Haystack, IdxType, Found>::Type;
 
 public:
-  using Type = typename std::conditional<Found::value,
-                                         IdxType,
-                                         Continuation>::type;
+  using Type = std::conditional_t<Found::value,
+                                  IdxType,
+                                  Continuation>;
 };
 
 template <typename Needle, typename IdxType>
@@ -266,16 +275,20 @@ public:
   using Type = typename IndexDetails::Index<Needle, Haystack, ZeroIndexType>::Type;
 };
 
+template <typename Needle, typename Haystack>
+using IndexT = typename Index<Needle, Haystack>::Type;
+
 // in list
 
 template <typename Needle, typename Haystack>
 class IsInList
 {
-  using Idx = typename Index<Needle, Haystack>::Type;
-
 public:
-  using Type = BoolConstant<!std::is_same<Idx, MaxIndexType>::value>;
+  using Type = BoolConstant<!std::is_same<IndexT<Needle, Haystack>, MaxIndexType>::value>;
 };
+
+template <typename Needle, typename Haystack>
+using IsInListT = typename IsInList<Needle, Haystack>::Type;
 
 // concat
 
@@ -289,17 +302,19 @@ public:
   using Type = TypeList<TL1..., TL2...>;
 };
 
+template <typename TL1, typename TL2>
+using ConcatT = typename Concat<TL1, TL2>::Type;
+
 // foreach
 
 template <typename List, template <typename> class F>
 class ForEach
 {
-  using Head = typename F<typename First<List>::Type>::Type;
-  using Rest = typename ForEach<typename Rest<List>::Type, F>::Type;
+  using Head = typename F<FirstT<List>>::Type;
+  using Rest = typename ForEach<RestT<List>, F>::Type;
 
 public:
-  using Type = typename Concat<TypeList<Head>,
-                               Rest>::Type;
+  using Type = ConcatT<TypeList<Head>, Rest>;
 };
 
 template <template <typename> class F>
@@ -308,6 +323,9 @@ class ForEach<TypeList<>, F>
 public:
   using Type = TypeList<>;
 };
+
+template <typename List, template <typename> class F>
+using ForEachT = typename ForEach<List, F>::Type;
 
 // sieve
 
@@ -318,7 +336,7 @@ template <typename List, typename Item, typename Do>
 class DoConcat
 {
 public:
-  using Type = typename Concat<List, TypeList<Item>>::Type;
+  using Type = ConcatT<List, TypeList<Item>>;
 };
 
 template <typename List, typename Item>
@@ -331,16 +349,14 @@ public:
 template <typename List, typename NewList, template <typename Item> class Predicate>
 class Sieve
 {
-  using H = typename First<List>::Type;
-  using T = typename Rest<List>::Type;
-  using IsValid = BoolConstant<Predicate<H>::Type::value>;
-  using IfValidList = typename DoConcat<NewList, H, IsValid>::Type;
-  using NewerList = typename std::conditional<IsValid::value,
-                                              IfValidList,
-                                              NewList>::type;
+  using IsValid = BoolConstant<Predicate<FirstT<List>>::Type::value>;
+  using IfValidList = typename DoConcat<NewList, FirstT<List>, IsValid>::Type;
+  using NewerList = std::conditional_t<IsValid::value,
+                                       IfValidList,
+                                       NewList>;
 
 public:
-  using Type = typename Sieve<T, NewerList, Predicate>::Type;
+  using Type = typename Sieve<RestT<List>, NewerList, Predicate>::Type;
 };
 
 template <typename NewList, template <typename Item> class Predicate>
@@ -359,6 +375,9 @@ public:
   using Type = typename SieveDetails::Sieve<List, TypeList<>, Predicate>::Type;
 };
 
+template <typename List, template <typename Item> class Predicate>
+using SieveT = typename Sieve<List, Predicate>::Type;
+
 // accumulate
 
 namespace AccumulateDetails
@@ -367,12 +386,9 @@ namespace AccumulateDetails
 template <typename List, template <typename, typename> class Op>
 class Accumulate
 {
-  using T1 = typename Rest<List>::Type;
-  using T2 = typename Rest<T1>::Type;
-  using H1 = typename First<List>::Type;
-  using H2 = typename First<T1>::Type;
-  using Result = typename Op<H1, H2>::Type;
-  using NewList = typename Concat<TypeList<Result>, T2>::Type;
+  using Tail = RestT<List>;
+  using Result = typename Op<FirstT<List>, FirstT<Tail>>::Type;
+  using NewList = typename Concat<TypeList<Result>, RestT<Tail>>::Type;
 
 public:
   using Type = typename Accumulate<NewList, Op>::Type;
@@ -395,6 +411,9 @@ class Accumulate
 public:
   using Type = typename AccumulateDetails::Accumulate<PreparedTypeList, F::template Op>::Type;
 };
+
+template <typename List, typename F>
+using AccumulateT = typename Accumulate<List, F>::Type;
 
 // flatten
 
@@ -420,7 +439,7 @@ class FlattenOp<TypeList<Types1...>, TypeList<Types2...>>
   using Flattened = typename RealFlatten<TypeList<Types2...>>::Type;
 
 public:
-  using Type = typename Concat<TypeList<Types1...>, Flattened>::Type;
+  using Type = ConcatT<TypeList<Types1...>, Flattened>;
 };
 
 class FlattenF
@@ -435,7 +454,7 @@ template <typename List>
 class RealFlatten
 {
 public:
-  using Type = typename Accumulate<List, FlattenF>::Type;
+  using Type = AccumulateT<List, FlattenF>;
 };
 
 } // namespace FlattenDetails
@@ -446,6 +465,9 @@ class Flatten
 public:
   using Type = typename FlattenDetails::RealFlatten<List>::Type;
 };
+
+template <typename List>
+using FlattenT = typename Flatten<List>::Type;
 
 // is unique
 
@@ -465,24 +487,22 @@ public:
 template<typename List, typename MetList>
 class IUContinue<List, MetList, std::false_type>
 {
-  using Head = typename First<List>::Type;
-  using Rest = typename Rest<List>::Type;
-  using NewMetList = typename Concat<MetList, TypeList<Head>>::Type;
+  using NewMetList = ConcatT<MetList, TypeList<FirstT<List>>>;
 
 public:
-  using Type = typename IsUnique<Rest, NewMetList>::Type;
+  using Type = typename IsUnique<RestT<List>, NewMetList>::Type;
 };
 
 template <typename List, typename MetList>
 class IsUnique
 {
-  using AlreadyMet = typename IsInList<typename First<List>::Type, MetList>::Type;
+  using AlreadyMet = IsInListT<FirstT<List>, MetList>;
   using Continuation = typename IUContinue<List, MetList, AlreadyMet>::Type;
 
 public:
-  using Type = typename std::conditional<AlreadyMet::value,
-                                         std::false_type,
-                                         Continuation>::type;
+  using Type = std::conditional_t<AlreadyMet::value,
+                                  std::false_type,
+                                  Continuation>;
 };
 
 template <typename MetList>
@@ -501,6 +521,9 @@ public:
   using Type = typename IsUniqueDetails::IsUnique<List, TypeList<>>::Type;
 };
 
+template <typename List>
+using IsUniqueT = typename IsUnique<List>::Type;
+
 // filter generic
 
 namespace FilterGenericDetails
@@ -509,16 +532,15 @@ namespace FilterGenericDetails
 template <typename Words, typename List, typename In>
 class FilterGeneric
 {
-  using InType = typename IsInList<typename First<List>::Type, Words>::Type;
-  using Head = typename First<List>::Type;
-  using Tail = typename Rest<List>::Type;
-  using List1 = typename std::conditional<InType::value == In::value,
-                                          TypeList<Head>,
-                                          TypeList<>>::type;
-  using List2 = typename FilterGeneric<Words, Tail, In>::Type;
+  using Head = FirstT<List>;
+  using InType = IsInListT<Head, Words>;
+  using List1 = std::conditional_t<InType::value == In::value,
+                                   TypeList<Head>,
+                                   TypeList<>>;
+  using List2 = typename FilterGeneric<Words, RestT<List>, In>::Type;
 
 public:
-  using Type = typename Concat<List1, List2>::Type;
+  using Type = ConcatT<List1, List2>;
 };
 
 template <typename Words, typename In>
@@ -535,55 +557,16 @@ public:
 template <typename Words, typename List>
 using Filter = FilterGenericDetails::FilterGeneric<Words, List, std::true_type>;
 
+template <typename Words, typename List>
+using FilterT = typename Filter<Words, List>::Type;
+
 // filter out
 
 template <typename Words, typename List>
 using FilterOut = FilterGenericDetails::FilterGeneric<Words, List, std::false_type>;
 
-// trtypes
-
-template <template <typename, bool> class Traits, typename List, bool isa>
-class TrTypes;
-
-template <template <typename, bool> class Traits, typename... Types, bool isa>
-class TrTypes<Traits, TypeList<Types...>, isa>
-{
-public:
-  using Type = TypeList<typename Traits<Types, isa>::Type...>;
-};
-
-// convert
-
-template <typename AllList, template <typename, bool> class Tr, typename... Types>
-class Convert
-{
-  using InTypes = typename Filter<TypeList<Types...>, AllList>::Type;
-  using TrInTypes = typename TrTypes<Tr, InTypes, true>::Type;
-  using OutTypes = typename FilterOut<TypeList<Types...>, AllList>::Type;
-  using TrOutTypes = typename TrTypes<Tr, OutTypes, false>::Type;
-
-public:
-  using Type = typename Concat<TrInTypes, TrOutTypes>::Type;
-};
-
-// subclass
-
-template <typename T>
-class Subclass : public T
-{};
-
-template <typename... Types>
-class Subclass<TypeList<Types...>> : public Types...
-{};
-
-// common
-
-template <typename AllList, template <typename, bool> class Tr, typename... Types>
-class Common : public Subclass<typename Convert<AllList, Tr, Types...>::Type>
-{
-public:
-  using BaseTypes = typename Convert<AllList, Tr, Types...>::Type;
-};
+template <typename Words, typename List>
+using FilterOutT = typename FilterOut<Words, List>::Type;
 
 // multicall
 

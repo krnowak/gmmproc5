@@ -72,38 +72,51 @@ template <typename ChildType>
 using MapChildImplPredicate = ChildImplTagPredicate<MapChildTag>::template P<ChildType>;
 template <typename ChildType>
 using VectorMapChildImplPredicate = ChildImplTagPredicate<VectorMapChildTag>::template P<ChildType>;
+template <typename ChildType>
+using OptionalChildImplPredicate = ChildImplTagPredicate<OptionalChildTag>::template P<ChildType>;
 
 // node base code
 
-template <typename AttrList, typename ChildList>
+using HasText = std::true_type;
+using NoText = std::false_type;
+
+template <typename AttrList, typename ChildList, typename HasTextType = NoText>
 class NodeBase
 {
 public:
-  using AllAttrNames = typename Kr::ForEach<AttrList, GetAttrName>::Type;
-  using AllAttrTypes = typename Kr::ForEach<AttrList, GetAttrType>::Type;
+  using AllAttrNames = Kr::ForEachT<AttrList, GetAttrName>;
+  using AllAttrTypes = Kr::ForEachT<AttrList, GetAttrType>;
 
-  using AllSingleChildren = typename Kr::Sieve<ChildList, SingleChildImplPredicate>::Type;
-  using AllVectorChildren = typename Kr::Sieve<ChildList, VectorChildImplPredicate>::Type;
-  using AllMapChildren = typename Kr::Sieve<ChildList, MapChildImplPredicate>::Type;
-  using AllVectorMapChildren = typename Kr::Sieve<ChildList, VectorMapChildImplPredicate>::Type;
+  using AllSingleChildren = Kr::SieveT<ChildList, SingleChildImplPredicate>;
+  using AllVectorChildren = Kr::SieveT<ChildList, VectorChildImplPredicate>;
+  using AllMapChildren = Kr::SieveT<ChildList, MapChildImplPredicate>;
+  using AllVectorMapChildren = Kr::SieveT<ChildList, VectorMapChildImplPredicate>;
+  using AllOptionalChildren = Kr::SieveT<ChildList, OptionalChildImplPredicate>;
 
-  using AllSingleChildNames = typename Kr::ForEach<AllSingleChildren, GetChildName>::Type;
-  using AllVectorChildNames = typename Kr::ForEach<AllVectorChildren, GetChildName>::Type;
-  using AllMapChildNames = typename Kr::ForEach<AllMapChildren, GetChildName>::Type;
-  using AllVectorMapChildNames = typename Kr::ForEach<AllVectorMapChildren, GetChildName>::Type;
+  using AllSingleChildNames = Kr::ForEachT<AllSingleChildren, GetChildName>;
+  using AllVectorChildNames = Kr::ForEachT<AllVectorChildren, GetChildName>;
+  using AllMapChildNames = Kr::ForEachT<AllMapChildren, GetChildName>;
+  using AllVectorMapChildNames = Kr::ForEachT<AllVectorMapChildren, GetChildName>;
+  using AllOptionalChildNames = Kr::ForEachT<AllOptionalChildren, GetChildName>;
 
-  using AllChildNames = typename Kr::ForEach<ChildList, GetChildName>::Type;
-  using AllChildContainerTypes = typename Kr::ForEach<ChildList, GetChildContainerType>::Type;
+  using AllChildNames = Kr::ForEachT<ChildList, GetChildName>;
+  using AllChildContainerTypes = Kr::ForEachT<ChildList, GetChildContainerType>;
 
-  using AllNames = typename Kr::Concat<AllAttrNames, AllChildNames>::Type;
-  using AllTypes = typename Kr::Concat<AllAttrTypes, AllChildContainerTypes>::Type;
+  using AllChildAttrNames = Kr::ConcatT<AllAttrNames, AllChildNames>;
+  using AllChildAttrTypes = Kr::ConcatT<AllAttrTypes, AllChildContainerTypes>;
 
-  static_assert (Kr::IsUnique<AllNames>::Type::value, "the list of attributes and children has only unique names");
+  static_assert (Kr::IsUniqueT<AllChildAttrNames>::value, "the list of attributes and children has only unique names");
 
-  using TupleType = typename Kr::ToStdTuple<AllTypes>::Type;
+  using AllNames = AllChildAttrNames;
+  using AllTypes = Kr::ConcatT<AllChildAttrTypes, std::conditional_t<HasTextType::value,
+                                                                     TypeList<std::string>,
+                                                                     TypeList<>>>;
+
+  using TupleType = Kr::ToStdTupleT<AllTypes>;
   template <typename Name>
-  using TupleIdxType = typename Kr::Index<Name, AllNames>::Type;
-  using ThisType = NodeBase<AttrList, ChildList>;
+  using TupleIdxType = Kr::IndexT<Name, AllNames>;
+  using ThisType = NodeBase<AttrList, ChildList, HasTextType>;
+  using LastIndex = Kr::IndexType<Kr::LenT<AllTypes>::value - 1>;
 
   template <typename Attr>
   class MCAttrWrapper
@@ -129,9 +142,30 @@ public:
     }
   };
 
+  template <typename = void>
+  class TextSetter
+  {
+  public:
+    static void
+    set (ThisType* t, Base::Node& node)
+    {}
+  };
+
+  template <>
+  class TextSetter<std::enable_if_t<HasTextType::value>>
+  {
+  public:
+    static void
+    set (ThisType* t, Base::Node& node)
+    {
+      std::get<LastIndex::value> (t->stuff) = node.text ();
+      node.remove_text ();
+    }
+  };
+
 public:
   template <typename Name>
-  using HasStringAttribute = std::is_same<typename Kr::Nth<AllTypes, TupleIdxType<Name>>::Type,
+  using HasStringAttribute = std::is_same<Kr::NthT<AllTypes, TupleIdxType<Name>>,
                                           std::string>;
 
   void
@@ -139,91 +173,87 @@ public:
   {
     Kr::MultiCall<ThisType::MCAttrWrapper, AttrList>::call (this, node);
     Kr::MultiCall<ThisType::MCChildWrapper, ChildList>::call (this, node);
+    ThisType::TextSetter::set (this, node);
   }
 
   template <typename Name>
-  auto
+  auto const&
   get () const
   {
-    using IsAttribute = typename Kr::IsInList<Name, AllAttrNames>::Type;
-    using IsSingleChild = typename Kr::IsInList<Name, AllSingleChildNames>::Type;
-    static_assert (IsAttribute::value || IsSingleChild::value,
-                   "the object has the attribute or the single child with a given name");
+    using IsAttribute = Kr::IsInListT<Name, AllAttrNames>;
+    using IsSingleChild = Kr::IsInListT<Name, AllSingleChildNames>;
+    using IsOptionalChild = Kr::IsInListT<Name, AllOptionalChildNames>;
+    static_assert (IsAttribute::value || IsSingleChild::value || IsOptionalChild::value,
+                   "the object has the attribute or the single or optional child with a given name");
 
     return std::get<TupleIdxType<Name>::value> (stuff);
   }
 
   template <typename Name>
-  auto
+  auto const&
   get (std::size_t idx) const
   {
-    using IsVectorChild = typename Kr::IsInList<Name, AllVectorChildNames>::Type;
-    using IsMapVectorChild = typename Kr::IsInList<Name, AllVectorMapChildNames>::Type;
+    using IsVectorChild = Kr::IsInListT<Name, AllVectorChildNames>;
+    using IsMapVectorChild = Kr::IsInListT<Name, AllVectorMapChildNames>;
     static_assert (IsVectorChild::value || IsMapVectorChild::value,
                    "the object has the vector-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = typename Kr::Nth<ChildList, ChildIndex>::Type;
+    using ChildType = Kr::NthT<ChildList, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::get (std::get<ChildIndex::value> (stuff), idx);
   }
 
   template <typename Name>
-  auto
+  auto const*
   get (std::string const& key) const
   {
-    using IsMapChild = typename Kr::IsInList<Name, AllMapChildNames>::Type;
-    using IsMapVectorChild = typename Kr::IsInList<Name, AllVectorMapChildNames>::Type;
+    using IsMapChild = Kr::IsInListT<Name, AllMapChildNames>;
+    using IsMapVectorChild = Kr::IsInListT<Name, AllVectorMapChildNames>;
     static_assert (IsMapChild::value || IsMapVectorChild::value,
                    "the object has the map-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = typename Kr::Nth<ChildList, ChildIndex>::Type;
+    using ChildType = Kr::NthT<ChildList, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::get (std::get<ChildIndex::value> (stuff), key);
+  }
+
+  template <typename = std::enable_if_t<HasTextType::value> >
+  auto const&
+  get_text () const
+  {
+    static_assert (std::is_same<NthT<AllTypes, LastIndex::value>,
+                                     std::string>::value, "last element is a string");
+    return std::get<LastIndex::value> (stuff);
   }
 
   template <typename Name>
   auto
   size () const
   {
-    using IsVectorChild = typename Kr::IsInList<Name, AllVectorChildNames>::Type;
-    using IsMapVectorChild = typename Kr::IsInList<Name, AllVectorMapChildNames>::Type;
+    using IsVectorChild = Kr::IsInListT<Name, AllVectorChildNames>;
+    using IsMapVectorChild = Kr::IsInListT<Name, AllVectorMapChildNames>;
     static_assert (IsVectorChild::value || IsMapVectorChild::value,
                    "the object has the vector-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = typename Kr::Nth<ChildList, ChildIndex>::Type;
+    using ChildType = Kr::NthT<ChildList, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::size (std::get<ChildIndex::value> (stuff));
   }
 
   template <typename Name>
-  auto
+  auto const&
   range () const
   {
-    using IsVectorChild = typename Kr::IsInList<Name, AllVectorChildNames>::Type;
-    using IsMapVectorChild = typename Kr::IsInList<Name, AllVectorMapChildNames>::Type;
+    using IsVectorChild = typename IsInListT<Name, AllVectorChildNames>;
+    using IsMapVectorChild = Kr::IsInListT<Name, AllVectorMapChildNames>;
     static_assert (IsVectorChild::value || IsMapVectorChild::value,
                    "the object has the vector-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = typename Kr::Nth<ChildList, ChildIndex>::Type;
-    using ChildImplType = typename ChildType::ImplType;
-    return ChildImplType::range (std::get<ChildIndex::value> (stuff));
-  }
-
-  template <typename Name>
-  auto
-  range ()
-  {
-    using IsVectorChild = typename Kr::IsInList<Name, AllVectorChildNames>::Type;
-    using IsMapVectorChild = typename Kr::IsInList<Name, AllVectorMapChildNames>::Type;
-    static_assert (IsVectorChild::value || IsMapVectorChild::value,
-                   "the object has the vector-like child with a given name");
-
-    using ChildIndex = TupleIdxType<Name>;
-    using ChildType = typename Kr::Nth<ChildList, ChildIndex>::Type;
+    using ChildType = Kr::NthT<ChildList, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::range (std::get<ChildIndex::value> (stuff));
   }

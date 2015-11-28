@@ -7,14 +7,15 @@
 
 #endif
 
-#include <sstream>
+#include "xml.hh"
 
 #include <pugixml.hpp>
 
-#include <mm/utils/iterator-wrapper.hh>
-#include <mm/utils/range.hh>
+#include <boost/range/iterator_range_core.hpp>
+#include <boost/iterator/transform_iterator.hpp>
 
-#include "xml.hh"
+#include <functional>
+#include <sstream>
 
 namespace Mm
 {
@@ -28,22 +29,39 @@ namespace Base
 namespace PugiXmlDetails
 {
 
+class AttributeWrapper
+{
+public:
+  AttributeWrapper (pugi::xml_node p, pugi::xml_attribute a)
+    : parent {std::move (p)},
+      attr {std::move (a)}
+  {}
+
+  pugi::xml_node parent;
+  pugi::xml_attribute attr;
+};
+
+using NodeTransform = Node(*)(pugi::xml_node const&);
+// bloody lambda with a capture does not work with transform iterator
+// from boost.
+using AttributeTransform = std::function<Attribute(pugi::xml_attribute const&)>;
+
+using ChildIterator = boost::transform_iterator<NodeTransform, pugi::xml_node_iterator>;
+using AttributeIterator = boost::transform_iterator<AttributeTransform, pugi::xml_attribute_iterator>;
+using SiblingIterator = boost::transform_iterator<NodeTransform, pugi::xml_named_node_iterator>;
+
 } // namespace PugiXmlDetails
 
 class XmlImpl
 {
 public:
   using NodeImpl = pugi::xml_node;
-  class AttributeImpl
-  {
-  public:
-    pugi::xml_node parent;
-    pugi::xml_attribute attr;
-  };
+  using AttributeImpl = PugiXmlDetails::AttributeWrapper;
   using DocumentImpl = pugi::xml_document;
 
-  using ChildRange = Utils::Range<Utils::IteratorWrapper<pugi::xml_node_iterator, Node>>;
-  using SiblingsRange = Utils::Range<Utils::IteratorWrapper<pugi::xml_named_node_iterator, Node>>;
+  using ChildRange = boost::iterator_range<PugiXmlDetails::ChildIterator>;
+  using AttributeRange = boost::iterator_range<PugiXmlDetails::AttributeIterator>;
+  using SiblingRange = boost::iterator_range<PugiXmlDetails::SiblingIterator>;
 };
 
 // node methods
@@ -96,19 +114,49 @@ Node::attribute(std::string const& name) const
 }
 
 template <>
+inline std::string
+Node::text () const
+{
+  return std::string {impl.text ().get ()};
+}
+
+template <>
 inline XmlImpl::ChildRange
 Node::children() const
 {
   auto r = impl.children ();
-  return XmlImpl::ChildRange {r.begin (), r.end ()};
+  auto convert = [](pugi::xml_node const& node) { return Node {node}; };
+  auto b = XmlImpl::ChildRange::iterator {r.begin (), convert};
+  auto e = XmlImpl::ChildRange::iterator {r.end (), convert};
+  return XmlImpl::ChildRange {b, e};
+}
+
+
+template <>
+inline XmlImpl::AttributeRange
+Node::attributes() const
+{
+  throw 4;
+  auto r = impl.attributes ();
+  auto copy = impl;
+  auto convert = [copy](pugi::xml_attribute const& attribute)
+  {
+    return Attribute {XmlImpl::AttributeImpl {pugi::xml_node{}, attribute}};
+  };
+  auto b = XmlImpl::AttributeRange::iterator {r.begin (), convert};
+  auto e = XmlImpl::AttributeRange::iterator {r.end (), convert};
+  return XmlImpl::AttributeRange {b, e};
 }
 
 template <>
-inline XmlImpl::SiblingsRange
+inline XmlImpl::SiblingRange
 Node::siblings(std::string const& name) const
 {
   auto r = impl.parent ().children (name.c_str ());
-  return XmlImpl::SiblingsRange {r.begin (), r.end ()};
+  auto convert = [](pugi::xml_node const& node) { return Node {node}; };
+  auto b = XmlImpl::SiblingRange::iterator {r.begin (), convert};
+  auto e = XmlImpl::SiblingRange::iterator {r.end (), convert};
+  return XmlImpl::SiblingRange {b, e};
 }
 
 template <>
@@ -123,6 +171,13 @@ inline void
 Node::remove (Attribute const &attribute)
 {
   impl.remove_attribute (attribute.impl.attr);
+}
+
+template <>
+inline void
+Node::remove_text ()
+{
+  impl.remove_child (impl.text ().data ());
 }
 
 // attribute methods

@@ -27,8 +27,10 @@ public:
 
 class AttributesOnly {};
 class ChildrenOnly {};
+class DataOnly {};
 constexpr AttributesOnly Attrs = AttributesOnly{};
 constexpr ChildrenOnly Children = ChildrenOnly{};
+constexpr DataOnly Data = DataOnly{};
 
 class InvalidParserAssumption
   : public std::logic_error
@@ -36,6 +38,7 @@ class InvalidParserAssumption
 public:
   InvalidParserAssumption (AttributesOnly, Base::Node const& node, std::string const& attribute);
   InvalidParserAssumption (ChildrenOnly, Base::Node const& node, std::string const& child);
+  InvalidParserAssumption (DataOnly, Base::Node const& node);
 };
 
 } // namespace Xml

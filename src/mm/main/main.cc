@@ -8,109 +8,78 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <cctype>
+
 #include <pugixml.hpp>
 
-using NodeMap = std::unordered_map<std::string, int>;
 using StrSet = std::unordered_set<std::string>;
+template <typename T>
+using StrMap = std::unordered_map<std::string, T>;
+
+struct NodeData
+{
+  enum class Leaf
+  {
+    UNDETERMINED,
+    NEVER_A_LEAF,
+    SOMETIMES_A_LEAF,
+    ALWAYS_A_LEAF
+  };
+
+  NodeData()
+    : attribute_names {},
+      child_names {},
+      parent_names {},
+      has_text {},
+      occurences_per_parent {},
+      leaf {Leaf::UNDETERMINED}
+  {}
+
+  StrSet attribute_names;
+  StrSet child_names;
+  StrSet parent_names;
+
+  bool has_text;
+  StrMap<std::size_t> occurences_per_parent;
+  Leaf leaf;
+};
+
+using NodeMap = StrMap<NodeData>;
 
 class GirWalker : public pugi::xml_tree_walker
 {
 public:
+  GirWalker()
+    : nodes {},
+      processors {&GirWalker::process_occurences,
+                  &GirWalker::process_leaves,
+                  &GirWalker::process_attributes,
+                  &GirWalker::process_children,
+                  &GirWalker::process_parent,
+                  &GirWalker::process_text}
+  {}
+
   bool
   for_each(pugi::xml_node& node) override
   {
     if (node.type () == pugi::node_element)
     {
       auto const name = get_name (node);
-      node_child_names[name];
-      all_nodes.insert (name);
+      auto ins_pair = nodes.insert (NodeMap::value_type {name, NodeData {}});
+      auto data_iter = ins_pair.first;
 
-      auto range = node.parent ().children (name.c_str ());
-      auto occurences = std::distance (std::begin (range), std::end (range));
-      auto& nm = node_child_names[get_name (node.parent ())];
-      auto old_occurences = nm.find (name);
-      if (old_occurences != std::end (nm))
+      for (auto&& p : processors)
       {
-        if (occurences > old_occurences->second)
-        {
-          old_occurences->second = occurences;
-        }
-      }
-      else
-      {
-        nm[name] = occurences;
-      }
-      for (auto const& attr : node.attributes ())
-      {
-        node_attributes[name].insert (attr.name ());
-        all_attributes.insert (attr.name ());
-      }
-      /*
-      if (name == "array" && get_name (node.parent ()) == "type")
-      {
-        for (auto n = node; n; n = n.parent ())
-        {
-          std::cout << "  " << n.attribute ("name").value () << std::endl;
-        }
-      }
-      */
-      /*
-      if (name == "array" || name == "type")
-      {
-        std::string other_name = (name == "array" ? "type" : "array");
-        for (auto const& n : node.parent ().children ())
-        {
-          if (&n == &node)
-          {
-            continue;
-          }
-          if (get_name (n) == other_name)
-          {
-            for (auto n2 = node; n2; n2 = n2.parent ())
-            {
-              std::cout << "  " << n2.attribute ("name").value () << std::endl;
-            }
-          }
-        }
-      }
-      */
-      if (name == "record" || name == "union")
-      {
-        std::string const other_name = (name == "record" ? "union" : "record");
-        if (get_name (node.parent ()) == other_name)
-        {
-          for (auto n = node; n; n = n.parent ())
-          {
-            std::cout << "  " << n.name () << "(" << n.attribute ("name").value () << ")\n";
-          }
-        }
+        p (*this, data_iter, node);
       }
     }
     return true;
   }
 
-  std::unordered_map<std::string, NodeMap>&
+  NodeMap&
   get_map ()
   {
-    return node_child_names;
-  }
-
-  std::unordered_map<std::string, StrSet>&
-  get_attrs ()
-  {
-    return node_attributes;
-  }
-
-  StrSet&
-  get_all_attrs()
-  {
-    return all_attributes;
-  }
-
-  StrSet&
-  get_all_nodes()
-  {
-    return all_nodes;
+    return nodes;
   }
 
 private:
@@ -126,49 +95,196 @@ private:
     }
   }
 
-  std::unordered_map<std::string, NodeMap> node_child_names;
-  std::unordered_map<std::string, StrSet> node_attributes;
-  StrSet all_attributes;
-  StrSet all_nodes;
+  void
+  process_occurences (NodeMap::iterator& data_iter, pugi::xml_node const& node)
+  {
+    auto parent = node.parent ();
+    if (!parent)
+    {
+      return;
+    }
+    auto const& name = data_iter->first;;
+    auto pname = get_name (parent);
+    auto all_siblings = parent.children(name.c_str ());
+    auto& opp_map = data_iter->second.occurences_per_parent;
+    auto piter = opp_map.find (pname);
+    auto count = count_siblings (all_siblings.begin (), all_siblings.end ());
+
+    if (piter == opp_map.end ())
+    {
+      opp_map.insert (StrMap<int>::value_type {pname, count});
+      return;
+    }
+
+    if (piter->second < count)
+    {
+      piter->second = count;
+    }
+  }
+
+  template <typename It>
+  std::size_t
+  count_siblings (It b, It const& e)
+  {
+    std::size_t c {};
+    while (b != e)
+    {
+      ++c;
+      ++b;
+    }
+    return c;
+  }
+
+  void
+  process_leaves (NodeMap::iterator& data_iter, pugi::xml_node const& node)
+  {
+    auto is_leaf = is_a_leaf (node);
+
+    switch (data_iter->second.leaf)
+    {
+    case NodeData::Leaf::UNDETERMINED:
+      data_iter->second.leaf = (is_leaf ? NodeData::Leaf::ALWAYS_A_LEAF : NodeData::Leaf::NEVER_A_LEAF);
+      break;
+
+    case NodeData::Leaf::NEVER_A_LEAF:
+      data_iter->second.leaf = (is_leaf ? NodeData::Leaf::SOMETIMES_A_LEAF : NodeData::Leaf::NEVER_A_LEAF);
+      break;
+
+    case NodeData::Leaf::SOMETIMES_A_LEAF:
+      break;
+
+    case NodeData::Leaf::ALWAYS_A_LEAF:
+      data_iter->second.leaf = (is_leaf ? NodeData::Leaf::ALWAYS_A_LEAF : NodeData::Leaf::SOMETIMES_A_LEAF);
+      break;
+    }
+  }
+
+  bool
+  is_a_leaf (pugi::xml_node const& node)
+  {
+    for (auto n : node.children ())
+    {
+      if (n.type () == pugi::node_element)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void
+  process_attributes (NodeMap::iterator& data_iter, pugi::xml_node const& node)
+  {
+    for (auto attr : node.attributes ())
+    {
+      data_iter->second.attribute_names.insert (attr.name ());
+    }
+  }
+
+  void
+  process_children (NodeMap::iterator& data_iter, pugi::xml_node const& node)
+  {
+    for (auto n : node.children ())
+    {
+      if (n.type () == pugi::node_element)
+      {
+        data_iter->second.child_names.insert (n.name ());
+      }
+    }
+  }
+
+  void
+  process_parent (NodeMap::iterator& data_iter, pugi::xml_node const& node)
+  {
+    data_iter->second.parent_names.insert (get_name (node.parent ()));
+  }
+
+  void
+  process_text (NodeMap::iterator& data_iter, pugi::xml_node const& node)
+  {
+    for (auto c : node.children ())
+    {
+      if (c.type () == pugi::node_pcdata)
+      {
+        data_iter->second.has_text = true;
+      }
+    }
+  }
+
+  NodeMap nodes;
+  std::vector<std::function<void(GirWalker&, NodeMap::iterator&,pugi::xml_node&)>> processors;
 };
 
 void
 print_tree (GirWalker& walker)
 {
   std::vector<std::string> lines;
-  auto const& el_map = walker.get_map ();
-  auto const& attr_map = walker.get_attrs ();
+  auto const& node_map = walker.get_map ();
 
-  lines.reserve(el_map.size ());
-  for (auto const& kv : el_map) {
-    using Pair = std::pair<std::string, int>;
+  lines.reserve(node_map.size ());
+  for (auto const& kv : node_map) {
+    auto const& name = kv.first;
+    auto& data = kv.second;
+    std::vector<std::string> children {std::begin (data.child_names), std::end (data.child_names)};
     std::ostringstream oss;
-    std::vector<Pair> children {std::begin (kv.second), std::end (kv.second)};
 
-    std::sort (std::begin (children), std::end (children),
-               [](NodeMap::value_type const& a, NodeMap::value_type const& b) -> bool
-               {
-                 return a.first < b.first;
-               });
-    oss << kv.first << ":";
+    std::sort (std::begin (children), std::end (children));
+    oss << name << " (";
+    switch (kv.second.leaf)
+    {
+    case NodeData::Leaf::UNDETERMINED:
+      oss << "meh, this type should not happen";
+      break;
+
+    case NodeData::Leaf::NEVER_A_LEAF:
+      oss << "never a leaf";
+      break;
+
+    case NodeData::Leaf::SOMETIMES_A_LEAF:
+      oss << "sometimes a leaf";
+      break;
+
+    case NodeData::Leaf::ALWAYS_A_LEAF:
+      oss << "always a leaf";
+      break;
+    }
+    if (kv.second.has_text)
+    {
+      oss << ", has_text";
+    }
+    oss << "):";
     for (auto const& c : children)
     {
-      oss << " " << c.first;
-      if (c.second > 1)
-      {
-        oss << " (" << c.second << ")";
-      }
-    }
-    auto const& attr_iter = attr_map.find (kv.first);
+      oss << ' ' << c;
 
-    if (attr_iter != attr_map.cend ())
+      auto c_iter = node_map.find (c);
+      if (c_iter == std::end (node_map))
+      {
+        continue;
+      }
+      auto opp_iter = c_iter->second.occurences_per_parent.find (name);
+      if (opp_iter == std::end (c_iter->second.occurences_per_parent))
+      {
+        continue;
+      }
+      auto const oc = opp_iter->second;
+
+      if (oc < 2)
+      {
+        continue;
+      }
+      oss << " (" << oc << ')';
+    }
+
+    if (!data.attribute_names.empty ())
     {
-      std::vector<std::string> attrs {std::begin (attr_iter->second), std::end (attr_iter->second)};
+      std::vector<std::string> attrs {std::begin (data.attribute_names), std::end (data.attribute_names)};
+
       std::sort (std::begin (attrs), std::end (attrs));
       oss << " |";
       for (auto const& a : attrs)
       {
-        oss << " " << a;
+        oss << ' ' << a;
       }
     }
     oss << "\n";
@@ -183,14 +299,26 @@ print_tree (GirWalker& walker)
 
 using StrNMPair = std::pair<std::string, NodeMap>;
 
+template <typename Pair>
+class UnconstifyKey;
+
+template <template <typename, typename> class Pair, typename Key, typename Value>
+class UnconstifyKey<Pair<Key, Value>>
+{
+public:
+  using Type = Pair<std::remove_const_t<Key>, Value>;
+};
+
+using NodeMapModPair = UnconstifyKey<NodeMap::value_type>::Type;
+
 std::string
-remove_loop (std::vector<StrNMPair>& elems,
+remove_loop (std::vector<NodeMapModPair>& elems,
              std::string const& first_keep,
              std::string const& second_remove)
 {
   {
     auto remove_iter = std::find_if (std::begin (elems), std::end (elems),
-                                     [&second_remove] (StrNMPair const &p) -> bool
+                                     [&second_remove] (auto const &p) -> bool
                                      {
                                        return p.first == second_remove;
                                      });
@@ -199,20 +327,27 @@ remove_loop (std::vector<StrNMPair>& elems,
       elems.erase (remove_iter);
     }
   }
+
   std::string new_name {first_keep + "-xor-" + second_remove + "-recursive"};
   std::for_each (std::begin (elems),
                  std::end (elems),
-                 [&new_name, &first_keep, &second_remove] (StrNMPair& p)
+                 [&new_name, &first_keep, &second_remove] (auto& p)
                  {
                    if (p.first == first_keep)
                    {
                      p.first = new_name;
-                     p.second.erase (first_keep);
-                     p.second.erase (second_remove);
+                     p.second.child_names.erase (first_keep);
+                     p.second.child_names.erase (second_remove);
                    }
-                   else if (p.second.erase (first_keep) + p.second.erase (second_remove) > 0)
+                   else
                    {
-                     p.second.insert (NodeMap::value_type (new_name, 0));
+                     auto const erased_first = p.second.child_names.erase (first_keep);
+                     auto const erased_second = p.second.child_names.erase (second_remove);
+
+                     if (erased_first > 0 || erased_second > 0)
+                     {
+                       p.second.child_names.insert (new_name);
+                     }
                    }
                  });
   return new_name;
@@ -221,27 +356,25 @@ remove_loop (std::vector<StrNMPair>& elems,
 void
 print_leaves_to_root (GirWalker& walker)
 {
-  std::vector<StrNMPair> elems;
-  auto const& el_map = walker.get_map ();
+  auto const& nodes_map = walker.get_map ();
+  std::vector<NodeMapModPair> elems {std::begin (nodes_map), std::end (nodes_map)};
   std::vector<std::string> recs {};
   auto level = 0u;
 
-  elems.reserve (el_map.size ());
-  elems.insert (std::end (elems), std::begin (el_map), std::end (el_map));
   recs.push_back (remove_loop (elems, "array", "type"));
   recs.push_back (remove_loop (elems, "record", "union"));
   while (!elems.empty ())
   {
     auto half = std::partition (std::begin (elems),
                                 std::end (elems),
-                                [] (StrNMPair const& p) -> bool {
-                                  return !p.second.empty();
+                                [] (auto const& p) -> bool {
+                                  return !p.second.child_names.empty();
                                 });
     if (half == std::end (elems))
     {
       std::cout << "    Leftover nodes:\n";
       std::for_each (std::begin (elems), std::end (elems),
-                    [] (StrNMPair const& p)
+                    [] (auto const& p)
                     {
                       std::cout << "      " << p.first << "\n";
                     });
@@ -249,13 +382,13 @@ print_leaves_to_root (GirWalker& walker)
     }
     std::sort (half,
                std::end (elems),
-               [] (StrNMPair const& a, StrNMPair const& b) -> bool
+               [] (auto const& a, auto const& b) -> bool
                {
                  return a.first < b.first;
                });
     std::for_each (half,
                    std::end (elems),
-                   [&elems, &half, &level, &recs] (StrNMPair const& p)
+                   [&elems, &half, &level, &recs] (auto const& p)
                    {
                      auto const& name = p.first;
                      auto const is_r = [&recs, &name] ()
@@ -271,9 +404,9 @@ print_leaves_to_root (GirWalker& walker)
                      std::cout << name << " " << level << (is_r ? " (recursive)" : "") << std::endl;
                      std::for_each (std::begin (elems),
                                     half,
-                                    [&name] (StrNMPair &p2)
+                                    [&name] (auto& p2)
                                     {
-                                      p2.second.erase (name);
+                                      p2.second.child_names.erase (name);
                                     });
                    });
     elems.erase (half, std::end (elems));
@@ -285,12 +418,19 @@ void
 print_names (GirWalker& walker)
 {
   std::vector<std::string> lines;
-  auto const& attrs = walker.get_all_attrs ();
-  auto const& nodes = walker.get_all_nodes ();
+  auto const& nodes_map = walker.get_map ();
+  StrSet names;
 
-  lines.reserve(attrs.size () + nodes.size ());
-  lines.insert(std::end (lines), std::begin (attrs), std::end (attrs));
-  lines.insert(std::end (lines), std::begin (nodes), std::end (nodes));
+  for (auto const& kv : nodes_map)
+  {
+    names.insert (kv.first);
+    for (auto const& attr : kv.second.attribute_names)
+    {
+      names.insert (attr);
+    }
+  }
+  lines.reserve(names.size ());
+  lines.insert(std::end (lines), std::begin (names), std::end (names));
   std::sort (std::begin (lines), std::end (lines));
   for (auto const& line : lines)
   {
@@ -339,12 +479,6 @@ int main(int argc, char **argv)
     }
 
     auto const repo = doc.child ("repository");
-    /*
-    auto const ns = repo.child ("namespace");
-    auto const ns_name = std::string {ns.attribute ("name").value ()};
-    auto const ns_version = std::string {ns.attribute ("version").value ()};
-    auto const ns_full_name = ns_name + "-" + ns_version;
-    */
 
     for (auto const& include : repo.children ("include"))
     {

@@ -9,7 +9,48 @@ namespace Mm
 namespace Utils
 {
 
-template <typename Iterator, typename Wrapper>
+namespace IteratorWrapperDetails
+{
+
+// TODO: These will need to be moved out from this namespace.
+// T is simply a type
+template <typename It, typename T, typename = void>
+class W
+{
+public:
+  using Type = T;
+
+  auto
+  get (typename It::value_type const& v)
+  {
+    return Type{v};
+  }
+};
+
+// T is a callable type
+template <typename It, typename T>
+class W<It, T, std::result_of_t<T(It::value_type const&)> >
+{
+public:
+  using Type = std::result_of_t<T(It::value_type const&)>;
+
+  W(T f)
+    : func {f}
+  {}
+
+  auto
+  get (typename It::value_type const& v)
+  {
+    return func(v);
+  }
+private:
+  T func;
+};
+
+} // namespace IteratorWrapperDetails
+
+
+template <typename Iterator, typename WrapperType, typename = void>
 class IteratorWrapper
 {
 public:
@@ -19,42 +60,55 @@ public:
   using reference = Wrapper&;
 
   using iterator_category = typename Iterator::iterator_category;
+};
 
-  IteratorWrapper ()
-    : it {},
-      w {}
+
+template <typename Iterator, typename Converter>
+class IteratorWrapper
+{
+  using Wrapper = typename Converter::Type;
+
+public:
+  using difference_type = typename Iterator::difference_type;
+  using value_type = Wrapper;
+  using pointer = Wrapper*;
+  using reference = Wrapper&;
+
+  using iterator_category = typename Iterator::iterator_category;
+
+  IteratorWrapper (Converter c)
+    : t {{}, {}, c}
   {}
 
-  IteratorWrapper (Iterator wrapped)
-    : it {wrapped},
-      w {}
+  IteratorWrapper (Iterator wrapped, Converter c)
+    : t {wrapped, {}, c}
   {}
 
   bool operator==(IteratorWrapper const& rhs) const
   {
-    return it == rhs.it;
+    return std::get<0> (t) == std::get<0> (rhs.t);
   }
 
   bool operator!=(IteratorWrapper const& rhs) const
   {
-    return it != rhs.it;
+    return std::get<0> (t) != std::get<0> (rhs.t);
   }
 
   reference operator*() const
   {
-    w = Wrapper {*it};
+    std::get<1> (t) = std::get<2> (t).get (*std::get<0> (t));
     return *w;
   }
 
   pointer operator->() const
   {
-    w = Wrapper {*it};
+    std::get<1> (t) = std::get<2> (t).get (*std::get<0> (t));
     return &*w;
   }
 
   const IteratorWrapper& operator++()
   {
-    ++it;
+    ++std::get<0> (t);
     return *this;
   }
 
@@ -68,7 +122,7 @@ public:
 
   const IteratorWrapper& operator--()
   {
-    --it;
+    --std::get<0> (t);
     return *this;
   }
 
@@ -81,8 +135,9 @@ public:
   }
 
 private:
-  Iterator it;
-  mutable std::experimental::optional<Wrapper> w;
+  using Opt = std::experimental::optional<value_type>;
+
+  mutable std::tuple<Iterator, Opt, Converter> t;
 };
 
 } // namespace Utils

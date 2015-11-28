@@ -7,6 +7,7 @@ AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([1.12 check-news dist-xz no-dist-gzip silent-rules subdir-objects tar-pax no-define std-options -Wall])
+AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
 AC_PROG_CXXCPP

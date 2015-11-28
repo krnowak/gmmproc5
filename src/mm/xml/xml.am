@@ -1,12 +1,11 @@
 include $(top_srcdir)/src/mm/xml/base/base.am
 
-noinst_LTLIBRARIES += src/mm/xml/libxml.la
+noinst_LIBRARIES += src/mm/xml/libxml.a
 
-src_mm_xml_libxml_la_SOURCES = \
+src_mm_xml_libxml_a_SOURCES = \
   src/mm/xml/exceptions.cc \
   src/mm/xml/generic-attr.cc \
   src/mm/xml/generic-child.cc
 
-src_mm_xml_libxml_la_CPPFLAGS = $(common_cppflags)
-src_mm_xml_libxml_la_CXXFLAGS = $(common_cxxflags)
-src_mm_xml_libxml_la_LIBADD = -lpugixml
+src_mm_xml_libxml_a_CPPFLAGS = $(common_cppflags)
+src_mm_xml_libxml_a_CXXFLAGS = $(common_cxxflags)

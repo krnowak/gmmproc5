@@ -45,12 +45,15 @@ public:
   std::experimental::optional<NodeTmpl<Impl>> parent () const;
   std::experimental::optional<NodeTmpl<Impl>> child (std::string const& name) const;
   std::experimental::optional<AttributeTmpl<Impl>> attribute(std::string const& name) const;
+  std::string text () const;
 
   typename Impl::ChildRange children() const;
-  typename Impl::SiblingsRange siblings(std::string const& name) const;
+  typename Impl::AttributeRange attributes() const;
+  typename Impl::SiblingRange siblings(std::string const& name) const;
 
   void remove (NodeTmpl<Impl> const& child);
   void remove (AttributeTmpl<Impl> const &attribute);
+  void remove_text ();
 
 private:
   typename Impl::NodeImpl impl;

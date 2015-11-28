@@ -23,8 +23,10 @@ EXTRA_DIST = $(gmmproc5doc_DATA)
 uninstall-local:
 	rm -rf $(gmmproc5docdir)
 
-noinst_LTLIBRARIES =
+noinst_LIBRARIES =
 bin_PROGRAMS =
+noinst_PROGRAMS =
+BUILT_SOURCES =
 
 include $(top_srcdir)/src/src.am
 

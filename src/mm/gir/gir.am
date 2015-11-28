@@ -1,0 +1,1 @@
+include $(top_srcdir)/src/mm/gir/names/names.am

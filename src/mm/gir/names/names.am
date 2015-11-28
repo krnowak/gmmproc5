@@ -1,0 +1,14 @@
+noinst_PROGRAMS += src/mm/gir/names/gen-names
+
+src_mm_gir_names_gen_names_SOURCES = src/mm/gir/names/main.cc
+src_mm_gir_names_gen_names_CXXFLAGS = $(common_cxxflags)
+src_mm_gir_names_gen_names_CPPFLAGS = $(common_cppflags)
+
+BUILT_SOURCES += src/mm/gir/names/names.hh
+
+src/mm/gir/names/names.hh: $(top_srcdir)/src/mm/gir/names/gen-names
+src/mm/gir/names/names.hh: $(top_srcdir)/src/mm/gir/names/names.txt
+src/mm/gir/names/names.hh:
+	$(top_srcdir)/src/mm/gir/names/gen-names $(top_srcdir)/src/mm/gir/names/names.txt >"$@.tmp"
+	cmp --silent "$@" "$@.tmp" || mv "$@.tmp" "$@"
+	rm --force "$@.tmp"
