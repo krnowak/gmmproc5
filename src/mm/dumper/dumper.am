@@ -1,0 +1,6 @@
+bin_PROGRAMS += src/mm/dumper/dumper
+
+src_mm_main_main_SOURCES = src/mm/dumper/main.cc
+src_mm_main_main_CXXFLAGS = $(common_cxxflags)
+src_mm_main_main_CPPFLAGS = $(common_cppflags)
+src_mm_main_main_LDADD = -lpugixml
