@@ -32,6 +32,8 @@
 /m4/ltversion.m4
 /m4/lt~obsolete.m4
 
+/src/mm/dumper/dumper
+
 /src/mm/gir/names/gen-names
 /src/mm/gir/names/names.hh
 

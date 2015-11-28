@@ -13,7 +13,7 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AM_PROG_AR
 AC_LANG_PUSH([C++])
-dnl AX_CXX_COMPILE_STDCXX_11([noext])
+AX_CXX_COMPILE_STDCXX_14([noext], [mandatory])
 
 AC_CHECK_HEADER([pugixml.hpp],
 		dnl pugixml header found, alright
