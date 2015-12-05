@@ -1,13 +1,17 @@
+#ifndef EXT_KR_KR_HH
+#define EXT_KR_KR_HH
+
 #include <boost/mpl/at.hpp>
-#include <boost/mpl/comparison.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/mpl/equal_to.hpp>
+#include <boost/mpl/begin.hpp>
+#include <boost/mpl/distance.hpp>
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/mpl/fold.hpp>
+#include <boost/mpl/front.hpp>
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/joint_view.hpp>
 #include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/pop_front.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/transform_view.hpp>
@@ -16,6 +20,7 @@
 #include <limits>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include <cstdlib>
 
@@ -90,7 +95,10 @@ using NthT = typename Nth<List, Idx>::Type;
 template <typename Needle, typename Haystack>
 class Index
 {
-  using Pos = typename mpl::find<Haystack, Needle>::type::pos;
+  using Begin = typename mpl::begin<Haystack>::type;
+  using Iter = typename mpl::find<Haystack, Needle>::type;
+  using Pos = typename mpl::distance<Begin, Iter>::type;
+
 public:
   using Type = std::conditional_t<Pos::value < LenT<Haystack>::value,
                                   IndexType<Pos::value>,
@@ -190,4 +198,30 @@ public:
 template <typename List>
 using IsUniqueT = typename IsUnique<List>::Type;
 
+// TODO: Is there some boost helper for this?
+// multicall
+
+template <template <typename> class Wrapper, typename List>
+class MultiCall
+{
+public:
+  template <typename... ParamTypes>
+  static void call(ParamTypes&&... p)
+  {
+    Wrapper<typename mpl::front<List>::type>::call(std::forward<ParamTypes> (p)...);
+    MultiCall<Wrapper, typename mpl::pop_front<List>::type>::call(std::forward<ParamTypes> (p)...);
+  }
+};
+
+template <template <typename> class Wrapper>
+class MultiCall<Wrapper, TypeList<>>
+{
+public:
+  template <typename... ParamTypes>
+  static void call(ParamTypes&&...)
+  {}
+};
+
 } // namespace Kr
+
+#endif // EXT_KR_KR_HH

@@ -3,6 +3,8 @@
 
 #include "types.hh"
 
+#include <limits>
+
 namespace Mm
 {
 
@@ -62,8 +64,8 @@ public:
   {
     using Named::Named;
 
-    Set<AttributeData> attributes;
-    Set<ChildData> children;
+    StrMap<Attribute> attributes;
+    StrMap<Child> children;
     bool has_text = false;
   };
 
@@ -75,11 +77,11 @@ public:
   void
   process_document (pugi::xml_node const& document);
 
-  NamedSet<Node>&&
+  StrMap<Node>&&
   steal ();
 
 private:
-  NamedSet<Node> nodes;
+  StrMap<Node> nodes;
 };
 
 } // namespace LameSchemaGen

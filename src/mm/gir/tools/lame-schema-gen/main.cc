@@ -6,6 +6,9 @@
 #include <pugixml.hpp>
 
 #include <exception>
+#include <iostream>
+#include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 
@@ -63,9 +66,9 @@ struct SchemaData
   void
   process_document (pugi::xml_node const& document)
   {
-    n.process_document (node);
-    s.process_document (node);
-    l.process_document (node);
+    n.process_document (document);
+    s.process_document (document);
+    l.process_document (document);
   }
 };
 
@@ -104,10 +107,11 @@ private:
 class LameSchemaBuilder
 {
 public:
-  pugi::xml_document
-  build_doc (SchemaData const& data)
+  std::unique_ptr<pugi::xml_document>
+  build_doc (SchemaData const&)
   {
     // TODO
+    return {};
   }
 };
 
@@ -163,7 +167,10 @@ parse_gir_files (GirPaths& paths)
 
     if (!result)
     {
-      throw std::runtime_error {"failed to parse " << path << ": " << result.description ()};
+      std::ostringstream oss;
+
+      oss << "failed to parse " << path << ": " << result.description ();
+      throw std::runtime_error {oss.str ()};
     }
 
     auto const repo = doc.child ("repository");
@@ -205,7 +212,10 @@ main(int, char **argv)
     LameSchemaBuilder builder;
     auto doc = builder.build_doc (data);
 
-    doc.save (std::cout, "  ");
+    if (doc)
+    {
+      doc->save (std::cout, "  ");
+    }
   }
   catch (std::exception const& ex)
   {

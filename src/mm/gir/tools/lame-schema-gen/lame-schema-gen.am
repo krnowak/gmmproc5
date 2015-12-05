@@ -7,3 +7,4 @@ src_mm_gir_tools_lame_schema_gen_lame_schema_gen_SOURCES = \
   src/mm/gir/tools/lame-schema-gen/short.cc
 src_mm_gir_tools_lame_schema_gen_lame_schema_gen_CXXFLAGS = $(common_cxxflags)
 src_mm_gir_tools_lame_schema_gen_lame_schema_gen_CPPFLAGS = $(common_cppflags)
+src_mm_gir_tools_lame_schema_gen_lame_schema_gen_LDADD = -lpugixml

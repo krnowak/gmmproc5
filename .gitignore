@@ -37,4 +37,8 @@
 /src/mm/gir/names/gen-names
 /src/mm/gir/names/names.hh
 
+/src/mm/gir/tools/lame-schema-gen/lame-schema-gen
+
 /src/mm/main/main
+
+/src/mm/test/test

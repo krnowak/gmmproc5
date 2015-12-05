@@ -1,6 +1,3 @@
-#ifndef MM_GIR_TOOLS_LAME_SCHEMA_GEN_NAMES_HH
-#define MM_GIR_TOOLS_LAME_SCHEMA_GEN_NAMES_HH
-
 #include "names.hh"
 
 #include <pugixml.hpp>
@@ -21,7 +18,7 @@ namespace
 {
 
 void
-try_emplace(std::unordered_set<std::string>& names, pugi::char_t const* name)
+try_emplace (StrSet& names, pugi::char_t const* name)
 {
   if (name && *name)
   {
@@ -36,13 +33,13 @@ Names::process_node (pugi::xml_node const& node)
 {
   try_emplace (names, node.name ());
 
-  for (auto attr = node.attributes ())
+  for (auto attr : node.attributes ())
   {
     try_emplace (names, attr.name ());
   }
 }
 
-std::unordered_set<std::string>&&
+StrSet&&
 Names::steal ()
 {
   return std::move (names);
@@ -55,5 +52,3 @@ Names::steal ()
 } // namespace Gir
 
 } // namespace Mm
-
-#endif // MM_GIR_TOOLS_LAME_SCHEMA_GEN_NAMES_HH

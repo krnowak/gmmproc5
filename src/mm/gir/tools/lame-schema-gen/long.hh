@@ -3,6 +3,8 @@
 
 #include "types.hh"
 
+#include <limits>
+
 namespace Mm
 {
 
@@ -62,8 +64,8 @@ public:
   {
     using Named::Named;
 
-    Set<AttributeData> attributes;
-    Set<ChildData> children;
+    NamedSet<Attribute> attributes;
+    NamedSet<Child> children;
     bool has_text = false;
   };
 

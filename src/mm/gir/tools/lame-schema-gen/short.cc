@@ -1,5 +1,9 @@
 #include "short.hh"
 
+#include <pugixml.hpp>
+
+#include <cctype>
+
 namespace Mm
 {
 
@@ -31,7 +35,7 @@ is_a_leaf (pugi::xml_node const& node)
 void
 process_leaves (Short::Leafed& leafed, pugi::xml_node const& node)
 {
-  if (leafed.leaf == Leaf::SOMETIMES_A_LEAF)
+  if (leafed.leaf == Short::Leaf::SOMETIMES_A_LEAF)
   {
     return;
   }
@@ -40,19 +44,19 @@ process_leaves (Short::Leafed& leafed, pugi::xml_node const& node)
 
   switch (leafed.leaf)
   {
-  case Leaf::UNDETERMINED:
-    leafed.leaf = (is_leaf ? Leaf::ALWAYS_A_LEAF : Leaf::NEVER_A_LEAF);
+  case Short::Leaf::UNDETERMINED:
+    leafed.leaf = (is_leaf ? Short::Leaf::ALWAYS_A_LEAF : Short::Leaf::NEVER_A_LEAF);
     break;
 
-  case Leaf::NEVER_A_LEAF:
-    leafed.leaf = (is_leaf ? Leaf::SOMETIMES_A_LEAF : Leaf::NEVER_A_LEAF);
+  case Short::Leaf::NEVER_A_LEAF:
+    leafed.leaf = (is_leaf ? Short::Leaf::SOMETIMES_A_LEAF : Short::Leaf::NEVER_A_LEAF);
     break;
 
-  case Leaf::SOMETIMES_A_LEAF:
+  case Short::Leaf::SOMETIMES_A_LEAF:
     break;
 
-  case Leaf::ALWAYS_A_LEAF:
-    leafed.leaf = (is_leaf ? Leaf::ALWAYS_A_LEAF : Leaf::SOMETIMES_A_LEAF);
+  case Short::Leaf::ALWAYS_A_LEAF:
+    leafed.leaf = (is_leaf ? Short::Leaf::ALWAYS_A_LEAF : Short::Leaf::SOMETIMES_A_LEAF);
     break;
   }
 }
@@ -61,7 +65,7 @@ void
 process_node (Short::Node& data, pugi::xml_node const& node)
 {
   ++data.count;
-  data.has_text ||= !node.text ().empty ();
+  data.has_text = (data.has_text || !node.text ().empty ());
   process_leaves (data, node);
 }
 
@@ -70,29 +74,30 @@ process_attributes (Short::Node& data, pugi::xml_node const& node)
 {
   for (auto attr : node.attributes ())
   {
-    auto pair = data.attributes.emplace (attr.name ());
-    auto& attr_data = *pair->first;
+    std::string name = attr.name ();
+    auto pair = data.attributes.emplace (name, name);
+    auto& attr_data = pair.first->second;
 
     ++attr_data.count;
     switch (attr_data.type)
     {
-    case AttributeData::Type::UNDETERMINED:
-    case AttributeData::Type::NUMERIC:
+    case Short::Attribute::Type::UNDETERMINED:
+    case Short::Attribute::Type::NUMERIC:
       for (auto ptr = attr.value (); *ptr; ++ptr)
       {
-        if (!std::is_digit (*ptr))
+        if (!std::isdigit (*ptr))
         {
-          attr_data.type = AttributeData::Type::STRING;
+          attr_data.type = Short::Attribute::Type::STRING;
           break;
         }
       }
-      if (attr_data.type != AttributeData::Type::STRING)
+      if (attr_data.type != Short::Attribute::Type::STRING)
       {
-        attr_data.type = AttributeData::Type::NUMERIC;
+        attr_data.type = Short::Attribute::Type::NUMERIC;
       }
       break;
 
-    case AttributeData::Type::STRING:
+    case Short::Attribute::Type::STRING:
       break;
     }
   }
@@ -103,12 +108,12 @@ process_children (Short::Node& data, pugi::xml_node const& node)
 {
   struct MetData
   {
-    MetData(ChildData& c)
+    MetData(Short::Child& c)
       : child {c},
         occurences {0}
     {}
 
-    ChildData& child;
+    Short::Child& child;
     std::size_t occurences;
   };
   StrMap<MetData> met_children;
@@ -119,9 +124,9 @@ process_children (Short::Node& data, pugi::xml_node const& node)
     {
       continue;
     }
-    auto name = child.name ();
-    auto pair = data.children.emplace (name);
-    auto& child_data = *pair->first;
+    std::string name = child.name ();
+    auto pair = data.children.emplace (name, name);
+    auto& child_data = pair.first->second;
     auto met_iter = met_children.find (name);
 
     if (met_iter == met_children.end ())
@@ -153,10 +158,10 @@ process_children (Short::Node& data, pugi::xml_node const& node)
 }
 
 void
-process_named_node (NamedSet<Node>& nodes, char const* name, pugi::xml_node const& node)
+process_named_node (StrMap<Short::Node>& nodes, std::string const& name, pugi::xml_node const& node)
 {
-  auto pair = nodes.emplace (name));
-  auto& data = *pair->first;
+  auto pair = nodes.emplace (name, name);
+  auto& data = pair.first->second;
 
   process_node (data, node);
   process_attributes (data, node);
@@ -177,7 +182,7 @@ Short::process_document (pugi::xml_node const& document)
   process_named_node (nodes, "!@#$_DOCROOT_$#@!", document);
 }
 
-NamedSet<Short::Node>&&
+StrMap<Short::Node>&&
 Short::steal ()
 {
   return std::move (nodes);
@@ -190,5 +195,3 @@ Short::steal ()
 } // namespace Gir
 
 } // namespace Mm
-
-#endif // MM_GIR_TOOLS_LAME_SCHEMA_GEN_SHORT_HH
