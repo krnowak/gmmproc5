@@ -1,4 +1,4 @@
-bin_PROGRAMS += src/mm/dumper/dumper
+noinst_PROGRAMS += src/mm/dumper/dumper
 
 src_mm_dumper_dumper_SOURCES = src/mm/dumper/main.cc
 src_mm_dumper_dumper_CXXFLAGS = $(common_cxxflags)

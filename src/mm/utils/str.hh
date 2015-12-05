@@ -2,6 +2,7 @@
 #define MM_UTILS_STR_HH
 
 #include <array>
+#include <type_traits>
 
 namespace Mm
 {
@@ -20,6 +21,14 @@ public:
 
 template <char... Chars>
 constexpr typename StaticString<Chars...>::Type StaticString<Chars...>::raw;
+
+template <typename Type>
+class IsStaticString : public std::false_type
+{};
+
+template <char... Chars>
+class IsStaticString<StaticString<Chars...>> : public std::true_type
+{};
 
 } // namespace Utils
 

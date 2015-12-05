@@ -1,0 +1,7 @@
+<type name="t1">
+  <array name="a1">
+    <type name="t2">
+      <array name="a2"/>
+    </type>
+  </array>
+</type>

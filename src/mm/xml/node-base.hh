@@ -1,22 +1,26 @@
 #ifndef MM_XML_NODE_BASE_HH
 #define MM_XML_NODE_BASE_HH
 
+#include "generic-attr.hh"
+#include "generic-child.hh"
+
+#include <mm/xml/base/xml.hh>
+
+#include <ext/kr/kr.hh>
+
 #include <string>
 #include <tuple>
 #include <type_traits>
 
 #include <cstdlib>
 
-#include <ext/kr/kr.hh>
-
-#include "base/xml.hh"
-#include "generic-attr.hh"
-#include "generic-child.hh"
-
 namespace Mm
 {
 
 namespace Xml
+{
+
+namespace XmlDetails
 {
 
 // attr type getters
@@ -75,42 +79,54 @@ using VectorMapChildImplPredicate = ChildImplTagPredicate<VectorMapChildTag>::te
 template <typename ChildType>
 using OptionalChildImplPredicate = ChildImplTagPredicate<OptionalChildTag>::template P<ChildType>;
 
+} // namespace XmlDetails
+
 // node base code
 
 using HasText = std::true_type;
 using NoText = std::false_type;
 
-template <typename AttrList, typename ChildList, typename HasTextType = NoText>
+template <typename AttrListP, typename ChildListP, typename HasTextTypeP = NoText>
 class NodeBase
 {
 public:
-  using AllAttrNames = Kr::ForEachT<AttrList, GetAttrName>;
-  using AllAttrTypes = Kr::ForEachT<AttrList, GetAttrType>;
+  using AttrList = AttrListP;
+  using ChildList = ChildListP;
+  using HasTextType = HasTextTypeP;
 
-  using AllSingleChildren = Kr::SieveT<ChildList, SingleChildImplPredicate>;
-  using AllVectorChildren = Kr::SieveT<ChildList, VectorChildImplPredicate>;
-  using AllMapChildren = Kr::SieveT<ChildList, MapChildImplPredicate>;
-  using AllVectorMapChildren = Kr::SieveT<ChildList, VectorMapChildImplPredicate>;
-  using AllOptionalChildren = Kr::SieveT<ChildList, OptionalChildImplPredicate>;
+  // attribute names and types
+  using AllAttrNames = Kr::ForEachT<AttrList, XmlDetails::GetAttrName>;
+  using AllAttrTypes = Kr::ForEachT<AttrList, XmlDetails::GetAttrType>;
 
-  using AllSingleChildNames = Kr::ForEachT<AllSingleChildren, GetChildName>;
-  using AllVectorChildNames = Kr::ForEachT<AllVectorChildren, GetChildName>;
-  using AllMapChildNames = Kr::ForEachT<AllMapChildren, GetChildName>;
-  using AllVectorMapChildNames = Kr::ForEachT<AllVectorMapChildren, GetChildName>;
-  using AllOptionalChildNames = Kr::ForEachT<AllOptionalChildren, GetChildName>;
+  // children per impl
+  using AllSingleChildren = Kr::SieveT<ChildList, XmlDetails::SingleChildImplPredicate>;
+  using AllVectorChildren = Kr::SieveT<ChildList, XmlDetails::VectorChildImplPredicate>;
+  using AllMapChildren = Kr::SieveT<ChildList, XmlDetails::MapChildImplPredicate>;
+  using AllVectorMapChildren = Kr::SieveT<ChildList, XmlDetails::VectorMapChildImplPredicate>;
+  using AllOptionalChildren = Kr::SieveT<ChildList, XmlDetails::OptionalChildImplPredicate>;
 
-  using AllChildNames = Kr::ForEachT<ChildList, GetChildName>;
-  using AllChildContainerTypes = Kr::ForEachT<ChildList, GetChildContainerType>;
+  // child names per impl
+  using AllSingleChildNames = Kr::ForEachT<AllSingleChildren, XmlDetails::GetChildName>;
+  using AllVectorChildNames = Kr::ForEachT<AllVectorChildren, XmlDetails::GetChildName>;
+  using AllMapChildNames = Kr::ForEachT<AllMapChildren, XmlDetails::GetChildName>;
+  using AllVectorMapChildNames = Kr::ForEachT<AllVectorMapChildren, XmlDetails::GetChildName>;
+  using AllOptionalChildNames = Kr::ForEachT<AllOptionalChildren, XmlDetails::GetChildName>;
 
+  // child names and container types
+  using AllChildNames = Kr::ForEachT<ChildList, XmlDetails::GetChildName>;
+  using AllChildContainerTypes = Kr::ForEachT<ChildList, XmlDetails::GetChildContainerType>;
+
+  // attribute and child names and types
   using AllChildAttrNames = Kr::ConcatT<AllAttrNames, AllChildNames>;
   using AllChildAttrTypes = Kr::ConcatT<AllAttrTypes, AllChildContainerTypes>;
 
   static_assert (Kr::IsUniqueT<AllChildAttrNames>::value, "the list of attributes and children has only unique names");
 
   using AllNames = AllChildAttrNames;
+  using AllMixed = Kr::ConcatT<AttrList, ChildList>;
   using AllTypes = Kr::ConcatT<AllChildAttrTypes, std::conditional_t<HasTextType::value,
-                                                                     TypeList<std::string>,
-                                                                     TypeList<>>>;
+                                                                     Kr::TypeList<std::string>,
+                                                                     Kr::TypeList<>>>;
 
   using TupleType = Kr::ToStdTupleT<AllTypes>;
   template <typename Name>
@@ -142,17 +158,7 @@ public:
     }
   };
 
-  template <typename = void>
-  class TextSetter
-  {
-  public:
-    static void
-    set (ThisType* t, Base::Node& node)
-    {}
-  };
-
-  template <>
-  class TextSetter<std::enable_if_t<HasTextType::value>>
+  class TextSetterImpl
   {
   public:
     static void
@@ -162,6 +168,18 @@ public:
       node.remove_text ();
     }
   };
+
+  class TextSetterNoop
+  {
+  public:
+    static void
+    set (ThisType*, Base::Node&)
+    {}
+  };
+
+  using TextSetter = std::conditional_t<HasTextType::value,
+                                        TextSetterImpl,
+                                        TextSetterNoop>;
 
 public:
   template <typename Name>
@@ -199,7 +217,7 @@ public:
                    "the object has the vector-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = Kr::NthT<ChildList, ChildIndex>;
+    using ChildType = Kr::NthT<AllMixed, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::get (std::get<ChildIndex::value> (stuff), idx);
   }
@@ -214,17 +232,15 @@ public:
                    "the object has the map-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = Kr::NthT<ChildList, ChildIndex>;
+    using ChildType = Kr::NthT<AllMixed, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::get (std::get<ChildIndex::value> (stuff), key);
   }
 
-  template <typename = std::enable_if_t<HasTextType::value> >
   auto const&
   get_text () const
   {
-    static_assert (std::is_same<NthT<AllTypes, LastIndex::value>,
-                                     std::string>::value, "last element is a string");
+    static_assert (HasTextType::value, "the object has a text node");
     return std::get<LastIndex::value> (stuff);
   }
 
@@ -238,22 +254,22 @@ public:
                    "the object has the vector-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = Kr::NthT<ChildList, ChildIndex>;
+    using ChildType = Kr::NthT<AllMixed, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::size (std::get<ChildIndex::value> (stuff));
   }
 
   template <typename Name>
-  auto const&
+  auto
   range () const
   {
-    using IsVectorChild = typename IsInListT<Name, AllVectorChildNames>;
+    using IsVectorChild = Kr::IsInListT<Name, AllVectorChildNames>;
     using IsMapVectorChild = Kr::IsInListT<Name, AllVectorMapChildNames>;
     static_assert (IsVectorChild::value || IsMapVectorChild::value,
                    "the object has the vector-like child with a given name");
 
     using ChildIndex = TupleIdxType<Name>;
-    using ChildType = Kr::NthT<ChildList, ChildIndex>;
+    using ChildType = Kr::NthT<AllMixed, ChildIndex>;
     using ChildImplType = typename ChildType::ImplType;
     return ChildImplType::range (std::get<ChildIndex::value> (stuff));
   }
@@ -261,6 +277,9 @@ public:
 private:
   TupleType stuff;
 };
+
+template <typename ChildName, typename ChildTag>
+using Root = NodeBase<Kr::TypeList<>, Kr::TypeList<SingleChild<ChildName, ChildTag>>, NoText>;
 
 } // namespace Xml
 

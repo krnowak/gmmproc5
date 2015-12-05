@@ -1,23 +1,15 @@
 #include <boost/mpl/at.hpp>
-#include <boost/mpl/comparison.hpp>
 #include <boost/mpl/equal.hpp>
-#include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/find.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/insert.hpp>
 #include <boost/mpl/joint_view.hpp>
 #include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/set.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/transform_view.hpp>
+#include <boost/mpl/unique.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <limits>
-#include <tuple>
 #include <type_traits>
-
-#include <cstdlib>
 
 namespace Kr
 {
@@ -32,20 +24,13 @@ using TypeList = mpl::vector<Types...>;
 // tostdtuple
 
 template <typename List>
-class ToStdTuple
+class ToStdTuple;
+
+template <typename... Types>
+class ToStdTuple<TypeList<Types...>>
 {
-  template <typename, typename>
-  class FoldOp;
-
-  template <typename... Types, typename T>
-  class FoldOp<std::tuple<Types...>, T>
-  {
-  public:
-    using type = std::tuple<Types..., T>;
-  };
-
 public:
-  using Type = typename mpl::fold<List, std::tuple<>, FoldOp<mpl::_1, mpl::_2>>::type;
+  using Type = std::tuple<Types...>;
 };
 
 template <typename List>
@@ -64,7 +49,6 @@ using MaxIndexType = IndexType<std::numeric_limits<std::size_t>::max ()>;
 template <typename List>
 class Len
 {
-public:
   using Type = IndexType<mpl::size<List>::value>;
 };
 
@@ -97,9 +81,6 @@ public:
                                   MaxIndexType>;
 };
 
-template <typename Needle, typename Haystack>
-using IndexT = typename Index<Needle, Haystack>::Type;
-
 // TODO: not necessary in C++17
 // bool constant
 
@@ -123,10 +104,10 @@ using IsInListT = typename IsInList<Needle, Haystack>::Type;
 // concat
 
 template <typename TL1, typename TL2>
-class Concat
+class Concat;
 {
 public:
-  using Type = mpl::joint_view<TL1, TL2>;
+  using Type = mpl::joint_view<TL1..., TL2...>;
 };
 
 template <typename TL1, typename TL2>
@@ -139,7 +120,6 @@ class ForEach
 {
   class MF
   {
-  public:
     template <typename T>
     class apply
     {
@@ -181,13 +161,32 @@ using SieveT = typename Sieve<List, Predicate>::Type;
 template <typename List>
 class IsUnique
 {
-  using Set = typename mpl::fold<List, mpl::set<>, mpl::insert<mpl::_1, mpl::_2>>::type;
-
+  using Unique = typename mpl::unique<List, std::is_same<mpl::_1, mpl::_2>>::type;
 public:
-  using Type = BoolConstant<mpl::size<Set>::value == mpl::size<List>::value>;
+  using Type = std::conditional_t<mpl::equal<Unique, List>::value,
+                                  std::true_type,
+                                  std::false_type>;
 };
 
 template <typename List>
 using IsUniqueT = typename IsUnique<List>::Type;
 
 } // namespace Kr
+
+// typelist
+// tostdtuple
+// indextype
+// len
+// nth
+// index
+// isinlist
+// concat
+// foreach
+// sieve
+// isunique
+
+// multicall
+
+int
+main ()
+{}

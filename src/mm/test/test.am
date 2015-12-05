@@ -1,0 +1,6 @@
+noinst_PROGRAMS += src/mm/test/test
+
+src_mm_test_test_SOURCES = src/mm/test/test.cc
+src_mm_test_test_CXXFLAGS = $(common_cxxflags)
+src_mm_test_test_CPPFLAGS = $(common_cppflags)
+src_mm_test_test_LDADD = -lpugixml src/mm/xml/libxml.a

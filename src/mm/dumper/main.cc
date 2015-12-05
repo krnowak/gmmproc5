@@ -250,7 +250,7 @@ print_tree (GirWalker& walker)
     }
     if (kv.second.has_text)
     {
-      oss << ", has_text";
+      oss << ", has text";
     }
     oss << "):";
     for (auto const& c : children)

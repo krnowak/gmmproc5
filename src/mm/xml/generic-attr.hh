@@ -14,6 +14,9 @@ namespace Mm
 namespace Xml
 {
 
+namespace XmlDetails
+{
+
 // attribute value getters
 
 template <typename Type>
@@ -46,7 +49,7 @@ public:
 // attribute code
 
 template <typename AttrType>
-class GenericAttrDefaultValue
+class DefaultValue
 {
 public:
   static AttrType
@@ -56,7 +59,19 @@ public:
   }
 };
 
-template <typename NameString, typename AttrType, typename DefaultValue = GenericAttrDefaultValue<AttrType>>
+class TrueBoolValue
+{
+public:
+  static bool
+  get ()
+  {
+    return true;
+  }
+};
+
+} // namespace XmlDetails
+
+template <typename NameString, typename AttrType, typename DefaultValue = XmlDetails::DefaultValue<AttrType>>
 class GenericAttr
 {
 public:
@@ -69,7 +84,7 @@ public:
     auto raw_attr = node.attribute (Name::raw.data ());
     if (raw_attr)
     {
-      attr = AttrValue<Type>::get (*raw_attr);
+      attr = XmlDetails::AttrValue<Type>::get (*raw_attr);
       node.remove (*raw_attr);
     }
     else
@@ -87,18 +102,8 @@ using StringAttr = GenericAttr<NameString, std::string>;
 template <typename NameString>
 using FalseAttr = GenericAttr<NameString, bool>;
 
-class TrueBoolValue
-{
-public:
-  static bool
-  get ()
-  {
-    return true;
-  }
-};
-
 template <typename NameString>
-using TrueAttr = GenericAttr<NameString, bool, TrueBoolValue>;
+using TrueAttr = GenericAttr<NameString, bool, XmlDetails::TrueBoolValue>;
 
 template <typename NameString>
 using IntAttr = GenericAttr<NameString, int>;

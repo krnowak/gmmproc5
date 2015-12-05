@@ -7,14 +7,17 @@
 
 #endif
 
+#define BOOST_RESULT_OF_USE_DECLTYPE
+
 #include "xml.hh"
+
+#include <mm/utils/lambda-wrapper.hh>
 
 #include <pugixml.hpp>
 
 #include <boost/range/iterator_range_core.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 
-#include <functional>
 #include <sstream>
 
 namespace Mm
@@ -41,10 +44,21 @@ public:
   pugi::xml_attribute attr;
 };
 
+class AttributeTransform
+{
+public:
+  AttributeTransform () = default;
+  AttributeTransform (pugi::xml_node p)
+    : parent {std::move (p)}
+  {}
+
+  Attribute operator() (pugi::xml_attribute const& a) const;
+
+private:
+  pugi::xml_node parent;
+};
+
 using NodeTransform = Node(*)(pugi::xml_node const&);
-// bloody lambda with a capture does not work with transform iterator
-// from boost.
-using AttributeTransform = std::function<Attribute(pugi::xml_attribute const&)>;
 
 using ChildIterator = boost::transform_iterator<NodeTransform, pugi::xml_node_iterator>;
 using AttributeIterator = boost::transform_iterator<AttributeTransform, pugi::xml_attribute_iterator>;
@@ -63,6 +77,17 @@ public:
   using AttributeRange = boost::iterator_range<PugiXmlDetails::AttributeIterator>;
   using SiblingRange = boost::iterator_range<PugiXmlDetails::SiblingIterator>;
 };
+
+namespace PugiXmlDetails
+{
+
+inline Attribute
+AttributeTransform::operator() (pugi::xml_attribute const& a) const
+{
+  return Attribute {AttributeWrapper {parent, a}};
+}
+
+} // namespace PugiXmlDetails
 
 // node methods
 
@@ -136,13 +161,8 @@ template <>
 inline XmlImpl::AttributeRange
 Node::attributes() const
 {
-  throw 4;
   auto r = impl.attributes ();
-  auto copy = impl;
-  auto convert = [copy](pugi::xml_attribute const& attribute)
-  {
-    return Attribute {XmlImpl::AttributeImpl {pugi::xml_node{}, attribute}};
-  };
+  auto convert = PugiXmlDetails::AttributeTransform {impl};
   auto b = XmlImpl::AttributeRange::iterator {r.begin (), convert};
   auto e = XmlImpl::AttributeRange::iterator {r.end (), convert};
   return XmlImpl::AttributeRange {b, e};

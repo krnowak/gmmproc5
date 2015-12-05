@@ -95,7 +95,12 @@ get_ipa_error (Base::Node const& node,
 {
   std::ostringstream oss;
 
-  oss << "unexpected " << type << " '" << name << "' in " << get_backtrace (node);
+  oss << "unexpected " << type << " ";
+  if (!name.empty ())
+  {
+    oss << "'" << name << "' ";
+  }
+  oss << "in " << get_backtrace (node);
   return oss.str ();
 }
 
@@ -121,6 +126,11 @@ InvalidParserAssumption::InvalidParserAssumption (ChildrenOnly,
                                                   Base::Node const& node,
                                                   std::string const& child)
   : std::logic_error {get_ipa_error (node, "child", child)}
+{}
+
+InvalidParserAssumption::InvalidParserAssumption (DataOnly,
+                                                  Base::Node const& node)
+  : std::logic_error {get_ipa_error (node, "text data", "")}
 {}
 
 } // namespace Xml

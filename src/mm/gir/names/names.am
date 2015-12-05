@@ -9,6 +9,6 @@ BUILT_SOURCES += src/mm/gir/names/names.hh
 src/mm/gir/names/names.hh: $(top_srcdir)/src/mm/gir/names/gen-names
 src/mm/gir/names/names.hh: $(top_srcdir)/src/mm/gir/names/names.txt
 src/mm/gir/names/names.hh:
-	$(top_srcdir)/src/mm/gir/names/gen-names $(top_srcdir)/src/mm/gir/names/names.txt >"$@.tmp"
-	cmp --silent "$@" "$@.tmp" || mv "$@.tmp" "$@"
-	rm --force "$@.tmp"
+	$(AM_V_GEN)$(top_srcdir)/src/mm/gir/names/gen-names $(top_srcdir)/src/mm/gir/names/names.txt >"$@.tmp"
+	$(AM_V_at)cmp --silent "$@" "$@.tmp" || mv "$@.tmp" "$@"
+	$(AM_V_at)rm --force "$@.tmp"

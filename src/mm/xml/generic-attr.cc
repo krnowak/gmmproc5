@@ -9,6 +9,9 @@ namespace Mm
 namespace Xml
 {
 
+namespace XmlDetails
+{
+
 // attr value getters
 
 /* static */ std::string
@@ -62,6 +65,8 @@ AttrValue<bool>::get (Base::Attribute& attr)
   oss << "Expected either '0' or '1', got '" << value << "'";
   throw InvalidAttribute (attr, "boolean", oss.str ());
 }
+
+} // namespace XmlDetails
 
 } // namespace Xml
 

@@ -1,25 +1,28 @@
 #ifndef MM_XML_GENERIC_CHILD_HH
 #define MM_XML_GENERIC_CHILD_HH
 
+#include "exceptions.hh"
+
+#include <mm/utils/type-to-type.hh>
+#include <mm/xml/base/xml.hh>
+
+#include <boost/range/iterator_range_core.hpp>
+
+#include <experimental/optional>
+
 #include <functional>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include <experimental/optional>
-
-#include <boost/range/iterator_range_core.hpp>
-
-#include <ext/kr/kr.hh>
-
-#include "base/xml.hh"
-#include "exceptions.hh"
-
 namespace Mm
 {
 
 namespace Xml
+{
+
+namespace XmlDetails
 {
 
 std::size_t
@@ -52,11 +55,12 @@ public:
   }
 };
 
-template <typename ChildType>
+template <typename ChildTagType>
 class SingleChildImpl
 {
 public:
   using Tag = SingleChildTag;
+  using ChildType = Utils::TypeToTypeT<ChildTagType>;
   using ContainerType = ChildType;
 
   static auto const&
@@ -108,13 +112,14 @@ public:
   }
 };
 
-template <typename ChildType, bool use_optional>
+template <typename ChildTagType, bool use_optional>
 class OptionalChildImpl
 {
   using OptCont = OptionalContainer<use_optional>;
 
 public:
   using Tag = OptionalChildTag;
+  using ChildType = Utils::TypeToTypeT<ChildTagType>;
   using ContainerType = typename OptCont::template Type<ChildType>;
 
   static auto const&
@@ -131,14 +136,16 @@ public:
   }
 };
 
-template <typename ChildType>
+template <typename ChildTagType>
 class VectorChildImpl
 {
-  using VType = std::vector<ChildType>;
+  using CType = Utils::TypeToTypeT<ChildTagType>;
+  using VType = std::vector<CType>;
   using IdxType = typename VType::size_type;
 
 public:
   using Tag = VectorChildTag;
+  using ChildType = CType;
   using ContainerType = VType;
 
   static auto const&
@@ -176,23 +183,26 @@ public:
     {
       ChildType child;
 
-      CommonChildImpl<ChildType>::set (child, raw_child);
+      CommonChildImpl<ChildType>::set (child, n);
       children.push_back (std::move (child));
     }
     remove_siblings (raw_child);
   }
 };
 
-template <typename ChildType, typename Name>
+template <typename ChildTagType, typename Name>
 class MapChildBaseImpl
 {
-  static_assert (ChildType::template HasStringAttribute<Name>::value, "child has required key string attribute");
+  using CType = Utils::TypeToTypeT<ChildTagType>;
 
-  using MType = std::unordered_map<std::string, ChildType>;
+  static_assert (CType::template HasStringAttribute<Name>::value, "child has required key string attribute");
+
+  using MType = std::unordered_map<std::string, CType>;
   using KeyType = typename MType::key_type;
 
 public:
   using Tag = MapChildTag;
+  using ChildType = CType;
   using ContainerType = MType;
 
   static ChildType const*
@@ -238,21 +248,23 @@ public:
   }
 };
 
-template <typename ChildType, typename Name>
+template <typename ChildTagType, typename Name>
 class VectorMapChildBaseImpl
 {
-  static_assert (ChildType::template HasStringAttribute<Name>::value, "child has required key string attribute");
+  using CType = Utils::TypeToTypeT<ChildTagType>;
 
-  using Ref = std::reference_wrapper<ChildType>;
-  using VType = std::vector<ChildType>;
+  static_assert (CType::template HasStringAttribute<Name>::value, "child has required key string attribute");
+
+  using Ref = std::reference_wrapper<CType>;
+  using VType = std::vector<CType>;
   using IdxType = typename VType::size_type;
   using MType = std::unordered_map<std::string, Ref>;
   using KeyType = typename MType::key_type;
-  using ListType = Kr::TypeList<VType, MType>;
-  using TupleType = typename Kr::ToStdTuple<ListType>::Type;
+  using TupleType = std::tuple<VType, MType>;
 
 public:
   using Tag = VectorMapChildTag;
+  using ChildType = CType;
   using ContainerType = TupleType;
 
   static auto const&
@@ -346,28 +358,32 @@ template <typename Name>
 class GetKeyedChildImpl
 {
 public:
-  template <typename ChildType>
-  using MapType = MapChildBaseImpl<ChildType, Name>;
+  template <typename ChildTagType>
+  using MapType = MapChildBaseImpl<ChildTagType, Name>;
 
-  template <typename ChildType>
-  using VectorMapType = VectorMapChildBaseImpl<ChildType, Name>;
+  template <typename ChildTagType>
+  using VectorMapType = VectorMapChildBaseImpl<ChildTagType, Name>;
 };
 
 template <bool use_optional>
 class GetOptionalChildImpl
 {
 public:
-  template <typename ChildType>
-  using Type = OptionalChildImpl<ChildType, use_optional>;
+  template <typename ChildTagType>
+  using Type = OptionalChildImpl<ChildTagType, use_optional>;
 };
 
-template <typename NameString, typename ChildType, template <typename> class ChildImpl, typename TextNode = std::false_type>
+} // namespace XmlDetails
+
+template <typename NameString, typename ChildTagType, template <typename> class ChildImpl>
 class GenericChild
 {
+  //static_assert (Utils::HasToType<ChildTagType>::value, "ChildTagType has an associated ChildType");
+
 public:
   using Name = NameString;
-  using Type = ChildType;
-  using ImplType = ChildImpl<Type>;
+  using TagType = ChildTagType;
+  using ImplType = ChildImpl<TagType>;
   using ImplTag = typename ImplType::Tag;
 
   static void
@@ -383,20 +399,23 @@ public:
 
 // some standard attribute aliases
 
-template <typename NameString, typename ChildType>
-using SingleChild = GenericChild<NameString, ChildType, SingleChildImpl>;
+template <typename NameString, typename ChildTagType>
+using SingleChild = GenericChild<NameString, ChildTagType, XmlDetails::SingleChildImpl>;
 
-template <typename NameString, typename ChildType>
-using VectorChild = GenericChild<NameString, ChildType, VectorChildImpl>;
+template <typename NameString, typename ChildTagType>
+using VectorChild = GenericChild<NameString, ChildTagType, XmlDetails::VectorChildImpl>;
 
-template <typename NameString, typename ChildType, typename Name>
-using MapChild = GenericChild<NameString, ChildType, GetKeyedChildImpl<Name>::template MapType>;
+template <typename NameString, typename ChildTagType, typename Name>
+using MapChild = GenericChild<NameString, ChildTagType, XmlDetails::GetKeyedChildImpl<Name>::template MapType>;
 
-template <typename NameString, typename ChildType, typename Name>
-using VectorMapChild = GenericChild<NameString, ChildType, GetKeyedChildImpl<Name>::template VectorMapType>;
+template <typename NameString, typename ChildTagType, typename Name>
+using VectorMapChild = GenericChild<NameString, ChildTagType, XmlDetails::GetKeyedChildImpl<Name>::template VectorMapType>;
 
-template <typename NameString, typename ChildType, bool use_optional>
-using OptionalChild = GenericChild<NameString, ChildType, GetOptionalChildImpl<use_optional>::template Type>;
+using UseStdOptional = std::true_type;
+using UseStdUniquePtr = std::false_type;
+
+template <typename NameString, typename ChildTagType, typename WhatToUse>
+using OptionalChild = GenericChild<NameString, ChildTagType, XmlDetails::GetOptionalChildImpl<WhatToUse::value>::template Type>;
 
 } // namespace Xml
 

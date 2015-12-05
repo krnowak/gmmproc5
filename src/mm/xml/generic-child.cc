@@ -7,6 +7,9 @@ namespace Mm
 namespace Xml
 {
 
+namespace XmlDetails
+{
+
 std::size_t
 siblings_count (Base::Node const& node)
 {
@@ -67,6 +70,8 @@ remove_siblings (Base::Node const& node)
     parent->remove (*old);
   }
 }
+
+} // namespace XmlDetails
 
 } // namespace Xml
 

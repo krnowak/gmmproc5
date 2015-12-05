@@ -1,0 +1,9 @@
+noinst_PROGRAMS += src/mm/gir/tools/lame-schema-gen/lame-schema-gen
+
+src_mm_gir_tools_lame_schema_gen_lame_schema_gen_SOURCES = \
+  src/mm/gir/tools/lame-schema-gen/long.cc \
+  src/mm/gir/tools/lame-schema-gen/main.cc \
+  src/mm/gir/tools/lame-schema-gen/names.cc \
+  src/mm/gir/tools/lame-schema-gen/short.cc
+src_mm_gir_tools_lame_schema_gen_lame_schema_gen_CXXFLAGS = $(common_cxxflags)
+src_mm_gir_tools_lame_schema_gen_lame_schema_gen_CPPFLAGS = $(common_cppflags)
