@@ -62,7 +62,7 @@ process_leaves (Short::Leafed& leafed, pugi::xml_node const& node)
 }
 
 void
-process_node (Short::Node& data, pugi::xml_node const& node)
+process_element (Short::Node& data, pugi::xml_node const& node)
 {
   ++data.count;
   data.has_text = (data.has_text || !node.text ().empty ());
@@ -157,29 +157,17 @@ process_children (Short::Node& data, pugi::xml_node const& node)
   }
 }
 
+} // anonymous namespace
+
 void
-process_named_node (StrMap<Short::Node>& nodes, std::string const& name, pugi::xml_node const& node)
+Short::process_node_vfunc (std::string const& name, pugi::xml_node const& node, int)
 {
   auto pair = nodes.emplace (name, name);
   auto& data = pair.first->second;
 
-  process_node (data, node);
+  process_element (data, node);
   process_attributes (data, node);
   process_children (data, node);
-}
-
-} // anonymous namespace
-
-void
-Short::process_node (pugi::xml_node const& node)
-{
-  process_named_node (nodes, node.name (), node);
-}
-
-void
-Short::process_document (pugi::xml_node const& document)
-{
-  process_named_node (nodes, "!@#$_DOCROOT_$#@!", document);
 }
 
 StrMap<Short::Node>&&

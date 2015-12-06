@@ -19,18 +19,24 @@
  *   </names>
  *   <short>
  *     <element name="name">
- *       <attribute name="name" type="string|int|bool-f|bool-t" />
- *       <child name="name" type="optional-opt|optional-ptr|single|vector|map|vector-map" />
- *     </element>
- *     ...
- *   </short>
- *   <long>
- *     <node name="name" type="string|int|bool-f|bool-t">
  *       <attributes>
  *         <attribute name="name" type="string|int|bool-f|bool-t" />
  *       </attributes>
  *       <children>
- *         <node name="name" type="string|int|bool-f|bool-t" />
+ *         <element name="name" type="optional-opt|optional-ptr|single|vector|map|vector-map" />
+ *       </children>
+ *     </element>
+ *     ...
+ *   </short>
+ *   <long>
+ *     <element name="name" type="optional-opt|optional-ptr|single|vector|map|vector-map">
+ *       <attributes>
+ *         <attribute name="name" type="string|int|bool-f|bool-t" />
+ *       </attributes>
+ *       <children>
+ *         <element name="name" type="optional-opt|optional-ptr|single|vector|map|vector-map">
+ *           ...
+ *         </element>
  *       </children>
  *     </node>
  *   </long
@@ -56,11 +62,11 @@ struct SchemaData
   Long l;
 
   void
-  process_node (pugi::xml_node const& node)
+  process_node (pugi::xml_node const& node, int depth)
   {
-    n.process_node (node);
-    s.process_node (node);
-    l.process_node (node);
+    n.process_node (node, depth);
+    s.process_node (node, depth);
+    l.process_node (node, depth);
   }
 
   void
@@ -88,7 +94,7 @@ private:
     switch (node.type ())
     {
     case pugi::node_element:
-      data.process_node (node);
+      data.process_node (node, depth());
       break;
 
     case pugi::node_document:

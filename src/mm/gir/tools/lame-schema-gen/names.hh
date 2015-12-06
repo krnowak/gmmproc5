@@ -1,6 +1,7 @@
 #ifndef MM_GIR_TOOLS_LAME_SCHEMA_GEN_NAMES_HH
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_NAMES_HH
 
+#include "base.hh"
 #include "types.hh"
 
 namespace Mm
@@ -15,22 +16,16 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-class Names
+class Names : public Base
 {
 public:
-  Names() = default;
-
-  void
-  process_node (pugi::xml_node const& node);
-
-  void
-  process_document (pugi::xml_node const&)
-  {}
-
   StrSet&&
   steal ();
 
 private:
+  void
+  virtual process_node_vfunc(std::string const& name, pugi::xml_node const& node, int depth) override;
+
   StrSet names;
 };
 

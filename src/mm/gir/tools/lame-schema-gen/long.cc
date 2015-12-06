@@ -13,11 +13,7 @@ namespace LameSchemaGen
 {
 
 void
-Long::process_node (pugi::xml_node const&)
-{}
-
-void
-Long::process_document (pugi::xml_node const&)
+Long::process_node_vfunc (std::string const&, pugi::xml_node const&, int)
 {}
 
 NamedSet<Long::Node>&&

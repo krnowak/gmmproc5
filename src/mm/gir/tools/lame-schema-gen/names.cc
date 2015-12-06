@@ -18,7 +18,7 @@ namespace
 {
 
 void
-try_emplace (StrSet& names, pugi::char_t const* name)
+maybe_emplace (StrSet& names, pugi::char_t const* name)
 {
   if (name && *name)
   {
@@ -29,13 +29,13 @@ try_emplace (StrSet& names, pugi::char_t const* name)
 } // anonymous namespace
 
 void
-Names::process_node (pugi::xml_node const& node)
+Names::process_node_vfunc (std::string const&, pugi::xml_node const& node, int)
 {
-  try_emplace (names, node.name ());
+  maybe_emplace (names, node.name ());
 
   for (auto attr : node.attributes ())
   {
-    try_emplace (names, attr.name ());
+    maybe_emplace (names, attr.name ());
   }
 }
 
