@@ -1,7 +1,5 @@
 #include "names.hh"
 
-#include <pugixml.hpp>
-
 namespace Mm
 {
 
@@ -18,18 +16,18 @@ namespace
 {
 
 void
-maybe_emplace (StrSet& names, pugi::char_t const* name)
+maybe_emplace (StrSet& names, Str&& name)
 {
-  if (name && *name)
+  if (!name.empty ())
   {
-    names.emplace (name);
+    names.emplace (std::move (name));
   }
 }
 
 } // anonymous namespace
 
 void
-Names::process_node_vfunc (std::string const&, pugi::xml_node const& node, int)
+Names::process_node_vfunc (Xml::Base::Node const& node, int)
 {
   maybe_emplace (names, node.name ());
 
@@ -38,6 +36,10 @@ Names::process_node_vfunc (std::string const&, pugi::xml_node const& node, int)
     maybe_emplace (names, attr.name ());
   }
 }
+
+void
+Names::postprocess_node_vfunc (Xml::Base::Node const&, int)
+{}
 
 StrSet&&
 Names::steal ()

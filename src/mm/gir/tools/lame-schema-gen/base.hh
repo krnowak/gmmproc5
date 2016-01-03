@@ -19,18 +19,17 @@ class Base
 {
 public:
   void
-  process_node (pugi::xml_node const& node, int depth);
+  process_node (Xml::Base::Node const& node, int depth);
 
   void
-  process_document (pugi::xml_node const& document);
-
-  static
-  char const*
-  get_doc_name ();
+  postprocess_node (Xml::Base::Node const& node, int depth);
 
 private:
-  void
-  virtual process_node_vfunc(std::string const& name, pugi::xml_node const& node, int depth) = 0;
+  virtual void
+  process_node_vfunc(Xml::Base::Node const& node, int depth) = 0;
+
+  virtual void
+  postprocess_node_vfunc(Xml::Base::Node const& node, int depth) = 0;
 };
 
 } // namespace LameSchemaGen

@@ -1,7 +1,5 @@
 #include "base.hh"
 
-#include <pugixml.hpp>
-
 namespace Mm
 {
 
@@ -14,30 +12,16 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-namespace
-{
-
-char const *doc_name = "!@#$_DOCROOT_$#@!";
-
-} // anonymous namespace
-
 void
-Base::process_node (pugi::xml_node const& node, int depth)
+Base::process_node (Xml::Base::Node const& node, int depth)
 {
-  process_node_vfunc (node.name (), node, depth);
+  process_node_vfunc (node, depth);
 }
 
 void
-Base::process_document (pugi::xml_node const& document)
+Base::postprocess_node (Xml::Base::Node const& node, int depth)
 {
-  process_node_vfunc (doc_name, document, 0);
-}
-
-// static
-char const*
-Base::get_doc_name ()
-{
-  return doc_name;
+  postprocess_node_vfunc (node, depth);
 }
 
 } // namespace LameSchemaGen

@@ -1,0 +1,13 @@
+if XML_PUGI
+
+xml_base_impl_cppflags = -DMM_XML_BASE_USE_PUGI
+xml_base_impl_ldadd = -lpugixml
+
+endif
+
+if XML_LIBXML
+
+xml_base_impl_cppflags = $(LIBXML_CFLAGS) -DMM_XML_BASE_USE_LIBXML
+xml_base_impl_ldadd = $(LIBXML_LIBS)
+
+endif

@@ -2,6 +2,7 @@
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_SHORT_HH
 
 #include "base.hh"
+#include "schema-data.hh"
 #include "types.hh"
 
 #include <limits>
@@ -18,66 +19,20 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-class Short : public Base
+class Short final : public Base
 {
 public:
-  struct Counted
-  {
-    std::size_t count = 0;
-  };
-
-  enum class Leaf
-  {
-    UNDETERMINED,
-    NEVER_A_LEAF,
-    SOMETIMES_A_LEAF,
-    ALWAYS_A_LEAF
-  };
-
-  struct Leafed
-  {
-    Leaf leaf = Leaf::UNDETERMINED;
-  };
-
-  struct Attribute : public Named, public Counted
-  {
-    enum class Type
-    {
-      UNDETERMINED,
-      NUMERIC,
-      STRING
-    };
-
-    using Named::Named;
-
-    Type type = Type::UNDETERMINED;
-  };
-
-  struct Child : public Named, public Counted, public Leafed
-  {
-    using Named::Named;
-
-    std::size_t min_occurences = std::numeric_limits<std::size_t>::max ();
-    std::size_t max_occurences = 0;
-  };
-
-  struct Node : public Named, public Counted, public Leafed
-  {
-    using Named::Named;
-
-    StrMap<Attribute> attributes;
-    StrMap<Child> children;
-    bool has_text = false;
-  };
-
-  StrMap<Node>&&
+  StrMap<ShortNode>&&
   steal ();
 
 private:
-  void
-  virtual process_node_vfunc(std::string const& name, pugi::xml_node const& node, int depth) override;
+  virtual void
+  process_node_vfunc(Xml::Base::Node const& node, int depth) override;
 
-  StrMap<Node> nodes;
+  virtual void
+  postprocess_node_vfunc(Xml::Base::Node const& node, int depth) override;
+
+  StrMap<ShortNode> nodes;
 };
 
 } // namespace LameSchemaGen

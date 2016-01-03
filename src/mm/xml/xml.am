@@ -9,3 +9,7 @@ src_mm_xml_libxml_a_SOURCES = \
 
 src_mm_xml_libxml_a_CPPFLAGS = $(common_cppflags)
 src_mm_xml_libxml_a_CXXFLAGS = $(common_cxxflags)
+
+libxml_ldadd = \
+  $(XML_BASE_IMPL_LIB) \
+  $(top_builddir)/src/mm/xml/libxml.a

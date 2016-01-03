@@ -16,15 +16,18 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-class Names : public Base
+class Names final : public Base
 {
 public:
   StrSet&&
   steal ();
 
 private:
-  void
-  virtual process_node_vfunc(std::string const& name, pugi::xml_node const& node, int depth) override;
+  virtual void
+  process_node_vfunc (Xml::Base::Node const& node, int depth) override;
+
+  virtual void
+  postprocess_node_vfunc (Xml::Base::Node const& node, int depth) override;
 
   StrSet names;
 };

@@ -2,10 +2,14 @@ noinst_PROGRAMS += src/mm/gir/tools/lame-schema-gen/lame-schema-gen
 
 src_mm_gir_tools_lame_schema_gen_lame_schema_gen_SOURCES = \
   src/mm/gir/tools/lame-schema-gen/base.cc \
+  src/mm/gir/tools/lame-schema-gen/common.cc \
+  src/mm/gir/tools/lame-schema-gen/gir-paths.cc \
   src/mm/gir/tools/lame-schema-gen/long.cc \
   src/mm/gir/tools/lame-schema-gen/main.cc \
   src/mm/gir/tools/lame-schema-gen/names.cc \
+  src/mm/gir/tools/lame-schema-gen/schema-data.cc \
+  src/mm/gir/tools/lame-schema-gen/schema-doc.cc \
   src/mm/gir/tools/lame-schema-gen/short.cc
 src_mm_gir_tools_lame_schema_gen_lame_schema_gen_CXXFLAGS = $(common_cxxflags)
 src_mm_gir_tools_lame_schema_gen_lame_schema_gen_CPPFLAGS = $(common_cppflags)
-src_mm_gir_tools_lame_schema_gen_lame_schema_gen_LDADD = -lpugixml
+src_mm_gir_tools_lame_schema_gen_lame_schema_gen_LDADD = $(xml_base_impl_ldadd)

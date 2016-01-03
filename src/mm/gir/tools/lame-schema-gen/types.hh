@@ -1,18 +1,17 @@
 #ifndef MM_GIR_TOOLS_LAME_SCHEMA_GEN_TYPES_HH
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_TYPES_HH
 
-#include <functional>
+#include <mm/xml/base/xml.hh>
+
+#include <limits>
+#include <memory>
 #include <queue>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
-namespace pugi
-{
-
-class xml_node;
-
-} // namespace pugi
+#include <cstdint>
 
 namespace Mm
 {
@@ -25,37 +24,6 @@ namespace Tools
 
 namespace LameSchemaGen
 {
-
-namespace LameSchemaGenDetails
-{
-
-template <typename T>
-struct Hash
-{
-  using StrH = std::hash<std::string>;
-
-public:
-  size_t
-  operator() (T const& d) const noexcept
-  {
-    return StrH {}(d.name);
-  }
-};
-
-template <typename T>
-struct EqualTo
-{
-  using StrE = std::equal_to<std::string>;
-
-public:
-  bool
-  operator() (T const& a, T const& b) const
-  {
-    return StrE {}(a.name, b.name);
-  }
-};
-
-} // namespace LameSchemaGenDetails
 
 using Str = std::string;
 using StrSet = std::unordered_set<Str>;
@@ -72,10 +40,46 @@ struct Named
   Str name;
 };
 
-template <typename T>
-using NamedSet = std::unordered_set<T,
-                                    LameSchemaGenDetails::Hash<T>,
-                                    LameSchemaGenDetails::EqualTo<T>>;
+struct Counted
+{
+  std::size_t count = 0;
+};
+
+struct WithOccurences
+{
+  std::size_t min_occurences = std::numeric_limits<std::size_t>::max ();
+  std::size_t max_occurences = 0;
+};
+
+enum class LeafType
+{
+  UNDETERMINED,
+  NEVER_A_LEAF,
+  SOMETIMES_A_LEAF,
+  ALWAYS_A_LEAF
+};
+
+struct Leafed
+{
+  LeafType is_leaf = LeafType::UNDETERMINED;
+};
+
+class Attribute : public Named
+{
+public:
+  class Impl;
+
+  AttributeType (Str const& name);
+
+  void
+  update (Str const& value);
+
+  Str
+  to_string () const;
+
+private:
+  std::unique_ptr<Impl> impl;
+};
 
 } // namespace LameSchemaGen
 
