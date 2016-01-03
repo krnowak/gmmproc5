@@ -11,8 +11,6 @@
 
 #include "xml.hh"
 
-#include <mm/utils/lambda-wrapper.hh>
-
 #include <pugixml.hpp>
 
 #include <boost/range/iterator_range_core.hpp>
@@ -48,13 +46,13 @@ public:
   AttributeTransform ();
   AttributeTransform (pugi::xml_node p);
 
-  Attribute operator() (pugi::xml_attribute const& a) const;
+  Attribute operator () (pugi::xml_attribute const& a) const;
 
 private:
   pugi::xml_node parent;
 };
 
-using NodeTransform = Node(*)(pugi::xml_node const&);
+using NodeTransform = Node (*) (pugi::xml_node const&);
 
 using ChildIterator = boost::transform_iterator<NodeTransform, pugi::xml_node_iterator>;
 using AttributeIterator = boost::transform_iterator<AttributeTransform, pugi::xml_attribute_iterator>;
@@ -63,7 +61,7 @@ using SiblingIterator = boost::transform_iterator<NodeTransform, pugi::xml_named
 class WalkerWrapper final : public pugi::xml_tree_walker
 {
 public:
-  WalkerWrapper(Walker& w);
+  WalkerWrapper (Walker& w);
 
 private:
   virtual bool
@@ -204,7 +202,7 @@ Node::child (std::string const& name) const
 
 template <>
 inline std::experimental::optional<Attribute>
-Node::attribute(std::string const& name) const
+Node::attribute (std::string const& name) const
 {
   auto a = impl.attribute (name.c_str ());
   if (a)
@@ -232,7 +230,7 @@ Node::is_tag () const
 
 template <>
 inline XmlImpl::ChildRange
-Node::children() const
+Node::children () const
 {
   auto r = impl.children ();
   auto convert = [](pugi::xml_node const& node) { return Node {node}; };
@@ -244,7 +242,7 @@ Node::children() const
 
 template <>
 inline XmlImpl::AttributeRange
-Node::attributes() const
+Node::attributes () const
 {
   auto r = impl.attributes ();
   auto convert = PugiXmlDetails::AttributeTransform {impl};
@@ -255,7 +253,7 @@ Node::attributes() const
 
 template <>
 inline XmlImpl::SiblingRange
-Node::siblings(std::string const& name) const
+Node::siblings (std::string const& name) const
 {
   auto r = impl.parent ().children (name.c_str ());
   auto convert = [](pugi::xml_node const& node) { return Node {node}; };
@@ -388,7 +386,7 @@ Document::DocumentTmpl (std::string const& filename)
     std::ostringstream oss;
 
     oss << "Failed to parse '" << filename << "': " << result.description ();
-    throw ParseError(oss.str ());
+    throw ParseError {oss.str ()};
   }
 }
 

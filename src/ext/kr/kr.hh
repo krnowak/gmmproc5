@@ -206,10 +206,10 @@ class MultiCall
 {
 public:
   template <typename... ParamTypes>
-  static void call(ParamTypes&&... p)
+  static void call (ParamTypes&&... p)
   {
-    Wrapper<typename mpl::front<List>::type>::call(std::forward<ParamTypes> (p)...);
-    MultiCall<Wrapper, typename mpl::pop_front<List>::type>::call(std::forward<ParamTypes> (p)...);
+    Wrapper<typename mpl::front<List>::type>::call (std::forward<ParamTypes> (p)...);
+    MultiCall<Wrapper, typename mpl::pop_front<List>::type>::call (std::forward<ParamTypes> (p)...);
   }
 };
 
@@ -218,7 +218,7 @@ class MultiCall<Wrapper, TypeList<>>
 {
 public:
   template <typename... ParamTypes>
-  static void call(ParamTypes&&...)
+  static void call (ParamTypes&&...)
   {}
 };
 

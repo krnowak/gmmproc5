@@ -33,7 +33,7 @@ join (std::vector<std::string> const& v)
   return oss.str ();
 }
 
-std::string get_name(Base::Node const& node)
+std::string get_name (Base::Node const& node)
 {
   std::string n = node.name ();
 
@@ -57,8 +57,8 @@ get_backtrace (Base::Node const& node)
   std::experimental::optional<Base::Node> n = node;
   while (n)
   {
-    std::string const node_name = get_name(*n);
-    auto const attr_name = n->attribute("name");
+    std::string const node_name = get_name (*n);
+    auto const attr_name = n->attribute ("name");
 
     if (attr_name)
     {

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-int main()
+int main ()
 {
   Mm::Gir::CInclude inc;
 

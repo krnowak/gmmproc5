@@ -31,7 +31,7 @@ private:
   process_node_vfunc (Xml::Base::Node const& node, int depth) override;
 
   virtual void
-  postprocess_node_vfunc(Xml::Base::Node const& node, int depth) override;
+  postprocess_node_vfunc (Xml::Base::Node const& node, int depth) override;
 
   void
   process_toplevel (Xml::Base::Node const& node, int depth);

@@ -54,7 +54,7 @@ public:
   std::unique_ptr<LongNode> toplevel_long_node;
 
 private:
-  SchemaData() = default;
+  SchemaData () = default;
 };
 
 } // namespace LameSchemaGen

@@ -44,7 +44,7 @@ is_numeric_range (Iterator first, Iterator const &last)
   {
     return false;
   }
-  return std::find_if(first, last, [](auto c) { return !std::isdigit(c); }) == last;
+  return std::find_if (first, last, [](auto c) { return !std::isdigit (c); }) == last;
 }
 
 bool

@@ -45,7 +45,7 @@ process_children (ShortNode& data, Xml::Base::Node const& node)
 {
   struct MetData
   {
-    MetData(ShortNode::Child& c)
+    MetData (ShortNode::Child& c)
       : child {c},
         occurences {0}
     {}

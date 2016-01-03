@@ -26,7 +26,7 @@ struct NodeData
     ALWAYS_A_LEAF
   };
 
-  NodeData()
+  NodeData ()
     : attribute_names {},
       child_names {},
       parent_names {},
@@ -49,7 +49,7 @@ using NodeMap = StrMap<NodeData>;
 class GirWalker : public pugi::xml_tree_walker
 {
 public:
-  GirWalker()
+  GirWalker ()
     : nodes {},
       processors {&GirWalker::process_occurences,
                   &GirWalker::process_leaves,
@@ -60,7 +60,7 @@ public:
   {}
 
   bool
-  for_each(pugi::xml_node& node) override
+  for_each (pugi::xml_node& node) override
   {
     if (node.type () == pugi::node_element)
     {
@@ -83,7 +83,7 @@ public:
   }
 
 private:
-  std::string get_name(pugi::xml_node const& node) const
+  std::string get_name (pugi::xml_node const& node) const
   {
     switch (node.type ()) {
     case pugi::node_document:
@@ -105,7 +105,7 @@ private:
     }
     auto const& name = data_iter->first;;
     auto pname = get_name (parent);
-    auto all_siblings = parent.children(name.c_str ());
+    auto all_siblings = parent.children (name.c_str ());
     auto& opp_map = data_iter->second.occurences_per_parent;
     auto piter = opp_map.find (pname);
     auto count = count_siblings (all_siblings.begin (), all_siblings.end ());
@@ -212,7 +212,7 @@ private:
   }
 
   NodeMap nodes;
-  std::vector<std::function<void(GirWalker&, NodeMap::iterator&,pugi::xml_node&)>> processors;
+  std::vector<std::function<void (GirWalker&, NodeMap::iterator&, pugi::xml_node&)>> processors;
 };
 
 void
@@ -221,7 +221,7 @@ print_tree (GirWalker& walker)
   std::vector<std::string> lines;
   auto const& node_map = walker.get_map ();
 
-  lines.reserve(node_map.size ());
+  lines.reserve (node_map.size ());
   for (auto const& kv : node_map) {
     auto const& name = kv.first;
     auto& data = kv.second;
@@ -368,7 +368,7 @@ print_leaves_to_root (GirWalker& walker)
     auto half = std::partition (std::begin (elems),
                                 std::end (elems),
                                 [] (auto const& p) -> bool {
-                                  return !p.second.child_names.empty();
+                                  return !p.second.child_names.empty ();
                                 });
     if (half == std::end (elems))
     {
@@ -400,7 +400,7 @@ print_leaves_to_root (GirWalker& walker)
                          return true;
                        }
                        return false;
-                     }();
+                     } ();
                      std::cout << name << " " << level << (is_r ? " (recursive)" : "") << std::endl;
                      std::for_each (std::begin (elems),
                                     half,
@@ -429,8 +429,8 @@ print_names (GirWalker& walker)
       names.insert (attr);
     }
   }
-  lines.reserve(names.size ());
-  lines.insert(std::end (lines), std::begin (names), std::end (names));
+  lines.reserve (names.size ());
+  lines.insert (std::end (lines), std::begin (names), std::end (names));
   std::sort (std::begin (lines), std::end (lines));
   for (auto const& line : lines)
   {
@@ -438,7 +438,8 @@ print_names (GirWalker& walker)
   }
 }
 
-int main(int argc, char **argv)
+int
+main (int argc, char **argv)
 {
   if (argc < 3)
   {

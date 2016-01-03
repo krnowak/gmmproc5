@@ -35,7 +35,13 @@ get_attributes (LongNode& child, Xml::Base::Node const& node)
 void
 process_single_element (LongNode& child, Xml::Base::Node const& node)
 {
-  get_attributes(child, node);
+  get_attributes (child, node);
+}
+
+void
+postprocess_single_element (LongNode& child, Xml::Base::Node const& node)
+{
+  get_unique_attributes (child, node);
 }
 
 } // anonymous namespace
@@ -111,8 +117,15 @@ Long::process_node_vfunc (Xml::Base::Node const& node, int depth)
 }
 
 void
-Long::postprocess_node_vfunc (Xml::Base::Node const&, int)
-{}
+Long::postprocess_node_vfunc (Xml::Base::Node const& node, int depth)
+{
+  auto& child = node_stack.top ().get ();
+  if (child.depth != depth)
+  {
+    throw std::runtime_error ("invalid node on stack to postprocess");
+  }
+  postprocess_single_element (child, node);
+}
 
 std::unique_ptr<LongNode>&&
 Long::steal ()

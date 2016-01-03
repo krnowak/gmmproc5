@@ -27,10 +27,10 @@ public:
 
 private:
   virtual void
-  process_node_vfunc(Xml::Base::Node const& node, int depth) override;
+  process_node_vfunc (Xml::Base::Node const& node, int depth) override;
 
   virtual void
-  postprocess_node_vfunc(Xml::Base::Node const& node, int depth) override;
+  postprocess_node_vfunc (Xml::Base::Node const& node, int depth) override;
 
   StrMap<ShortNode> nodes;
 };

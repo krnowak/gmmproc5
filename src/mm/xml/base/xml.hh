@@ -42,19 +42,19 @@ class NodeTmpl
 {
 public:
   NodeTmpl (typename Impl::NodeImpl i)
-    : impl (std::move (i))
+    : impl {std::move (i)}
   {}
 
   std::string name () const;
   std::experimental::optional<NodeTmpl<Impl>> parent () const;
   std::experimental::optional<NodeTmpl<Impl>> child (std::string const& name) const;
-  std::experimental::optional<AttributeTmpl<Impl>> attribute(std::string const& name) const;
+  std::experimental::optional<AttributeTmpl<Impl>> attribute (std::string const& name) const;
   std::string text () const;
   bool is_tag () const;
 
-  typename Impl::ChildRange children() const;
-  typename Impl::AttributeRange attributes() const;
-  typename Impl::SiblingRange siblings(std::string const& name) const;
+  typename Impl::ChildRange children () const;
+  typename Impl::AttributeRange attributes () const;
+  typename Impl::SiblingRange siblings (std::string const& name) const;
 
   NodeTmpl<Impl> add_child (std::string const& name);
   AttributeTmpl<Impl> add_attribute (std::string const& name, std::string const& value);
@@ -73,7 +73,7 @@ class AttributeTmpl
 {
 public:
   AttributeTmpl (typename Impl::AttributeImpl i)
-    : impl (std::move (i))
+    : impl {std::move (i)}
   {}
 
   std::string name () const;
@@ -96,36 +96,6 @@ private:
   virtual bool node (NodeTmpl<Impl>& node, int depth) = 0;
   virtual bool postprocess_node (NodeTmpl<Impl>& node, int depth) = 0;
   typename Impl::AttributeImpl impl;
-};
-
-template <typename Impl>
-class WalkerTmpl
-{
-public:
-  WalkerTmpl ();
-  int depth() const;
-  void walk (DocumentTmpl<Impl>& doc);
-
-private:
-  virtual bool node (NodeTmpl<Impl>& node) = 0;
-  virtual bool postprocess_node (NodeTmpl<Impl>& node) = 0;
-  typename Impl::AttributeImpl impl;
-};
-
-template <typename Impl>
-class WalkerTmpl
-{
-public:
-  WalkerTmpl ();
-  int depth() const;
-  void walk (DocumentTmpl<Impl>& doc);
-
-private:
-  virtual bool node (NodeTmpl<Impl>& node) = 0;
-  virtual bool postprocess_node (NodeTmpl<Impl>& node) = 0;
-  friend typename Impl::WalkerImpl;
-
-  typename Impl::WalkerImpl impl;
 };
 
 template <typename Impl>

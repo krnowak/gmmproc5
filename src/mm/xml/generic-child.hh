@@ -227,7 +227,7 @@ public:
     for (auto n : raw_child.siblings (child_name))
     {
       ChildType child;
-      auto const name_attr = n.attribute(Name::raw.data ());
+      auto const name_attr = n.attribute (Name::raw.data ());
 
       if (!name_attr)
       {
@@ -270,19 +270,19 @@ public:
   static auto const&
   get (ContainerType const& children, IdxType idx)
   {
-    return std::get<VType>(children)[idx];
+    return std::get<VType> (children)[idx];
   }
 
   static IdxType
   size (ContainerType const& children)
   {
-    return std::get<VType>(children).size ();
+    return std::get<VType> (children).size ();
   };
 
   static ChildType const*
   get (ContainerType const& children, KeyType const& key)
   {
-    auto const& map_children = std::get<MType>(children);
+    auto const& map_children = std::get<MType> (children);
     auto iter = map_children.find (key);
 
     if (iter != std::cend (map_children))
@@ -319,7 +319,7 @@ public:
     for (auto n : raw_child.siblings (child_name))
     {
       ChildType child;
-      auto const name_attr = n.attribute(Name::raw.data ());
+      auto const name_attr = n.attribute (Name::raw.data ());
 
       if (!name_attr)
       {
