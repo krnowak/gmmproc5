@@ -36,6 +36,8 @@ struct LongNode : public Named, public Counted, public WithOccurences
   using Named::Named;
 
   StrMap<Attribute> attributes;
+  StrSet unique_attributes;
+  StrSet common_attributes;
   StrMap<std::unique_ptr<LongNode>> children;
   bool has_text = false;
   int depth = 0;

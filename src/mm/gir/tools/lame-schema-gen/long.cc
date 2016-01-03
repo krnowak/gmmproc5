@@ -39,6 +39,41 @@ process_single_element (LongNode& child, Xml::Base::Node const& node)
 }
 
 void
+get_unique_attributes (LongNode& child, Xml::Base::Node const& node)
+{
+  StrMap<StrSet> unique_attributes;
+  StrSet common_attributes = child.common_attributes;
+
+  for (auto const& name : child.unique_attributes)
+  {
+    unique_attributes.emplace (name);
+  }
+  for (auto const& child_node : node.children ())
+  {
+    for (auto const& attribute : child_node.attributes ())
+    {
+      auto const name = attribute.name ();
+      if (child.common_attributes.find (name) != child.common.attributes.end ())
+      {
+        continue;
+      }
+      auto pair = unique_attributes.emplace (name);
+      auto& values_set = pair.first->second;
+      auto const value = attribute.value ();
+
+      if (values_set.find (value) != values_set.end ())
+      {
+        child.common_attributes.insert (name);
+        unique_attributes.erase (name);
+        continue;
+      }
+      values_set.insert (value);
+    }
+  }
+  // TODO: update child's unique_attributes set
+}
+
+void
 postprocess_single_element (LongNode& child, Xml::Base::Node const& node)
 {
   get_unique_attributes (child, node);
@@ -119,12 +154,15 @@ Long::process_node_vfunc (Xml::Base::Node const& node, int depth)
 void
 Long::postprocess_node_vfunc (Xml::Base::Node const& node, int depth)
 {
-  auto& child = node_stack.top ().get ();
-  if (child.depth != depth)
   {
-    throw std::runtime_error ("invalid node on stack to postprocess");
+    auto& child = node_stack.top ().get ();
+    if (child.depth != depth)
+    {
+      throw std::runtime_error ("invalid node on stack to postprocess");
+    }
+    postprocess_single_element (child, node);
   }
-  postprocess_single_element (child, node);
+  node_stack.pop ();
 }
 
 std::unique_ptr<LongNode>&&
