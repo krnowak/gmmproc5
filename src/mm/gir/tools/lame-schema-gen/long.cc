@@ -1,7 +1,12 @@
-#include "common.hh"
 #include "long.hh"
+#include "node-common.hh"
+#include "utils.hh"
+
+#include <boost/range/iterator_range_core.hpp>
+#include <boost/iterator/transform_iterator.hpp>
 
 #include <stdexcept>
+#include <utility>
 
 namespace Mm
 {
@@ -18,71 +23,136 @@ namespace LameSchemaGen
 namespace
 {
 
-void
-get_attributes (LongNode& child, Xml::Base::Node const& node)
+template <typename NodeWrapper>
+auto
+get_node_wrapper_children (NodeWrapper& node)
 {
-  for (auto const& at : node.attributes ())
+  using WrapperNodeType = typename NodeWrapper::NodeType;
+  using NodeType = add_const_if_const_t<WrapperNodeType, NodeWrapper>;
+  using WrapperType = typename NodeWrapper::ThisTemplateType<NodeType>;
+
+  auto get_as_wrapper = [](auto& pair) { return WrapperType {*pair.second}; };
+
+  return boost::make_iterator_range (boost::make_transform_iterator (impl.children.begin (), get_as_wrapper),
+                                     boost::make_transform_iterator (impl.children.end (), get_as_wrapper));
+}
+
+// implements NodeWrapperModel
+template <typename Node>
+class LongNodeWrapper
+{
+public:
+  using NodeType = Node;
+  template <typename N>
+  using ThisTemplateType = template LongNodeWrapper<N>;
+
+  NodeWrapper (Node& node)
+    : impl {node}
+  {}
+
+  template
+  auto
+  attributes ()
+  {
+    return get_map_range<1> (impl.get ().attributes);
+  }
+
+  auto
+  attributes () const
+  {
+    return get_map_range<1> (impl.get ().attributes);
+  }
+
+  auto
+  children ()
+  {
+    return get_node_wrapper_children (*this);
+  }
+
+  auto
+  children () const
+  {
+    return get_node_wrapper_children (*this);
+  }
+
+  add_const_if_const_t<Named, Node>&
+  as_named()
+  {
+    return impl.get ();
+  }
+
+  Named const&
+  as_named() const
+  {
+    return impl.get ();
+  }
+
+  add_const_if_const_t<WithOccurences, Node>&
+  as_with_occurences ()
+  {
+    return impl.get ();
+  }
+
+  WithOccurences const&
+  as_with_occurences () const
+  {
+    return impl.get ();
+  }
+
+  add_const_if_const_t<Counted, Node>&
+  as_counted ()
+  {
+    return impl.get ();
+  }
+
+  Counted const&
+  as_counted () const
+  {
+    return impl.get ();
+  }
+
+private:
+  std::reference_wrapper<Node> impl;
+};
+
+void
+get_attributes (LongNode& data,
+                Xml::Base::Node const& data_node)
+{
+  for (auto const& at : data_node.attributes ())
   {
     auto const name = at.name ();
-    auto const value = ;
-    auto attr_pair = child.attributes.emplace (name, name);
+    auto attr_pair = data.attributes.emplace (name, name);
     auto& attr = attr_pair.first->second;
+
     ++attr.count;
     attr.update (at.value ());
   }
 }
 
 void
-process_single_element (LongNode& child, Xml::Base::Node const& node)
+process_single_element (LongNode& data,
+                        Xml::Base::Node const& data_node)
 {
-  get_attributes (child, node);
+  get_attributes (data, data_node);
+  ++data.count;
 }
 
 void
-get_unique_attributes (LongNode& child, Xml::Base::Node const& node)
+postprocess_single_element (LongNode& data,
+                            Xml::Base::Node const& data_node)
 {
-  StrMap<StrSet> unique_attributes;
-  StrSet common_attributes = child.common_attributes;
+  LongNodeWrapper<LongNode> data_wrapper {data};
 
-  for (auto const& name : child.unique_attributes)
-  {
-    unique_attributes.emplace (name);
-  }
-  for (auto const& child_node : node.children ())
-  {
-    for (auto const& attribute : child_node.attributes ())
-    {
-      auto const name = attribute.name ();
-      if (child.common_attributes.find (name) != child.common.attributes.end ())
-      {
-        continue;
-      }
-      auto pair = unique_attributes.emplace (name);
-      auto& values_set = pair.first->second;
-      auto const value = attribute.value ();
-
-      if (values_set.find (value) != values_set.end ())
-      {
-        child.common_attributes.insert (name);
-        unique_attributes.erase (name);
-        continue;
-      }
-      values_set.insert (value);
-    }
-  }
-  // TODO: update child's unique_attributes set
-}
-
-void
-postprocess_single_element (LongNode& child, Xml::Base::Node const& node)
-{
-  get_unique_attributes (child, node);
+  get_unique_attributes (data_wrapper, data_node);
+  get_occurences (data_wrapper, data_node);
 }
 
 } // anonymous namespace
 
 void
-Long::process_toplevel (Xml::Base::Node const& node, int depth)
+Long::process_toplevel (Xml::Base::Node const& node,
+                        int depth)
 {
   if (depth > 0)
   {
@@ -98,7 +168,8 @@ Long::process_toplevel (Xml::Base::Node const& node, int depth)
 }
 
 void
-Long::process_element (Xml::Base::Node const& node, int depth)
+Long::process_element (Xml::Base::Node const& node,
+                       int depth)
 {
   if (depth == 0)
   {
@@ -139,7 +210,8 @@ Long::setup_node_stack_for_depth (int depth)
 }
 
 void
-Long::process_node_vfunc (Xml::Base::Node const& node, int depth)
+Long::process_node_vfunc (Xml::Base::Node const& node,
+                          int depth)
 {
   if (!toplevel)
   {
@@ -152,7 +224,8 @@ Long::process_node_vfunc (Xml::Base::Node const& node, int depth)
 }
 
 void
-Long::postprocess_node_vfunc (Xml::Base::Node const& node, int depth)
+Long::postprocess_node_vfunc (Xml::Base::Node const& node,
+                              int depth)
 {
   {
     auto& child = node_stack.top ().get ();

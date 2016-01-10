@@ -3,6 +3,8 @@
 
 #include "types.hh"
 
+#include <mm/xml/base/xml.hh>
+
 #include <iosfwd>
 
 namespace Mm

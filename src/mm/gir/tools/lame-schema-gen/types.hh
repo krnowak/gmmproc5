@@ -1,8 +1,6 @@
 #ifndef MM_GIR_TOOLS_LAME_SCHEMA_GEN_TYPES_HH
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_TYPES_HH
 
-#include <mm/xml/base/xml.hh>
-
 #include <limits>
 #include <memory>
 #include <queue>
@@ -10,8 +8,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
-#include <cstdint>
+#include <cstddef>
 
 namespace Mm
 {
@@ -30,6 +29,7 @@ using StrSet = std::unordered_set<Str>;
 template <typename T>
 using StrMap = std::unordered_map<Str, T>;
 using StrQueue = std::queue<Str>;
+using StrVector = std::vector<Str>;
 
 struct Named
 {
@@ -64,10 +64,10 @@ struct Leafed
   LeafType is_leaf = LeafType::UNDETERMINED;
 };
 
-class Attribute : public Named
+class Attribute : public Named, public Counted
 {
 public:
-  class Impl;
+  class Type;
 
   AttributeType (Str const& name);
 
@@ -77,8 +77,15 @@ public:
   Str
   to_string () const;
 
+  bool
+  is_unique () const;
+
+  void
+  mark_as_common ();
+
 private:
-  std::unique_ptr<Impl> impl;
+  std::unique_ptr<Type> impl;
+  bool unique;
 };
 
 } // namespace LameSchemaGen

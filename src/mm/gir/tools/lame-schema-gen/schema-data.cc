@@ -4,10 +4,8 @@
 #include "schema-data.hh"
 #include "short.hh"
 
-#include <pugixml.hpp>
+#include <mm/xml/base/xml.hh>
 
-#include <memory>
-#include <sstream>
 #include <stdexcept>
 
 namespace Mm
@@ -38,7 +36,8 @@ public:
 
 private:
   virtual bool
-  node (Xml::Base::Node& node, int depth) override
+  node (Xml::Base::Node& node,
+        int depth) override
   {
     n.process_node (node, depth);
     s.process_node (node, depth);
@@ -47,7 +46,8 @@ private:
   }
 
   virtual bool
-  postprocess_node (Xml::Base::Node& node, int depth) override
+  postprocess_node (Xml::Base::Node& node,
+                    int depth) override
   {
     n.postprocess_node (node, depth);
     s.postprocess_node (node, depth);
@@ -79,24 +79,28 @@ SchemaData::get_from_gir_paths (GirPaths const& paths)
       continue;
     }
 
-    Xml::Base::Document doc (path);
+    Xml::Base::Document doc {path};
     auto const repo = doc.as_node ().child ("repository");
+
     if (!repo)
     {
       throw std::runtime_error ("malformed gir file - no toplevel repository tag");
     }
 
     auto const include_child = repo->child ("include");
+
     if (include_child)
     {
       for (auto const& include : include_child->siblings ("include"))
       {
         auto const name_attr = include.attribute ("name");
         auto const version_attr = include.attribute ("version");
+
         if (!name_attr || !version_attr)
         {
           throw std::runtime_error ("malformed gir file - include tag has either no name tag or version tag");
         }
+
         auto const inc_filename = name_attr->value () + "-" + version_attr->value () + ".gir";
         auto const inc_full_path = paths.dir + "/" + inc_filename;
 

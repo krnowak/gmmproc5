@@ -1,13 +1,16 @@
 #include "schema-doc.hh"
 #include "schema-data.hh"
 #include "types.hh"
+#include "utils.hh"
 
 #include <boost/iterator/transform_iterator.hpp>
 
 #include <algorithm>
+#include <functional>
 #include <iterator>
+#include <memory>
 #include <queue>
-#include <vector>
+#include <utility>
 
 namespace Mm
 {
@@ -25,10 +28,11 @@ namespace
 {
 
 template <typename Iterator>
-std::vector<Str>
-get_sorted_strings (Iterator first, Iterator const& last)
+StrVector
+get_sorted_strings (Iterator first,
+                    Iterator const& last)
 {
-  std::vector<Str> sorted;
+  StrVector sorted;
 
   sorted.reserve (std::distance (first, last));
   std::copy (first, last, std::back_inserter (sorted));
@@ -37,7 +41,7 @@ get_sorted_strings (Iterator first, Iterator const& last)
 }
 
 template <typename Cont>
-std::vector<Str>
+StrVector
 get_sorted_strings_from_cont (Cont const& c)
 {
   return get_sorted_strings (std::begin (c), std::end (c));
@@ -45,7 +49,8 @@ get_sorted_strings_from_cont (Cont const& c)
 }
 
 void
-build_names (Xml::Base::Node& root, StrSet const& names_set)
+build_names (Xml::Base::Node& root,
+             StrSet const& names_set)
 {
   auto names_node = root.add_child ("names");
   auto const sorted = get_sorted_strings_from_cont (names_set);
@@ -58,29 +63,10 @@ build_names (Xml::Base::Node& root, StrSet const& names_set)
 }
 
 template <typename ValueType>
-std::vector<Str>
+StrVector
 get_sorted_strings_from_strmap (StrMap<ValueType> const& m)
 {
-  auto get_first = [](auto const& pair) { return pair.first; };
-
-  return get_sorted_strings (boost::make_transform_iterator (m.begin (), get_first),
-                             boost::make_transform_iterator (m.end (), get_first));
-}
-
-template <typename MappedType>
-MappedType const&
-must_get (StrMap<MappedType> const& m, Str const& key)
-{
-  auto iter = m.find (key);
-
-  if (iter == m.end ())
-  {
-    std::ostringstream oss;
-
-    oss << "no key \"" << key << "\" found in map";
-    throw std::runtime_error (oss.str ());
-  }
-  return iter->second;
+  return get_sorted_strings_from_cont (get_map_range<0> (m));
 }
 
 enum class ChildType
@@ -107,7 +93,8 @@ get_child_type (WithOccurences const& child)
 }
 
 void
-set_short_child_type_attributes (ShortNode::Child const& child, Xml::Base::Node& child_node)
+set_short_child_type_attributes (ShortNode::Child const& child,
+                                 Xml::Base::Node& child_node)
 {
   switch (get_child_type (child))
   {
@@ -129,7 +116,8 @@ set_short_child_type_attributes (ShortNode::Child const& child, Xml::Base::Node&
 }
 
 void
-build_short (Xml::Base::Node& root, StrMap<ShortNode> const& short_data)
+build_short (Xml::Base::Node& root,
+             StrMap<ShortNode> const& short_data)
 {
   auto short_node = root.add_child ("short");
   auto const sorted = get_sorted_strings_from_strmap (short_data);
@@ -164,7 +152,8 @@ build_short (Xml::Base::Node& root, StrMap<ShortNode> const& short_data)
 }
 
 void
-set_long_child_type_attributes (LongNode const& child, Xml::Base::Node& child_node)
+set_long_child_type_attributes (LongNode const& child,
+                                Xml::Base::Node& child_node)
 {
   switch (get_child_type (child))
   {
@@ -185,7 +174,8 @@ set_long_child_type_attributes (LongNode const& child, Xml::Base::Node& child_no
 }
 
 void
-build_long (Xml::Base::Node& root, std::unique_ptr<LongNode> const& toplevel_long_node)
+build_long (Xml::Base::Node& root,
+            std::unique_ptr<LongNode> const& toplevel_long_node)
 {
   using NodeRef = std::reference_wrapper<LongNode const>;
   using NodePair = std::pair<Xml::Base::Node, NodeRef>;

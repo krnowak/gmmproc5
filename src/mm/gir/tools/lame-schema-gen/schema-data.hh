@@ -19,7 +19,7 @@ namespace LameSchemaGen
 
 struct ShortNode : public Named, public Counted, public Leafed
 {
-  struct Child : public Named, public Counted, public Leafed, public WithOccurences
+  struct Child : public Named, public WithOccurences
   {
     using Named::Named;
   };
@@ -36,8 +36,6 @@ struct LongNode : public Named, public Counted, public WithOccurences
   using Named::Named;
 
   StrMap<Attribute> attributes;
-  StrSet unique_attributes;
-  StrSet common_attributes;
   StrMap<std::unique_ptr<LongNode>> children;
   bool has_text = false;
   int depth = 0;

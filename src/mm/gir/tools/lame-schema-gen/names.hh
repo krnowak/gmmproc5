@@ -1,8 +1,10 @@
 #ifndef MM_GIR_TOOLS_LAME_SCHEMA_GEN_NAMES_HH
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_NAMES_HH
 
-#include "base.hh"
+#include "base-node-data.hh"
 #include "types.hh"
+
+#include <mm/xml/base/xml.hh>
 
 namespace Mm
 {
@@ -16,7 +18,7 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-class Names final : public Base
+class Names final : public BaseNodeData
 {
 public:
   StrSet&&
@@ -24,10 +26,12 @@ public:
 
 private:
   virtual void
-  process_node_vfunc (Xml::Base::Node const& node, int depth) override;
+  process_node_vfunc (Xml::Base::Node const& node,
+                      int depth) override;
 
   virtual void
-  postprocess_node_vfunc (Xml::Base::Node const& node, int depth) override;
+  postprocess_node_vfunc (Xml::Base::Node const& node,
+                          int depth) override;
 
   StrSet names;
 };

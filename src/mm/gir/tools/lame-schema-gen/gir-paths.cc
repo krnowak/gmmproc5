@@ -1,6 +1,7 @@
 #include "gir-paths.hh"
 
 #include <stdexcept>
+#include <utility>
 
 namespace Mm
 {

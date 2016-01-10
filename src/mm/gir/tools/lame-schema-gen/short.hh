@@ -1,11 +1,11 @@
 #ifndef MM_GIR_TOOLS_LAME_SCHEMA_GEN_SHORT_HH
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_SHORT_HH
 
-#include "base.hh"
+#include "base-node-data.hh"
 #include "schema-data.hh"
 #include "types.hh"
 
-#include <limits>
+#include <mm/xml/base/xml.hh>
 
 namespace Mm
 {
@@ -19,7 +19,7 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-class Short final : public Base
+class Short final : public BaseNodeData
 {
 public:
   StrMap<ShortNode>&&

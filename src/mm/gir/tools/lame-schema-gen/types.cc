@@ -1,5 +1,9 @@
 #include "types.hh"
 
+#include <algorithm>
+#include <utility>
+
+#include <cctype>
 
 namespace Mm
 {
@@ -13,10 +17,10 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-class Attribute::Impl
+class Attribute::Type
 {
 private:
-  virtual std::unique_ptr<Impl>
+  virtual std::unique_ptr<Type>
   maybe_create_new (Str const& value) = 0;
 
   virtual Str
@@ -76,15 +80,15 @@ is_numeric_bool_value (Str const& value)
 }
 
 // prereq: value.empty () == false
-std::unique_ptr<Attribute::Impl>
+std::unique_ptr<Attribute::Type>
 get_attribute_type (Str const& value)
 {
 }
 
-class UndeterminedType : public Attribute::Impl
+class UndeterminedType : public Attribute::Type
 {
 private:
-  virtual std::unique_ptr<Impl>
+  virtual std::unique_ptr<Type>
   maybe_create_new (Str const& value)
   {
     if (value.empty ())
@@ -118,7 +122,7 @@ private:
   }
 };
 
-class BoolType : public Attribute::Impl
+class BoolType : public Attribute::Type
 {
 public:
   BoolType (bool explicit_value)
@@ -126,7 +130,7 @@ public:
   {}
 
 private:
-  virtual std::unique_ptr<Impl>
+  virtual std::unique_ptr<Type>
   maybe_create_new (Str const& value)
   {
     if (value.empty ())
@@ -153,7 +157,7 @@ private:
     return std::make_unique<StringType> ();
   }
 
-  std::unique_ptr<Impl>
+  std::unique_ptr<Type>
   update_with_value (bool explicit_value)
   {
     if (!mixed_implicit_value && (implicit_value == explicit_value))
@@ -181,10 +185,10 @@ private:
   bool mixed_implicit_value = false;
 };
 
-class NumericType : public Attribute::Impl
+class NumericType : public Attribute::Type
 {
 private:
-  virtual std::unique_ptr<Impl>
+  virtual std::unique_ptr<Type>
   maybe_create_new (Str const& value)
   {
     if (value.empty ())
@@ -205,10 +209,10 @@ private:
   }
 };
 
-class StringType : public Attribute::Impl
+class StringType : public Attribute::Type
 {
 private:
-  virtual std::unique_ptr<Impl>
+  virtual std::unique_ptr<Type>
   maybe_create_new (Str const&)
   {
     return nullptr;
@@ -225,7 +229,8 @@ private:
 
 Attribute::Attribute (Str const& name)
   : Named {name},
-    impl {std::make_unique<UndeterminedType> ()}
+    impl {std::make_unique<UndeterminedType> ()},
+    unique {true}
 {}
 
 void
@@ -243,6 +248,18 @@ Str
 Attribute::to_string () const
 {
   return impl->to_string ();
+}
+
+bool
+Attribute::is_unique () const
+{
+  return unique;
+}
+
+void
+Attribute::mark_as_common ()
+{
+  unique = false;
 }
 
 } // namespace LameSchemaGen

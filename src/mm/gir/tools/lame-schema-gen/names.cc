@@ -1,5 +1,7 @@
 #include "names.hh"
 
+#include <utility>
+
 namespace Mm
 {
 
@@ -16,7 +18,8 @@ namespace
 {
 
 void
-maybe_emplace (StrSet& names, Str&& name)
+maybe_emplace (StrSet& names,
+               Str&& name)
 {
   if (!name.empty ())
   {
@@ -27,7 +30,8 @@ maybe_emplace (StrSet& names, Str&& name)
 } // anonymous namespace
 
 void
-Names::process_node_vfunc (Xml::Base::Node const& node, int)
+Names::process_node_vfunc (Xml::Base::Node const& node,
+                           int)
 {
   maybe_emplace (names, node.name ());
 
@@ -38,7 +42,8 @@ Names::process_node_vfunc (Xml::Base::Node const& node, int)
 }
 
 void
-Names::postprocess_node_vfunc (Xml::Base::Node const&, int)
+Names::postprocess_node_vfunc (Xml::Base::Node const&,
+                               int)
 {}
 
 StrSet&&
