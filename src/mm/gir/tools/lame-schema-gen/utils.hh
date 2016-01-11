@@ -44,23 +44,23 @@ template <std::size_t idx, typename MapType>
 auto
 get_map_range (MapType& m)
 {
-  auto get_nth = [](auto& pair) -> decltype(auto) { return std::get<idx> (first); };
+  auto get_nth = [](auto& pair) -> decltype(auto) { return std::get<idx> (pair); };
 
   return boost::make_iterator_range (boost::make_transform_iterator (m.begin (), get_nth),
                                      boost::make_transform_iterator (m.end (), get_nth));
 }
 
-template <typename Type, typename MaybeConst>
+template <typename TypeToConst, typename TypeToCheckForConst>
 class add_const_if_const
 {
 public:
-  using Type = std::conditional_t<std::is_const<MaybeConst>::value,
-                                  std::add_const_t<Type>,
-                                  Type>;
+  using Type = std::conditional_t<std::is_const<TypeToCheckForConst>::value,
+                                  std::add_const_t<TypeToConst>,
+                                  TypeToConst>;
 };
 
-template <typename Type, typename MaybeConst>
-using add_const_if_const_t = typename add_const_if_const<Type, MaybeConst>::Type;
+template <typename TypeToConst, typename TypeToCheckForConst>
+using add_const_if_const_t = typename add_const_if_const<TypeToConst, TypeToCheckForConst>::Type;
 
 } // namespace LameSchemaGen
 

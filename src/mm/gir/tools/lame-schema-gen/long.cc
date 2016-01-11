@@ -23,20 +23,6 @@ namespace LameSchemaGen
 namespace
 {
 
-template <typename NodeWrapper>
-auto
-get_node_wrapper_children (NodeWrapper& node)
-{
-  using WrapperNodeType = typename NodeWrapper::NodeType;
-  using NodeType = add_const_if_const_t<WrapperNodeType, NodeWrapper>;
-  using WrapperType = typename NodeWrapper::ThisTemplateType<NodeType>;
-
-  auto get_as_wrapper = [](auto& pair) { return WrapperType {*pair.second}; };
-
-  return boost::make_iterator_range (boost::make_transform_iterator (impl.children.begin (), get_as_wrapper),
-                                     boost::make_transform_iterator (impl.children.end (), get_as_wrapper));
-}
-
 // implements NodeWrapperModel
 template <typename Node>
 class LongNodeWrapper
@@ -44,13 +30,12 @@ class LongNodeWrapper
 public:
   using NodeType = Node;
   template <typename N>
-  using ThisTemplateType = template LongNodeWrapper<N>;
+  using ThisTemplateType = LongNodeWrapper<N>;
 
-  NodeWrapper (Node& node)
+  LongNodeWrapper (Node& node)
     : impl {node}
   {}
 
-  template
   auto
   attributes ()
   {
@@ -112,6 +97,21 @@ public:
   }
 
 private:
+  template <typename NodeWrapper>
+  static auto
+  get_node_wrapper_children (NodeWrapper& node)
+  {
+    using WrapperNodeType = typename NodeWrapper::NodeType;
+    using NodeType = add_const_if_const_t<WrapperNodeType, NodeWrapper>;
+    using WrapperType = typename NodeWrapper::template ThisTemplateType<NodeType>;
+
+    auto get_wrapper = [](auto& pair) { return WrapperType {*pair.second}; };
+    auto& children = node.impl.get ().children;
+
+    return boost::make_iterator_range (boost::make_transform_iterator (children.begin (), get_wrapper),
+                                       boost::make_transform_iterator (children.end (), get_wrapper));
+  }
+
   std::reference_wrapper<Node> impl;
 };
 

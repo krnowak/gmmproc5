@@ -69,7 +69,13 @@ class Attribute : public Named, public Counted
 public:
   class Type;
 
-  AttributeType (Str const& name);
+  Attribute (Str const& name);
+  Attribute (Attribute&& attribute);
+  Attribute (Attribute const& attribute) = delete;
+  ~Attribute ();
+
+  Attribute& operator= (Attribute&& attribute);
+  Attribute& operator= (Attribute const& attribute) = delete;
 
   void
   update (Str const& value);

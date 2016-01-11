@@ -16,8 +16,14 @@
 #include <boost/range/iterator_range_core.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 
+#include <experimental/optional>
+
 #include <memory>
 #include <sstream>
+#include <stack>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 namespace Mm
 {
@@ -117,7 +123,7 @@ AttributeTransform::operator() (pugi::xml_attribute const& a) const
 
 inline
 WalkerWrapper::WalkerWrapper (Walker& w)
-  : walker {w}
+  : walker {w},
     nodes {}
 {}
 
@@ -148,7 +154,7 @@ WalkerWrapper::run_postprocessing ()
 
   while (!nodes.empty ())
   {
-    auto p = nodes.front ();
+    auto p = nodes.top ();
 
     if (p.second < d)
     {
@@ -400,8 +406,7 @@ template <>
 inline Document&
 Document::operator= (Document&& doc)
 {
-  using std::swap;
-  swap (this->impl, doc.impl);
+  this->impl.swap (doc.impl);
   return *this;
 }
 

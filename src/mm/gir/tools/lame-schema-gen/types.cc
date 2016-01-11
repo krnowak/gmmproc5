@@ -233,6 +233,13 @@ Attribute::Attribute (Str const& name)
     unique {true}
 {}
 
+Attribute::Attribute (Attribute&& attribute) = default;
+
+Attribute::~Attribute () = default;
+
+Attribute&
+Attribute::operator= (Attribute&& attribute) = default;
+
 void
 Attribute::update (Str const& value)
 {

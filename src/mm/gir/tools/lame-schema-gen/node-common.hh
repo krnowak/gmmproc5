@@ -2,6 +2,7 @@
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_NODE_COMMON_HH
 
 #include "types.hh"
+#include "utils.hh"
 
 #include <mm/xml/base/xml.hh>
 
@@ -74,7 +75,7 @@ get_initial_attribute_maps (NodeWrapper const& data_wrapper)
 {
   UniqueAttributes unique_attributes_per_child;
 
-  for (auto const& child_wrapper : data_wrapper.children ())
+  for (auto child_wrapper : data_wrapper.children ())
   {
     auto const& named_child = child_wrapper.as_named ();
     auto& unique_attributes = unique_attributes_per_child[named_child.name];
@@ -102,13 +103,12 @@ void
 save_attribute_uniqueness (NodeWrapper& data_wrapper,
                            UniqueAttributes const& unique_attributes_per_child)
 {
-  for (auto& child_wrapper : data.children ())
+  for (auto child_wrapper : data_wrapper.children ())
   {
     auto const& named_child = child_wrapper.as_named ();
-    auto const& name = named_child.first;
-    auto const& unique_attributes = unique_attributes_per_child[name];
+    auto const& unique_attributes = must_get (unique_attributes_per_child, named_child.name);
 
-    for (auto& attribute : child_wrapper.attributes)
+    for (auto& attribute : child_wrapper.attributes ())
     {
       save_attribute (attribute, unique_attributes);
     }
@@ -124,7 +124,7 @@ get_occurences (NodeWrapper& data_wrapper,
 {
   auto occurences_per_child = LameSchemaGenDetails::get_initial_occurences (data_node);
 
-  for (auto& child_wrapper : data_wrapper.children ())
+  for (auto child_wrapper : data_wrapper.children ())
   {
     auto const& named_child = child_wrapper.as_named ();
     auto const occurences = occurences_per_child[named_child.name];

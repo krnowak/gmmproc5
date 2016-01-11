@@ -1,4 +1,4 @@
-#include "base.hh"
+#include "base-node-data.hh"
 
 namespace Mm
 {
@@ -13,15 +13,15 @@ namespace LameSchemaGen
 {
 
 void
-Base::process_node (Xml::Base::Node const& node,
-                    int depth)
+BaseNodeData::process_node (Xml::Base::Node const& node,
+                            int depth)
 {
   process_node_vfunc (node, depth);
 }
 
 void
-Base::postprocess_node (Xml::Base::Node const& node,
-                        int depth)
+BaseNodeData::postprocess_node (Xml::Base::Node const& node,
+                                int depth)
 {
   postprocess_node_vfunc (node, depth);
 }

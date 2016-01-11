@@ -5,6 +5,8 @@
 
 #include <iosfwd>
 #include <string>
+#include <stdexcept>
+#include <utility>
 
 namespace Mm
 {
@@ -95,7 +97,9 @@ public:
 private:
   virtual bool node (NodeTmpl<Impl>& node, int depth) = 0;
   virtual bool postprocess_node (NodeTmpl<Impl>& node, int depth) = 0;
-  typename Impl::AttributeImpl impl;
+
+  friend class Impl::WalkerImpl;
+  typename Impl::WalkerImpl impl;
 };
 
 template <typename Impl>
