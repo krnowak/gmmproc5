@@ -196,11 +196,11 @@ build_long (Xml::Base::Node& root,
 
     nodes.pop ();
     element_node.add_attribute ("name", lnode.name);
-    element_node.add_attribute ("type", get_child_type (lnode));
+    set_long_child_type_attributes (lnode, element_node);
     for (auto const& attr_name : sorted_attributes)
     {
       auto attribute_node = attributes_node.add_child ("attribute");
-      auto attr = must_get (lnode.attributes, attr_name);
+      auto const& attr = must_get (lnode.attributes, attr_name);
 
       attribute_node.add_attribute ("name", attr_name);
       attribute_node.add_attribute ("type", attr.to_string ());

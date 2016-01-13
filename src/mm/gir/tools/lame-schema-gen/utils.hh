@@ -23,8 +23,20 @@ namespace Tools
 namespace LameSchemaGen
 {
 
+template <typename TypeToConst, typename TypeToCheckForConst>
+class add_const_if_const
+{
+public:
+  using Type = std::conditional_t<std::is_const<TypeToCheckForConst>::value,
+                                  std::add_const_t<TypeToConst>,
+                                  TypeToConst>;
+};
+
+template <typename TypeToConst, typename TypeToCheckForConst>
+using add_const_if_const_t = typename add_const_if_const<TypeToConst, TypeToCheckForConst>::Type;
+
 template <typename MapType>
-decltype(auto)
+add_const_if_const_t<typename MapType::mapped_type, MapType>&
 must_get (MapType& m,
           typename MapType::key_type const& key)
 {
@@ -49,18 +61,6 @@ get_map_range (MapType& m)
   return boost::make_iterator_range (boost::make_transform_iterator (m.begin (), get_nth),
                                      boost::make_transform_iterator (m.end (), get_nth));
 }
-
-template <typename TypeToConst, typename TypeToCheckForConst>
-class add_const_if_const
-{
-public:
-  using Type = std::conditional_t<std::is_const<TypeToCheckForConst>::value,
-                                  std::add_const_t<TypeToConst>,
-                                  TypeToConst>;
-};
-
-template <typename TypeToConst, typename TypeToCheckForConst>
-using add_const_if_const_t = typename add_const_if_const<TypeToConst, TypeToCheckForConst>::Type;
 
 } // namespace LameSchemaGen
 

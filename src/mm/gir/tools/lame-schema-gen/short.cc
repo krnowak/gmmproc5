@@ -1,6 +1,9 @@
 #include "node-common.hh"
 #include "short.hh"
 
+#include <boost/range/iterator_range_core.hpp>
+#include <boost/iterator/transform_iterator.hpp>
+
 #include <functional>
 #include <memory>
 #include <stdexcept>
@@ -88,15 +91,12 @@ process_children (ShortNode& data,
 {
   for (auto child_node : data_node.children ())
   {
-    if (!child.is_tag ())
+    if (!child_node.is_tag ())
     {
       continue;
     }
     auto const name = child_node.name ();
-    auto pair = data.children.emplace (name, name);
-    auto& child_data = pair.first->second;
-
-    ++child_data.count;
+    data.children.emplace (name, name);
   }
 }
 
@@ -107,28 +107,27 @@ class ShortNodeWrapper
 public:
   using NodeType = Node;
   template <typename N>
-  using ThisTemplateType = template ShortNodeWrapper<N>;
+  using ThisTemplateType = ShortNodeWrapper<N>;
 
   using MutableNode = std::remove_const_t<NodeType>;
   using MutableNodeMap = StrMap<MutableNode>;
-  using NodeMap = add_const_if_const<MutableNodeMap, Node>;
+  using NodeMap = add_const_if_const_t<MutableNodeMap, NodeType>;
 
-  NodeWrapper (Node& node,
-               NodeMap& nodes)
-    : impl {node}
+  ShortNodeWrapper (Node& node,
+                    NodeMap& nodes)
+    : impl {node},
       all_impls {nodes},
       parent_impl {nullptr}
   {}
 
-  NodeWrapper (Node& node,
-               NodeMap& nodes,
-               Node& parent)
-    : impl {node}
+  ShortNodeWrapper (Node& node,
+                    NodeMap& nodes,
+                    Node& parent)
+    : impl {node},
       all_impls {nodes},
       parent_impl {std::addressof (parent)}
   {}
 
-  template
   auto
   attributes ()
   {
@@ -228,11 +227,16 @@ private:
   {
     using WrapperNodeType = typename FromNodeWrapper::NodeType;
     using NodeType = add_const_if_const_t<WrapperNodeType, FromNodeWrapper>;
-    using WrapperType = typename FromNodeWrapper::ThisTemplateType<NodeType>;
+    using WrapperType = typename FromNodeWrapper::template ThisTemplateType<NodeType>;
+    using Transformer = ChildToWrapper<FromNodeWrapper, WrapperType>;
+    using IterType = boost::transform_iterator<Transformer, typename FromNodeWrapper::NodeMap::iterator>;
 
-    auto& children = node_wrapper.impl.children;
-    ChildToWrapper<FromNodeWrapper, WrapperType> transformer {node_wrapper.all_impls, node_wrapper.impl};
+    auto& impl = node_wrapper.impl.get ();
+    auto& children = impl.children;
+    auto& all_impls = node_wrapper.all_impls.get ();
+    Transformer transformer {all_impls, impl};
 
+    // TODO: get the transform iterator to work/build
     return boost::make_iterator_range (boost::make_transform_iterator (children.begin (), transformer),
                                        boost::make_transform_iterator (children.end (), transformer));
   }
@@ -267,9 +271,10 @@ Short::process_node_vfunc (Xml::Base::Node const& data_node,
 }
 
 void
-Short::postprocess_node_vfunc (Xml::Base::Node const data_node&,
+Short::postprocess_node_vfunc (Xml::Base::Node const& data_node,
                                int)
 {
+  auto& data = nodes[data_node.name ()];
   ShortNodeWrapper<ShortNode> data_wrapper {data, nodes};
 
   get_unique_attributes (data_wrapper, data_node);
