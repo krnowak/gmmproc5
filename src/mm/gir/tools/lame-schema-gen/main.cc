@@ -40,6 +40,36 @@
  * </lameschema>
  */
 
+namespace
+{
+
+void
+print_exception (std::exception const& top_ex)
+{
+  std::queue<std::reference_wrapper<std::exception const> > exceptions;
+  std::size_t level = 0;
+
+  exceptions.push (top_ex);
+  while (!exceptions.empty ())
+  {
+    auto const& ex = exceptions.front ().get ();
+
+    exceptions.pop ();
+    ++level;
+    std::cerr << std::string (level, ' ') << ex.what () << "\n";
+    try
+    {
+      std::rethrow_if_nested (ex);
+    }
+    catch (std::exception const& nested_ex)
+    {
+      exceptions.push (nested_ex);
+    }
+  }
+}
+
+} // anonymous namespace
+
 int
 main (int, char **argv)
 {
@@ -55,7 +85,8 @@ main (int, char **argv)
   }
   catch (std::exception const& ex)
   {
-    std::cerr << argv[0] << ": " << ex.what () << std::endl;
+    std::cerr << argv[0] << ": caught an exception, description follows\n";
+    print_exception (ex);
     return 1;
   }
 }

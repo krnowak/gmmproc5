@@ -12,8 +12,8 @@ AM_SILENT_RULES([yes])
 AC_ARG_WITH(xml-library,
             [AS_HELP_STRING([--with-xml-library],
                             [which XML library to use (one of: pugi, libxml), default: auto - detects available XML libraries in following order of preference - pugi, libxml])],
-            [XML_LIBRARY="${withval}"],
-            [XML_LIBRARY=auto])
+            [xml_library="${withval}"],
+            [xml_library=auto])
 
 AC_PROG_CXX
 AC_PROG_CXXCPP
@@ -23,28 +23,26 @@ AX_CXX_COMPILE_STDCXX_14([noext], [mandatory])
 
 m4_foreach([XML_LIB], [[pugi], [libxml]],
            [xml_lib_found=no
-            AS_VAR_IF([xml_skip_rest],[],
-                      [AS_IF([test "x${XML_LIBRARY}" = 'xauto' || test "x${XML_LIBRARY}" = "x""XML_LIB"],
-                             [xml_lib_check=yes])
-                       m4_case(XML_LIB,
-                               [pugi],
-                                 [AS_VAR_IF([xml_lib_check],[yes],
-                                            [AC_CHECK_HEADER([pugixml.hpp],
-                                                             [xml_lib_found=yes])])],
-                               [libxml],
-                                 [PKG_PROG_PKG_CONFIG
-                                  PKG_CHECK_MODULES([LIBXML],[libxml-2.0],
-                                                    [xml_lib_found=yes],
-                                                    dnl override default
-                                                    dnl not-found action, so
-                                                    dnl configure won't abort.
-                                                    [:])],
-                               [])
-                       AS_VAR_IF([xml_lib_found],[yes],
-                                 [xml_skip_rest=yes])])
+            m4_case(XML_LIB,
+                    [pugi],
+                      [AC_CHECK_HEADER([pugixml.hpp],
+                                       [xml_lib_found=yes])],
+                    [libxml],
+                      [PKG_PROG_PKG_CONFIG
+                       PKG_CHECK_MODULES([LIBXML],[libxml-2.0],
+                                         [xml_lib_found=yes],
+                                         dnl override default
+                                         dnl not-found action, so
+                                         dnl configure won't abort.
+                                         [:])],
+                    [])
+            AS_IF([test "x${xml_lib_found}" = 'xyes' && test "x${xml_library}" = 'xauto'],
+                  [xml_library='XML_LIB'])
             m4_define([XML_LIB_UC], [m4_translit(XML_LIB,[a-z],[A-Z])])
             m4_define([XML_LIB_COND], [XML_]XML_LIB_UC)
-            AM_CONDITIONAL(XML_LIB_COND,[test "x${xml_lib_found}" = 'xyes'])])
+            m4_define([XML_LIB_USE_COND], [XML_USE_]XML_LIB_UC)
+            AM_CONDITIONAL(XML_LIB_COND,[test "x${xml_lib_found}" = 'xyes'])
+            AM_CONDITIONAL(XML_LIB_USE_COND,[test "x${xml_library}" = 'x[]XML_LIB'])])
 
 AC_LANG_POP([C++])
 

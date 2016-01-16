@@ -165,6 +165,7 @@ Long::process_toplevel (Xml::Base::Node const& node,
   toplevel = std::make_unique<LongNode> (node.name ());
   toplevel->min_occurences = 1;
   toplevel->max_occurences = 1;
+  node_stack.push (*toplevel);
 }
 
 void

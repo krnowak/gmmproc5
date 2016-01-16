@@ -24,10 +24,12 @@ struct ShortNode : public Named, public Counted, public Leafed
     using Named::Named;
   };
 
+  using ChildMap = StrMap<Child>;
+
   using Named::Named;
 
   StrMap<Attribute> attributes;
-  StrMap<Child> children;
+  ChildMap children;
   bool has_text = false;
 };
 

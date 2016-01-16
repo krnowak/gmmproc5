@@ -13,8 +13,9 @@
 
 #include <pugixml.hpp>
 
-#include <boost/range/iterator_range_core.hpp>
+#include <boost/iterator/filter_iterator.hpp>
 #include <boost/iterator/transform_iterator.hpp>
+#include <boost/range/iterator_range_core.hpp>
 
 #include <experimental/optional>
 
@@ -58,9 +59,16 @@ private:
   pugi::xml_node parent;
 };
 
+class TagPredicate
+{
+public:
+  bool operator() (pugi::xml_node const& node) const;
+};
+
 using NodeTransform = Node (*) (pugi::xml_node const&);
 
-using ChildIterator = boost::transform_iterator<NodeTransform, pugi::xml_node_iterator>;
+using ChildFilterIterator = boost::filter_iterator<TagPredicate, pugi::xml_node_iterator>;
+using ChildTransformIterator = boost::transform_iterator<NodeTransform, ChildFilterIterator>;
 using AttributeIterator = boost::transform_iterator<AttributeTransform, pugi::xml_attribute_iterator>;
 using SiblingIterator = boost::transform_iterator<NodeTransform, pugi::xml_named_node_iterator>;
 
@@ -93,7 +101,7 @@ public:
   using DocumentImpl = std::unique_ptr<pugi::xml_document>;
   using WalkerImpl = PugiXmlDetails::WalkerWrapper;
 
-  using ChildRange = boost::iterator_range<PugiXmlDetails::ChildIterator>;
+  using ChildRange = boost::iterator_range<PugiXmlDetails::ChildTransformIterator>;
   using AttributeRange = boost::iterator_range<PugiXmlDetails::AttributeIterator>;
   using SiblingRange = boost::iterator_range<PugiXmlDetails::SiblingIterator>;
 };
@@ -121,6 +129,12 @@ AttributeTransform::operator() (pugi::xml_attribute const& a) const
   return Attribute {AttributeWrapper {parent, a}};
 }
 
+inline bool
+TagPredicate::operator() (pugi::xml_node const& node) const
+{
+  return node.type () == pugi::node_element;
+}
+
 inline
 WalkerWrapper::WalkerWrapper (Walker& w)
   : walker {w},
@@ -130,6 +144,10 @@ WalkerWrapper::WalkerWrapper (Walker& w)
 inline bool
 WalkerWrapper::for_each (pugi::xml_node& node)
 {
+  if (node.type () != pugi::node_element)
+  {
+    return true;
+  }
   if (!run_postprocessing ())
   {
     return false;
@@ -228,20 +246,17 @@ Node::text () const
 }
 
 template <>
-inline bool
-Node::is_tag () const
-{
-  return impl.type () == pugi::node_element;
-}
-
-template <>
 inline XmlImpl::ChildRange
 Node::children () const
 {
   auto r = impl.children ();
   auto convert = [](pugi::xml_node const& node) { return Node {node}; };
-  auto b = XmlImpl::ChildRange::iterator {r.begin (), convert};
-  auto e = XmlImpl::ChildRange::iterator {r.end (), convert};
+  auto rb = r.begin ();
+  auto re = r.end ();
+  auto fb = PugiXmlDetails::ChildFilterIterator {PugiXmlDetails::TagPredicate {}, rb, re};
+  auto fe = PugiXmlDetails::ChildFilterIterator {PugiXmlDetails::TagPredicate {}, re, re};
+  auto b = PugiXmlDetails::ChildTransformIterator {fb, convert};
+  auto e = PugiXmlDetails::ChildTransformIterator {fe, convert};
   return XmlImpl::ChildRange {b, e};
 }
 

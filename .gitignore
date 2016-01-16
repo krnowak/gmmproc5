@@ -4,6 +4,8 @@
 *.l[ao]
 *.[ao]
 *~
+*.log
+*.trs
 
 /aclocal.m4
 /autom4te.cache
@@ -25,6 +27,7 @@
 /build/install-sh
 /build/ltmain.sh
 /build/missing
+/build/test-driver
 
 /m4/libtool.m4
 /m4/ltoptions.m4
@@ -42,3 +45,6 @@
 /src/mm/main/main
 
 /src/mm/test/test
+
+/src/mm/xml/base/tests/pugi-node
+/src/mm/xml/base/tests/pugi-walker

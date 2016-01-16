@@ -19,8 +19,11 @@ namespace LameSchemaGen
 
 class Attribute::Type
 {
-private:
-  virtual std::unique_ptr<Type>
+public:
+  using TypePtr = std::unique_ptr<Type>;
+  virtual ~Type () = default;
+
+  virtual TypePtr
   maybe_create_new (Str const& value) = 0;
 
   virtual Str
@@ -30,10 +33,51 @@ private:
 namespace
 {
 
-class UndeterminedType;
-class BoolType;
-class NumericType;
-class StringType;
+class UndeterminedType : public Attribute::Type
+{
+  virtual TypePtr
+  maybe_create_new (Str const& value) override;
+
+  virtual Str
+  to_string () const override;
+};
+
+class BoolType : public Attribute::Type
+{
+public:
+  BoolType (bool explicit_value);
+
+  virtual TypePtr
+  maybe_create_new (Str const& value) override;
+
+  virtual Str
+  to_string () const override;
+
+private:
+  TypePtr
+  update_with_value (bool explicit_value);
+
+  bool implicit_value;
+  bool mixed_implicit_value = false;
+};
+
+class NumericType : public Attribute::Type
+{
+  virtual TypePtr
+  maybe_create_new (Str const& value) override;
+
+  virtual Str
+  to_string () const override;
+};
+
+class StringType : public Attribute::Type
+{
+  virtual TypePtr
+  maybe_create_new (Str const&) override;
+
+  virtual Str
+  to_string () const override;
+};
 
 // prereq: first != last
 template <typename Iterator>
@@ -51,7 +95,7 @@ is_numeric_range (Iterator first, Iterator const &last)
   return std::find_if (first, last, [](auto c) { return !std::isdigit (c); }) == last;
 }
 
-bool
+std::pair<bool, bool>
 is_string_bool_value (Str const& value)
 {
   if ((value == "t") || (value == "y") || (value == "true") || (value == "yes"))
@@ -79,151 +123,125 @@ is_numeric_bool_value (Str const& value)
   return std::make_pair (false, false);
 }
 
-// prereq: value.empty () == false
-std::unique_ptr<Attribute::Type>
-get_attribute_type (Str const& value)
+Attribute::Type::TypePtr
+UndeterminedType::maybe_create_new (Str const& value)
 {
-}
-
-class UndeterminedType : public Attribute::Type
-{
-private:
-  virtual std::unique_ptr<Type>
-  maybe_create_new (Str const& value)
+  if (value.empty ())
   {
-    if (value.empty ())
-    {
-      return std::make_unique<BoolType> (true);
-    }
-    if (is_numeric_range (value.cbegin (), value.cend ()))
-    {
-      auto const bool_desc = is_numeric_bool_value (value);
-
-      if (bool_desc.first)
-      {
-        return std::make_unique<BoolType> (bool_desc.second);
-      }
-      return std::make_unique<NumericType> ();
-    }
-
-    auto const bool_desc = is_string_bool_value (value);
+    return TypePtr {std::make_unique<BoolType> (true)};
+  }
+  if (is_numeric_range (value.cbegin (), value.cend ()))
+  {
+    auto const bool_desc = is_numeric_bool_value (value);
 
     if (bool_desc.first)
     {
-      return std::make_unique<BoolType> (bool_desc.second);
+      return TypePtr {std::make_unique<BoolType> (bool_desc.second)};
     }
-    return std::make_unique<StringType> ();
+    return TypePtr {std::make_unique<NumericType> ()};
   }
 
-  virtual Str
-  to_string () const
+  auto const bool_desc = is_string_bool_value (value);
+
+  if (bool_desc.first)
   {
-    return "undetermined";
+    return TypePtr {std::make_unique<BoolType> (bool_desc.second)};
   }
-};
+  return TypePtr {std::make_unique<StringType> ()};
+}
 
-class BoolType : public Attribute::Type
+Str
+UndeterminedType::to_string () const
 {
-public:
-  BoolType (bool explicit_value)
-    : implicit_value {!explicit_value}
-  {}
+  return "undetermined";
+}
 
-private:
-  virtual std::unique_ptr<Type>
-  maybe_create_new (Str const& value)
+BoolType::BoolType (bool explicit_value)
+  : implicit_value {!explicit_value}
+{}
+
+Attribute::Type::TypePtr
+BoolType::maybe_create_new (Str const& value)
+{
+  if (value.empty ())
   {
-    if (value.empty ())
-    {
-      return update_with_value (true);
-    }
-    if (is_numeric_range (value.cbegin (), value.cend ()))
-    {
-      auto const bool_desc = is_numeric_bool_value (value);
-
-      if (bool_desc.first)
-      {
-        return update_with_value (bool_desc.second);
-      }
-      return std::make_unique<NumericType> ();
-    }
-
-    auto const bool_desc = is_string_bool_value (value);
+    return update_with_value (true);
+  }
+  if (is_numeric_range (value.cbegin (), value.cend ()))
+  {
+    auto const bool_desc = is_numeric_bool_value (value);
 
     if (bool_desc.first)
     {
       return update_with_value (bool_desc.second);
     }
-    return std::make_unique<StringType> ();
+    return TypePtr {std::make_unique<NumericType> ()};
   }
 
-  std::unique_ptr<Type>
-  update_with_value (bool explicit_value)
+  auto const bool_desc = is_string_bool_value (value);
+
+  if (bool_desc.first)
   {
-    if (!mixed_implicit_value && (implicit_value == explicit_value))
-    {
-      mixed_implicit_value = true;
-    }
-    return nullptr;
+    return update_with_value (bool_desc.second);
   }
+  return TypePtr {std::make_unique<StringType> ()};
+}
 
-  virtual Str
-  to_string () const
-  {
-    if (mixed_implicit_value)
-    {
-      return "bool";
-    }
-    if (implicit_value)
-    {
-      return "bool-t";
-    }
-    return "bool-f";
-  }
-
-  bool implicit_value;
-  bool mixed_implicit_value = false;
-};
-
-class NumericType : public Attribute::Type
+Str
+BoolType::to_string () const
 {
-private:
-  virtual std::unique_ptr<Type>
-  maybe_create_new (Str const& value)
+  if (mixed_implicit_value)
   {
-    if (value.empty ())
-    {
-      return std::make_unique<StringType> ();
-    }
-    if (!is_numeric_range (value.cbegin (), value.cend ()))
-    {
-      return std::make_unique<StringType> ();
-    }
-    return nullptr;
+    return "bool";
   }
-
-  virtual Str
-  to_string () const
+  if (implicit_value)
   {
-    return "int";
+    return "bool-t";
   }
-};
+  return "bool-f";
+}
 
-class StringType : public Attribute::Type
+Attribute::Type::TypePtr
+BoolType::update_with_value (bool explicit_value)
 {
-private:
-  virtual std::unique_ptr<Type>
-  maybe_create_new (Str const&)
+  if (!mixed_implicit_value && (implicit_value == explicit_value))
   {
-    return nullptr;
+    mixed_implicit_value = true;
   }
+  return TypePtr {};
+}
 
-  virtual Str
-  to_string () const
+Attribute::Type::TypePtr
+NumericType::maybe_create_new (Str const& value)
+{
+  if (value.empty ())
   {
-    return "string";
+    return TypePtr {std::make_unique<StringType> ()};
   }
-};
+  if (!is_numeric_range (value.cbegin (), value.cend ()))
+  {
+    return TypePtr {std::make_unique<StringType> ()};
+  }
+  return nullptr;
+}
+
+Str
+NumericType::to_string () const
+{
+  return "int";
+}
+
+Attribute::Type::TypePtr
+StringType::maybe_create_new (Str const&)
+{
+  return TypePtr {};
+}
+
+Str
+StringType::to_string () const
+{
+  return "string";
+}
 
 } // anonymous namespace
 
@@ -233,12 +251,12 @@ Attribute::Attribute (Str const& name)
     unique {true}
 {}
 
-Attribute::Attribute (Attribute&& attribute) = default;
+Attribute::Attribute (Attribute&&) = default;
 
 Attribute::~Attribute () = default;
 
 Attribute&
-Attribute::operator= (Attribute&& attribute) = default;
+Attribute::operator= (Attribute&&) = default;
 
 void
 Attribute::update (Str const& value)

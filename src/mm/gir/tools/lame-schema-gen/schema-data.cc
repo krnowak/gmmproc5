@@ -60,25 +60,12 @@ private:
   Long l;
 };
 
-} // anonymous namespace
-
-// static
-SchemaData
-SchemaData::get_from_gir_paths (GirPaths const& paths)
+StrVector
+parse_doc_in_path (GirWalker& walker, std::string const& dir, std::string const& path)
 {
-  StrSet parsed;
-  GirWalker walker;
-  auto files = paths.files;
-
-  while (!files.empty ())
+  try
   {
-    auto const& path = files.front ();
-    files.pop ();
-    if (parsed.find (path) != parsed.end ())
-    {
-      continue;
-    }
-
+    StrVector files;
     Xml::Base::Document doc {path};
     auto const repo = doc.as_node ().child ("repository");
 
@@ -102,13 +89,48 @@ SchemaData::get_from_gir_paths (GirPaths const& paths)
         }
 
         auto const inc_filename = name_attr->value () + "-" + version_attr->value () + ".gir";
-        auto const inc_full_path = paths.dir + "/" + inc_filename;
+        auto const inc_full_path = dir + "/" + inc_filename;
 
-        files.push (inc_full_path);
+        files.push_back (inc_full_path);
       }
     }
-
     walker.walk (doc);
+    return files;
+  }
+  catch (std::exception&)
+  {
+    std::ostringstream oss;
+
+    oss << "failed to parse file " << path;
+    std::throw_with_nested (std::runtime_error {oss.str ()});
+  }
+}
+
+} // anonymous namespace
+
+// static
+SchemaData
+SchemaData::get_from_gir_paths (GirPaths const& paths)
+{
+  StrSet parsed;
+  GirWalker walker;
+  auto files = paths.files;
+
+  while (!files.empty ())
+  {
+    auto const path = files.front ();
+
+    files.pop ();
+    if (parsed.find (path) != parsed.end ())
+    {
+      continue;
+    }
+
+    auto new_files = parse_doc_in_path (walker, paths.dir, path);
+    for (auto& path : new_files)
+    {
+      files.push (std::move (path));
+    }
     parsed.insert (path);
   }
 

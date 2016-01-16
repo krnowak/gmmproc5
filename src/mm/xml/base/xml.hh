@@ -33,7 +33,7 @@ using Attribute = AttributeTmpl<XmlImpl>;
 using Document = DocumentTmpl<XmlImpl>;
 using Walker = WalkerTmpl<XmlImpl>;
 
-class ParseError : std::runtime_error
+class ParseError : public std::runtime_error
 {
 public:
   using std::runtime_error::runtime_error;
@@ -52,7 +52,6 @@ public:
   std::experimental::optional<NodeTmpl<Impl>> child (std::string const& name) const;
   std::experimental::optional<AttributeTmpl<Impl>> attribute (std::string const& name) const;
   std::string text () const;
-  bool is_tag () const;
 
   typename Impl::ChildRange children () const;
   typename Impl::AttributeRange attributes () const;
@@ -98,7 +97,7 @@ private:
   virtual bool node (NodeTmpl<Impl>& node, int depth) = 0;
   virtual bool postprocess_node (NodeTmpl<Impl>& node, int depth) = 0;
 
-  friend class Impl::WalkerImpl;
+  friend typename Impl::WalkerImpl;
   typename Impl::WalkerImpl impl;
 };
 

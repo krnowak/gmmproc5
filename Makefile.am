@@ -18,6 +18,8 @@ noinst_LIBRARIES =
 bin_PROGRAMS =
 noinst_PROGRAMS =
 BUILT_SOURCES =
+check_PROGRAMS =
+TESTS =
 
 include $(top_srcdir)/src/src.am
 
