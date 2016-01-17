@@ -9,22 +9,46 @@
 #include <utility>
 #include <vector>
 
+struct N
+{
+  N(std::string&& n, int d)
+    : name {std::move (n)},
+      depth {d}
+  {}
+  std::string name;
+  int depth;
+};
+
+bool
+operator== (N const& n1, N const& n2)
+{
+  return n1.name == n2.name && n1.depth == n2.depth;
+}
+
+bool
+operator!= (N const& n1, N const& n2)
+{
+  return !(n1 == n2);
+}
+
 class TestWalker : public Mm::Xml::Base::Walker
 {
 public:
-  std::vector<std::string> visited_nodes;
+  std::vector<N> nodes;
 
 private:
-  virtual bool node (Mm::Xml::Base::Node& node, int) override
+  virtual bool node (Mm::Xml::Base::Node& node,
+                     int depth) override
   {
-    visited_nodes.push_back (node.name ());
+    nodes.emplace_back (node.name (), depth);
     return true;
   }
 
-  virtual bool postprocess_node (Mm::Xml::Base::Node& node, int) override
+  virtual bool postprocess_node (Mm::Xml::Base::Node& node,
+                                 int depth) override
   {
     auto pname = "-" + node.name ();
-    visited_nodes.push_back (std::move (pname));
+    nodes.emplace_back (std::move (pname), depth);
     return true;
   }
 };
@@ -32,7 +56,7 @@ private:
 int
 main ()
 {
-  std::vector<std::string> expected {"a", "b", "c", "-c", "d", "-d", "-b", "e", "f", "-f", "g", "-g", "-e", "-a"};
+  std::vector<N> expected {{"a", 0}, {"b", 1}, {"c", 2}, {"-c", 2}, {"d", 2}, {"-d", 2}, {"-b", 1}, {"e", 1}, {"f", 2}, {"-f", 2}, {"g", 2}, {"-g", 2}, {"-e", 1}, {"-a", 0}};
 
   Mm::Xml::Base::Document doc;
 
@@ -57,21 +81,21 @@ main ()
   w.walk (doc);
 
   auto code = 0;
-  if (w.visited_nodes.size () != expected.size ())
+  if (w.nodes.size () != expected.size ())
   {
     code = 1;
-    std::cerr << "got nodes size: " << w.visited_nodes.size () << ", expected: " << expected.size () << "\n";
+    std::cerr << "got nodes size: " << w.nodes.size () << ", expected: " << expected.size () << "\n";
   }
 
-  for (auto const&p : boost::make_iterator_range (boost::make_zip_iterator (boost::make_tuple (w.visited_nodes.begin (), expected.begin ())),
-                                                  boost::make_zip_iterator (boost::make_tuple (w.visited_nodes.end (), expected.end ()))))
+  for (auto const&p : boost::make_iterator_range (boost::make_zip_iterator (boost::make_tuple (w.nodes.begin (), expected.begin ())),
+                                                  boost::make_zip_iterator (boost::make_tuple (w.nodes.end (), expected.end ()))))
   {
     auto const& got = p.get<0> ();
     auto const& ex = p.get<1> ();
 
     if (got != ex)
     {
-      std::cerr << "got node '" << got << "', expected '" << ex << "'\n";
+      std::cerr << "got node '" << got.name << "' (depth: " << got.depth << "), expected '" << ex.name << "' (depth: " << ex.depth << ")\n";
       code = 1;
     }
   }

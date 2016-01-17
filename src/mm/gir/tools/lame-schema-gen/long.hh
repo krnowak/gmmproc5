@@ -39,8 +39,7 @@ private:
                           int depth) override;
 
   void
-  process_toplevel (Xml::Base::Node const& node,
-                    int depth);
+  process_toplevel (Xml::Base::Node const& node);
 
   void
   process_element (Xml::Base::Node const& node,

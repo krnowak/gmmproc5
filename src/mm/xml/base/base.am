@@ -37,15 +37,15 @@ xml_base_libxml_tests = \
 #check_PROGRAMS += $(xml_base_libxml_tests)
 #TESTS += $(xml_base_libxml_tests)
 
-src_mm_xml_base_tests_libxml_node_SOURCES = $(xml_base_tests_node_sources)
-src_mm_xml_base_tests_libxml_node_CPPFLAGS = $(xml_base_libxml_cppflags) -I$(top_srcdir)/src
-src_mm_xml_base_tests_libxml_node_LDADD = $(xml_base_libxml_ldadd)
-src_mm_xml_base_tests_libxml_node_CXXFLAGS = $(common_cxxflags)
+#src_mm_xml_base_tests_libxml_node_SOURCES = $(xml_base_tests_node_sources)
+#src_mm_xml_base_tests_libxml_node_CPPFLAGS = $(xml_base_libxml_cppflags) -I$(top_srcdir)/src
+#src_mm_xml_base_tests_libxml_node_LDADD = $(xml_base_libxml_ldadd)
+#src_mm_xml_base_tests_libxml_node_CXXFLAGS = $(common_cxxflags)
 
-src_mm_xml_base_tests_libxml_walker_SOURCES = $(xml_base_tests_walker_sources)
-src_mm_xml_base_tests_libxml_walker_CPPFLAGS = $(xml_base_libxml_cppflags) -I$(top_srcdir)/src
-src_mm_xml_base_tests_libxml_walker_LDADD = $(xml_base_libxml_ldadd)
-src_mm_xml_base_tests_libxml_walker_CXXFLAGS = $(common_cxxflags)
+#src_mm_xml_base_tests_libxml_walker_SOURCES = $(xml_base_tests_walker_sources)
+#src_mm_xml_base_tests_libxml_walker_CPPFLAGS = $(xml_base_libxml_cppflags) -I$(top_srcdir)/src
+#src_mm_xml_base_tests_libxml_walker_LDADD = $(xml_base_libxml_ldadd)
+#src_mm_xml_base_tests_libxml_walker_CXXFLAGS = $(common_cxxflags)
 
 endif
 

@@ -13,7 +13,7 @@
  *   <short>
  *     <element name="name">
  *       <attributes>
- *         <attribute name="name" type="string|int|bool-f|bool-t" />
+ *         <attribute name="name" type="string|int|bool-f|bool-t" unique="0|1"/>
  *         ...
  *       </attributes>
  *       <children>
@@ -26,7 +26,7 @@
  *   <long>
  *     <element name="name" type="optional|single|vector|map|vector-map">
  *       <attributes>
- *         <attribute name="name" type="string|int|bool-f|bool-t" />
+ *         <attribute name="name" type="string|int|bool-f|bool-t" unique="0|1"/>
  *         ...
  *       </attributes>
  *       <children>

@@ -52,14 +52,22 @@ must_get (MapType& m,
   return iter->second;
 }
 
+template <std::size_t idx, typename MapTypeIterator>
+auto
+get_map_iterator (MapTypeIterator&& i)
+{
+  auto get_nth = [](auto& pair) -> decltype(auto) { return std::get<idx> (pair); };
+
+  return boost::make_transform_iterator (std::forward<MapTypeIterator> (i), get_nth);
+}
+
 template <std::size_t idx, typename MapType>
 auto
 get_map_range (MapType& m)
 {
-  auto get_nth = [](auto& pair) -> decltype(auto) { return std::get<idx> (pair); };
 
-  return boost::make_iterator_range (boost::make_transform_iterator (m.begin (), get_nth),
-                                     boost::make_transform_iterator (m.end (), get_nth));
+  return boost::make_iterator_range (get_map_iterator<idx> (m.begin ()),
+                                     get_map_iterator<idx> (m.end ()));
 }
 
 } // namespace LameSchemaGen

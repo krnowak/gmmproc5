@@ -3,6 +3,7 @@
 #include "types.hh"
 #include "utils.hh"
 
+#include <boost/algorithm/string/join.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 
 #include <algorithm>
@@ -77,6 +78,7 @@ enum class ChildType
 };
 
 // optional-ptr - bottommost recursive node (type -> array -> type)
+//                                                opt      ptr
 // optional-opt - others
 ChildType
 get_child_type (WithOccurences const& child)
@@ -92,8 +94,29 @@ get_child_type (WithOccurences const& child)
   return ChildType::MULTI;
 }
 
+class UniqueAttributePredicate
+{
+public:
+  bool
+  operator() (StrMap<Attribute>::value_type const& p) const
+  {
+    return p.second.is_unique ();
+  }
+};
+
+StrVector
+get_unique_attribute_names (StrMap<Attribute> const& attributes)
+{
+  UniqueAttributePredicate pred;
+  auto fb = boost::make_filter_iterator (pred, attributes.begin (), attributes.end ());
+  auto fe = boost::make_filter_iterator (pred, attributes.end (), attributes.end ());
+  return get_sorted_strings (get_map_iterator<0> (std::move (fb)),
+                             get_map_iterator<0> (std::move (fe)));
+}
+
 void
 set_short_child_type_attributes (ShortNode::Child const& child,
+                                 ShortNode const& full_child,
                                  Xml::Base::Node& child_node)
 {
   switch (get_child_type (child))
@@ -109,8 +132,18 @@ set_short_child_type_attributes (ShortNode::Child const& child,
     break;
 
   case ChildType::MULTI:
-    // TODO: use map-vector for children with some unique attribute
-    child_node.add_attribute ("type", "vector");
+    {
+      auto unique_attrs = get_unique_attribute_names (full_child.attributes);
+      if (unique_attrs.empty ())
+      {
+        child_node.add_attribute ("type", "vector");
+      }
+      else
+      {
+        child_node.add_attribute ("type", "vector-map");
+        child_node.add_attribute ("extra-type-info", boost::algorithm::join (unique_attrs, "|"));
+      }
+    }
     break;
   }
 }
@@ -144,9 +177,10 @@ build_short (Xml::Base::Node& root,
     {
       auto const& child = must_get (data.children, child_name);
       auto child_node = children_node.add_child ("element");
+      auto const& full_child = must_get (short_data, child_name);
 
       child_node.add_attribute ("name", child_name);
-      set_short_child_type_attributes (child, child_node);
+      set_short_child_type_attributes (child, full_child, child_node);
     }
   }
 }
@@ -167,8 +201,18 @@ set_long_child_type_attributes (LongNode const& child,
     break;
 
   case ChildType::MULTI:
-    // TODO: use map-vector for children with some unique attribute
-    child_node.add_attribute ("type", "vector");
+    {
+      auto unique_attrs = get_unique_attribute_names (child.attributes);
+      if (unique_attrs.empty ())
+      {
+        child_node.add_attribute ("type", "vector");
+      }
+      else
+      {
+        child_node.add_attribute ("type", "vector-map");
+        child_node.add_attribute ("extra-type-info", boost::algorithm::join (unique_attrs, "|"));
+      }
+    }
     break;
   }
 }

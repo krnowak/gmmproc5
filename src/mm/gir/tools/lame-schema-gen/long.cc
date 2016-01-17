@@ -151,20 +151,21 @@ postprocess_single_element (LongNode& data,
 } // anonymous namespace
 
 void
-Long::process_toplevel (Xml::Base::Node const& node,
-                        int depth)
+Long::process_toplevel (Xml::Base::Node const& node)
 {
-  if (depth > 0)
+  if (!toplevel)
   {
-    throw std::logic_error ("no toplevel node, but the depth is greater than zero");
+    toplevel = std::make_unique<LongNode> (node.name ());
+    toplevel->min_occurences = 1;
+    toplevel->max_occurences = 1;
   }
-  if (!node_stack.empty ())
+  else if (toplevel->name != node.name ())
   {
-    throw std::logic_error ("no toplevel node, but node stack is not empty");
+    std::ostringstream oss;
+
+    oss << "toplevels with different names: '" << toplevel->name << "' so far, and new '" << node.name () << "'";
+    throw std::runtime_error (oss.str ());
   }
-  toplevel = std::make_unique<LongNode> (node.name ());
-  toplevel->min_occurences = 1;
-  toplevel->max_occurences = 1;
   node_stack.push (*toplevel);
 }
 
@@ -172,10 +173,6 @@ void
 Long::process_element (Xml::Base::Node const& node,
                        int depth)
 {
-  if (depth == 0)
-  {
-    throw std::logic_error ("there is a toplevel node, but the depth is zero");
-  }
   if (node_stack.empty ())
   {
     throw std::logic_error ("there is a toplevel node, but node stack is empty");
@@ -214,13 +211,13 @@ void
 Long::process_node_vfunc (Xml::Base::Node const& node,
                           int depth)
 {
-  if (!toplevel)
+  if (depth > 0)
   {
-    process_toplevel (node, depth);
+    process_element (node, depth);
   }
   else
   {
-    process_element (node, depth);
+    process_toplevel (node);
   }
 }
 
