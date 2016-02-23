@@ -26,6 +26,7 @@ namespace LameSchemaGen
 
 using Str = std::string;
 using StrSet = std::unordered_set<Str>;
+using StrMultiSet = std::unordered_multiset<Str>;
 template <typename T>
 using StrMap = std::unordered_map<Str, T>;
 using StrQueue = std::queue<Str>;

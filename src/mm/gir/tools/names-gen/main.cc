@@ -1,5 +1,7 @@
 #include <mm/xml/base/xml.hh>
 
+#include <boost/algorithm/string.hpp>
+
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -40,24 +42,30 @@ private:
       }
       names.push_back (attribute->value ());
     }
+    return true;
   }
 
   virtual bool postprocess_node (Xml::Node&,
                                  int) override
-  {}
+  {
+    return true;
+  }
 
   std::vector<std::string> names;
 };
 
-void
-clean_document (Xml::Document& doc)
+Xml::Document
+get_cleaned_up_document (std::string const& path)
 {
+  Xml::Document doc (path);
   auto root_tag = doc.root_tag ();
 
   if (!root_tag)
   {
-    std::cerr << "document " << argv[1] << " has no contents\n";
-    return 1;
+    std::ostringstream oss;
+
+    oss << "document " << path << " has no contents\n";
+    throw std::runtime_error (oss.str ());
   }
 
   auto short_tag = root_tag->child ("short");
@@ -71,6 +79,7 @@ clean_document (Xml::Document& doc)
   {
     root_tag->remove (*long_tag);
   }
+  return doc;
 }
 
 class CxxNames
@@ -184,12 +193,16 @@ int
 main (int argc,
       char** argv)
 {
+  if (argc < 2)
+  {
+    std::cerr << "expected a path to gir.xml\n";
+    return 1;
+  }
   try
   {
-    Xml::Document doc (argv[1]);
+    auto doc = get_cleaned_up_document (argv[1]);
     NamesWalker walker;
 
-    clean_document (doc);
     walker.walk (doc);
     generate_names_code (walker.steal ());
   }

@@ -58,11 +58,18 @@ update_leaf_type (Xml::Base::Node const& node,
 
 void
 process_element (ShortNode& data,
-                 Xml::Base::Node const& data_node)
+                 Xml::Base::Node const& data_node,
+                 bool recursive)
 {
   ++data.count;
   data.has_text = (data.has_text || !data_node.text ().empty ());
   data.is_leaf = update_leaf_type (data_node, data.is_leaf);
+
+  auto parent = data_node.parent ();
+  if (parent)
+  {
+    data.parents.emplace (parent->name (), false);
+  }
 }
 
 void
@@ -247,30 +254,88 @@ private:
   Node* parent_impl;
 };
 
+// TODO: need to do a depth first search here
+void
+find_recursion_points (StrMap<ShortNode>& nodes
+                       Str const& root_name)
+{
+  using NodeRef = std::reference_wrapper<ShortNode>;
+  using StrRef = std::reference_wrapper<Str>;
+  using NodeTuple = std::tuple<NodeRef, StrRef, int>;
+
+  Str empty;
+  std::stack<NodeTuple> node_stack;
+  StrMultiSet nodes_in_path;
+  std::stack<Str> path;
+  auto& root = must_get (nodes, root_name);
+
+  node_stack.emplace (root, empty, 0);
+  while (!node_queue.empty ())
+  {
+    auto& t = node_stack.top ().get ();
+    auto& node = std::get<0> (t).get ();
+    auto const& parent_name = std::get<1> (t).get ();
+    auto const depth = std::get<2> (t);
+    node_queue.pop ();
+
+    // adjust path and nodes_in_path
+    // check if current node name already exists in nodes_in_path
+    // add current node to path and nodes_in_path
+    // add current node's children to node_stack (preferably in reverse order)
+  }
+}
+
 } // anonymous namespace
 
 void
 Short::process_node_vfunc (Xml::Base::Node const& data_node,
-                           int)
+                           int depth)
 {
   auto const name = data_node.name ();
   auto pair = nodes.emplace (name, name);
   auto& data = pair.first->second;
+  auto iter = nodes_in_path.find (name);
+  auto recursive = iter != nodes_in_path.cend ();
 
-  process_element (data, data_node);
+  if (!depth)
+  {
+    if (toplevel_name.empty ())
+    {
+      toplevel_name = name;
+    }
+    else if (toplevel_name != name)
+    {
+      std::ostringstream oss;
+
+      oss << "different toplevel names, '" << toplevel_name << "' and '" << name << "'";
+      throw std::runtime_error (oss.str ());
+    }
+  }
+
+  nodes_in_path.insert (name);
+  process_element (data, data_node, recursive);
   process_attributes (data, data_node);
   process_children (data, data_node);
 }
 
 void
 Short::postprocess_node_vfunc (Xml::Base::Node const& data_node,
-                               int)
+                               int depth)
 {
   auto& data = must_get (nodes, data_node.name ());
   ShortNodeWrapper<ShortNode> data_wrapper {data, nodes};
 
   get_unique_attributes (data_wrapper, data_node);
   get_occurences (data_wrapper, data_node);
+}
+
+void
+Short::wrap_up_vfunc ()
+{
+  if (!toplevel_name.empty ())
+  {
+    find_recursion_points (nodes, toplevel_name);
+  }
 }
 
 StrMap<ShortNode>&&

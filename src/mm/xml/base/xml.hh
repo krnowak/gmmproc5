@@ -113,7 +113,6 @@ public:
   DocumentTmpl& operator= (Document&& doc);
   DocumentTmpl& operator= (Document const& doc) = delete;
 
-  NodeTmpl<Impl> as_node () const;
   std::experimental::optional<NodeTmpl<Impl>> root_tag () const;
 
   NodeTmpl<Impl> add_root (std::string const& name);

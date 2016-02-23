@@ -5,5 +5,4 @@ src_mm_gir_girs = GtkSource-3.0.gir
 
 src/mm/gir/gir.xml: src/mm/gir/tools/lame-schema-gen/lame-schema-gen
 	$(AM_V_GEN)$(top_builddir)/src/mm/gir/tools/lame-schema-gen/lame-schema-gen $(GIRDIR) $(src_mm_gir_girs) >"$@.tmp"
-	$(AM_V_at)cmp --silent "$@" "$@.tmp" || mv "$@.tmp" "$@"
-	$(AM_V_at)rm --force "$@.tmp"
+	$(AM_V_at)mv "$@.tmp" "$@"

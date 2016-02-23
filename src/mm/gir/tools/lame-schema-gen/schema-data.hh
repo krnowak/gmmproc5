@@ -29,6 +29,7 @@ struct ShortNode : public Named, public Counted, public Leafed
   using Named::Named;
 
   StrMap<Attribute> attributes;
+  StrMap<bool> parents;
   ChildMap children;
   bool has_text = false;
 };

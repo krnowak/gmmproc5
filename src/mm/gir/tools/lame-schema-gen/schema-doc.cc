@@ -77,9 +77,6 @@ enum class ChildType
   MULTI
 };
 
-// optional-ptr - bottommost recursive node (type -> array -> type)
-//                                                opt      ptr
-// optional-opt - others
 ChildType
 get_child_type (WithOccurences const& child)
 {
@@ -114,6 +111,9 @@ get_unique_attribute_names (StrMap<Attribute> const& attributes)
                              get_map_iterator<0> (std::move (fe)));
 }
 
+// optional-ptr - bottommost recursive node (type -> array -> type)
+//                                                opt      ptr
+// optional-opt - others
 void
 set_short_child_type_attributes (ShortNode::Child const& child,
                                  ShortNode const& full_child,
@@ -161,8 +161,10 @@ build_short (Xml::Base::Node& root,
     auto element_node = short_node.add_child ("element");
     auto attributes_node = element_node.add_child ("attributes");
     auto children_node = element_node.add_child ("children");
+    auto parents_node = element_node.add_child ("parents");
     auto const sorted_attrs = get_sorted_strings_from_strmap (data.attributes);
     auto const sorted_children = get_sorted_strings_from_strmap (data.children);
+    auto const sorted_parents = get_sorted_strings_from_strmap (data.parents);
 
     element_node.add_attribute ("name", name);
     for (auto const& attr_name : sorted_attrs)
@@ -181,6 +183,12 @@ build_short (Xml::Base::Node& root,
 
       child_node.add_attribute ("name", child_name);
       set_short_child_type_attributes (child, full_child, child_node);
+    }
+    for (auto const& parent_name : sorted_parents)
+    {
+      auto parent_node = parents_node.add_child ("parent");
+      parent_node.add_attribute ("name", parent_name);
+      parent_node.add_attribute ("recursion_point", must_get (data.parents, parent_name) ? "1" : "0");
     }
   }
 }

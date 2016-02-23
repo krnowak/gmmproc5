@@ -101,6 +101,9 @@
         <element name="doc" type="optional" extra-type-info="ptr" />
         <element name="type" type="single" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+      </parents>
     </element>
     <element name="array">
       <attributes>
@@ -114,6 +117,14 @@
         <element name="array" type="optional" extra-type-info="ptr" />
         <element name="type" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="array" recursion_point="1" />
+        <parent name="field" recursion_point="0" />
+        <parent name="parameter" recursion_point="0" />
+        <parent name="property" recursion_point="0" />
+        <parent name="return-value" recursion_point="0" />
+        <parent name="type" recursion_point="0" />
+      </parents>
     </element>
     <element name="bitfield">
       <attributes>
@@ -130,12 +141,18 @@
         <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
         <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+      </parents>
     </element>
     <element name="c:include">
       <attributes>
         <attribute name="name" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="repository" recursion_point="0" />
+      </parents>
     </element>
     <element name="callback">
       <attributes>
@@ -153,6 +170,10 @@
         <element name="parameters" type="optional" extra-type-info="ptr" />
         <element name="return-value" type="single" />
       </children>
+      <parents>
+        <parent name="field" recursion_point="0" />
+        <parent name="namespace" recursion_point="0" />
+      </parents>
     </element>
     <element name="class">
       <attributes>
@@ -180,6 +201,9 @@
         <element name="property" type="vector-map" extra-type-info="name" />
         <element name="virtual-method" type="vector-map" extra-type-info="name" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+      </parents>
     </element>
     <element name="constant">
       <attributes>
@@ -195,6 +219,9 @@
         <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
         <element name="type" type="single" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+      </parents>
     </element>
     <element name="constructor">
       <attributes>
@@ -214,24 +241,67 @@
         <element name="parameters" type="optional" extra-type-info="ptr" />
         <element name="return-value" type="single" />
       </children>
+      <parents>
+        <parent name="class" recursion_point="0" />
+        <parent name="record" recursion_point="0" />
+        <parent name="union" recursion_point="0" />
+      </parents>
     </element>
     <element name="doc">
       <attributes>
         <attribute name="xml:space" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="alias" recursion_point="0" />
+        <parent name="bitfield" recursion_point="0" />
+        <parent name="callback" recursion_point="0" />
+        <parent name="class" recursion_point="0" />
+        <parent name="constant" recursion_point="0" />
+        <parent name="constructor" recursion_point="0" />
+        <parent name="enumeration" recursion_point="0" />
+        <parent name="field" recursion_point="0" />
+        <parent name="function" recursion_point="0" />
+        <parent name="glib:signal" recursion_point="0" />
+        <parent name="instance-parameter" recursion_point="0" />
+        <parent name="interface" recursion_point="0" />
+        <parent name="member" recursion_point="0" />
+        <parent name="method" recursion_point="0" />
+        <parent name="parameter" recursion_point="0" />
+        <parent name="property" recursion_point="0" />
+        <parent name="record" recursion_point="0" />
+        <parent name="return-value" recursion_point="0" />
+        <parent name="union" recursion_point="0" />
+        <parent name="virtual-method" recursion_point="0" />
+      </parents>
     </element>
     <element name="doc-deprecated">
       <attributes>
         <attribute name="xml:space" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="bitfield" recursion_point="0" />
+        <parent name="callback" recursion_point="0" />
+        <parent name="constant" recursion_point="0" />
+        <parent name="constructor" recursion_point="0" />
+        <parent name="enumeration" recursion_point="0" />
+        <parent name="function" recursion_point="0" />
+        <parent name="glib:signal" recursion_point="0" />
+        <parent name="method" recursion_point="0" />
+        <parent name="property" recursion_point="0" />
+        <parent name="record" recursion_point="0" />
+        <parent name="virtual-method" recursion_point="0" />
+      </parents>
     </element>
     <element name="doc-version">
       <attributes>
         <attribute name="xml:space" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="method" recursion_point="0" />
+      </parents>
     </element>
     <element name="enumeration">
       <attributes>
@@ -250,6 +320,9 @@
         <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
         <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+      </parents>
     </element>
     <element name="field">
       <attributes>
@@ -266,6 +339,11 @@
         <element name="doc" type="optional" extra-type-info="ptr" />
         <element name="type" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="class" recursion_point="0" />
+        <parent name="record" recursion_point="0" />
+        <parent name="union" recursion_point="0" />
+      </parents>
     </element>
     <element name="function">
       <attributes>
@@ -286,6 +364,14 @@
         <element name="parameters" type="optional" extra-type-info="ptr" />
         <element name="return-value" type="single" />
       </children>
+      <parents>
+        <parent name="class" recursion_point="0" />
+        <parent name="enumeration" recursion_point="0" />
+        <parent name="interface" recursion_point="0" />
+        <parent name="namespace" recursion_point="0" />
+        <parent name="record" recursion_point="0" />
+        <parent name="union" recursion_point="0" />
+      </parents>
     </element>
     <element name="glib:signal">
       <attributes>
@@ -306,12 +392,19 @@
         <element name="parameters" type="optional" extra-type-info="ptr" />
         <element name="return-value" type="single" />
       </children>
+      <parents>
+        <parent name="class" recursion_point="0" />
+        <parent name="interface" recursion_point="0" />
+      </parents>
     </element>
     <element name="implements">
       <attributes>
         <attribute name="name" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="class" recursion_point="0" />
+      </parents>
     </element>
     <element name="include">
       <attributes>
@@ -319,6 +412,9 @@
         <attribute name="version" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="repository" recursion_point="0" />
+      </parents>
     </element>
     <element name="instance-parameter">
       <attributes>
@@ -333,6 +429,9 @@
         <element name="doc" type="optional" extra-type-info="ptr" />
         <element name="type" type="single" />
       </children>
+      <parents>
+        <parent name="parameters" recursion_point="0" />
+      </parents>
     </element>
     <element name="interface">
       <attributes>
@@ -353,6 +452,9 @@
         <element name="property" type="vector-map" extra-type-info="name" />
         <element name="virtual-method" type="vector-map" extra-type-info="name" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+      </parents>
     </element>
     <element name="member">
       <attributes>
@@ -364,6 +466,10 @@
       <children>
         <element name="doc" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="bitfield" recursion_point="0" />
+        <parent name="enumeration" recursion_point="0" />
+      </parents>
     </element>
     <element name="method">
       <attributes>
@@ -385,6 +491,12 @@
         <element name="parameters" type="single" />
         <element name="return-value" type="single" />
       </children>
+      <parents>
+        <parent name="class" recursion_point="0" />
+        <parent name="interface" recursion_point="0" />
+        <parent name="record" recursion_point="0" />
+        <parent name="union" recursion_point="0" />
+      </parents>
     </element>
     <element name="namespace">
       <attributes>
@@ -406,12 +518,18 @@
         <element name="record" type="vector-map" extra-type-info="c:type|name" />
         <element name="union" type="vector" />
       </children>
+      <parents>
+        <parent name="repository" recursion_point="0" />
+      </parents>
     </element>
     <element name="package">
       <attributes>
         <attribute name="name" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="repository" recursion_point="0" />
+      </parents>
     </element>
     <element name="parameter">
       <attributes>
@@ -432,6 +550,9 @@
         <element name="type" type="optional" extra-type-info="ptr" />
         <element name="varargs" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="parameters" recursion_point="0" />
+      </parents>
     </element>
     <element name="parameters">
       <attributes />
@@ -439,12 +560,23 @@
         <element name="instance-parameter" type="optional" extra-type-info="ptr" />
         <element name="parameter" type="vector-map" extra-type-info="name" />
       </children>
+      <parents>
+        <parent name="callback" recursion_point="0" />
+        <parent name="constructor" recursion_point="0" />
+        <parent name="function" recursion_point="0" />
+        <parent name="glib:signal" recursion_point="0" />
+        <parent name="method" recursion_point="0" />
+        <parent name="virtual-method" recursion_point="0" />
+      </parents>
     </element>
     <element name="prerequisite">
       <attributes>
         <attribute name="name" type="string" />
       </attributes>
       <children />
+      <parents>
+        <parent name="interface" recursion_point="0" />
+      </parents>
     </element>
     <element name="property">
       <attributes>
@@ -465,6 +597,10 @@
         <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
         <element name="type" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="class" recursion_point="0" />
+        <parent name="interface" recursion_point="0" />
+      </parents>
     </element>
     <element name="record">
       <attributes>
@@ -490,6 +626,10 @@
         <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
         <element name="union" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+        <parent name="union" recursion_point="0" />
+      </parents>
     </element>
     <element name="repository">
       <attributes>
@@ -504,6 +644,9 @@
         <element name="namespace" type="single" />
         <element name="package" type="vector-map" extra-type-info="name" />
       </children>
+      <parents>
+        <parent name="" recursion_point="0" />
+      </parents>
     </element>
     <element name="return-value">
       <attributes>
@@ -515,6 +658,14 @@
         <element name="doc" type="optional" extra-type-info="ptr" />
         <element name="type" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="callback" recursion_point="0" />
+        <parent name="constructor" recursion_point="0" />
+        <parent name="function" recursion_point="0" />
+        <parent name="glib:signal" recursion_point="0" />
+        <parent name="method" recursion_point="0" />
+        <parent name="virtual-method" recursion_point="0" />
+      </parents>
     </element>
     <element name="type">
       <attributes>
@@ -525,6 +676,17 @@
         <element name="array" type="optional" extra-type-info="ptr" />
         <element name="type" type="vector" />
       </children>
+      <parents>
+        <parent name="alias" recursion_point="0" />
+        <parent name="array" recursion_point="0" />
+        <parent name="constant" recursion_point="0" />
+        <parent name="field" recursion_point="0" />
+        <parent name="instance-parameter" recursion_point="0" />
+        <parent name="parameter" recursion_point="0" />
+        <parent name="property" recursion_point="0" />
+        <parent name="return-value" recursion_point="0" />
+        <parent name="type" recursion_point="1" />
+      </parents>
     </element>
     <element name="union">
       <attributes>
@@ -542,10 +704,17 @@
         <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
         <element name="record" type="optional" extra-type-info="ptr" />
       </children>
+      <parents>
+        <parent name="namespace" recursion_point="0" />
+        <parent name="record" recursion_point="0" />
+      </parents>
     </element>
     <element name="varargs">
       <attributes />
       <children />
+      <parents>
+        <parent name="parameter" recursion_point="0" />
+      </parents>
     </element>
     <element name="virtual-method">
       <attributes>
@@ -563,6 +732,10 @@
         <element name="parameters" type="single" />
         <element name="return-value" type="single" />
       </children>
+      <parents>
+        <parent name="class" recursion_point="0" />
+        <parent name="interface" recursion_point="0" />
+      </parents>
     </element>
   </short>
   <long>

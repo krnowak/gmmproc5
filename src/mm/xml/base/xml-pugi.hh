@@ -426,13 +426,6 @@ Document::operator= (Document&& doc)
 }
 
 template <>
-inline Node
-Document::as_node () const
-{
-  return Node {impl->root ()};
-}
-
-template <>
 inline std::experimental::optional<Node>
 Document::root_tag () const
 {
@@ -459,7 +452,7 @@ Document::add_root (std::string const& name)
       throw std::runtime_error (oss.str ());
     }
   }
-  return as_node ().add_child (name);
+  return Node {impl->root ()}.add_child (name);
 }
 
 template <>

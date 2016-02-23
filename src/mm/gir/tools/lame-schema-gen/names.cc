@@ -46,6 +46,10 @@ Names::postprocess_node_vfunc (Xml::Base::Node const&,
                                int)
 {}
 
+void
+Names::wrap_up_vfunc ()
+{}
+
 StrSet&&
 Names::steal ()
 {

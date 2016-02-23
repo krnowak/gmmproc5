@@ -33,6 +33,9 @@ private:
   postprocess_node_vfunc (Xml::Base::Node const& node,
                           int depth) override;
 
+  virtual void
+  wrap_up_vfunc () override;
+
   StrSet names;
 };
 

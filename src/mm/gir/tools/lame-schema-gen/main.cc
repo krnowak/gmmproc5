@@ -20,6 +20,10 @@
  *         <element name="name" type="optional|single|vector|map|vector-map" extra-type-info="opt or ptr for optional type, attribute name for map or vector-map, nothing for vector or single"/>
  *         ...
  *       </children>
+ *       <parents>
+ *         <parent name="name"/>
+ *         ...
+ *       </parents>
  *     </element>
  *     ...
  *   </short>

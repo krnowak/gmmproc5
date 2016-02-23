@@ -54,5 +54,10 @@ main ()
     }
   }
 
+  if (a_node.parent ())
+  {
+    std::cerr << "toplevel node should not have any parent\n";
+    code = 1;
+  }
   return code;
 }

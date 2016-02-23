@@ -236,6 +236,10 @@ Long::postprocess_node_vfunc (Xml::Base::Node const& node,
   node_stack.pop ();
 }
 
+void
+Long::wrap_up_vfunc ()
+{}
+
 std::unique_ptr<LongNode>&&
 Long::steal ()
 {

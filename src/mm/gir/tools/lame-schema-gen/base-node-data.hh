@@ -26,6 +26,9 @@ public:
   postprocess_node (Xml::Base::Node const& node,
                     int depth);
 
+  void
+  wrap_up ();
+
 private:
   virtual void
   process_node_vfunc (Xml::Base::Node const& node,
@@ -34,6 +37,9 @@ private:
   virtual void
   postprocess_node_vfunc (Xml::Base::Node const& node,
                           int depth) = 0;
+
+  virtual void
+  wrap_up_vfunc () = 0;
 };
 
 } // namespace LameSchemaGen

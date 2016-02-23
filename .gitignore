@@ -42,6 +42,8 @@
 
 /src/mm/gir/tools/lame-schema-gen/lame-schema-gen
 
+/src/mm/gir/tools/names-gen/names-gen
+
 /src/mm/main/main
 
 /src/mm/test/test

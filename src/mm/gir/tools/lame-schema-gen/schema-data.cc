@@ -29,6 +29,9 @@ public:
   void
   fill_data (SchemaData& data)
   {
+    n.wrap_up ();
+    s.wrap_up ();
+    l.wrap_up ();
     data.names = n.steal ();
     data.short_data = s.steal ();
     data.toplevel_long_node = l.steal ();
@@ -67,11 +70,15 @@ parse_doc_in_path (GirWalker& walker, std::string const& dir, std::string const&
   {
     StrVector files;
     Xml::Base::Document doc {path};
-    auto const repo = doc.as_node ().child ("repository");
+    auto const repo = doc.root_tag ();
 
     if (!repo)
     {
       throw std::runtime_error ("malformed gir file - no toplevel repository tag");
+    }
+    if (repo->name () != "repository")
+    {
+      throw std::runtime_error ("malformed gir file - toplevel tag is not named repository");
     }
 
     auto const include_child = repo->child ("include");
