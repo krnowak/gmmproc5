@@ -1,5 +1,4 @@
 #include "gir-paths.hh"
-#include "long.hh"
 #include "names.hh"
 #include "schema-data.hh"
 #include "short.hh"
@@ -31,10 +30,8 @@ public:
   {
     n.wrap_up ();
     s.wrap_up ();
-    l.wrap_up ();
     data.names = n.steal ();
     data.short_data = s.steal ();
-    data.toplevel_long_node = l.steal ();
   }
 
 private:
@@ -44,7 +41,6 @@ private:
   {
     n.process_node (node, depth);
     s.process_node (node, depth);
-    l.process_node (node, depth);
     return true;
   }
 
@@ -54,13 +50,11 @@ private:
   {
     n.postprocess_node (node, depth);
     s.postprocess_node (node, depth);
-    l.postprocess_node (node, depth);
     return true;
   }
 
   Names n;
   Short s;
-  Long l;
 };
 
 StrVector

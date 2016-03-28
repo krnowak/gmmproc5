@@ -26,6 +26,12 @@ BaseNodeData::postprocess_node (Xml::Base::Node const& node,
   postprocess_node_vfunc (node, depth);
 }
 
+void
+BaseNodeData::wrap_up ()
+{
+  wrap_up_vfunc ();
+}
+
 } // namespace LameSchemaGen
 
 } // namespace Tools

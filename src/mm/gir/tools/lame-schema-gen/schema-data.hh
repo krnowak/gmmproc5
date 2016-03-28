@@ -25,23 +25,15 @@ struct ShortNode : public Named, public Counted, public Leafed
   };
 
   using ChildMap = StrMap<Child>;
+  using Sets = std::vector<StrSortedSet>;
 
   using Named::Named;
 
   StrMap<Attribute> attributes;
+  Sets children_sets;
   StrMap<bool> parents;
   ChildMap children;
   bool has_text = false;
-};
-
-struct LongNode : public Named, public Counted, public WithOccurences
-{
-  using Named::Named;
-
-  StrMap<Attribute> attributes;
-  StrMap<std::unique_ptr<LongNode>> children;
-  bool has_text = false;
-  int depth = 0;
 };
 
 class GirPaths;
@@ -54,7 +46,6 @@ public:
 
   StrSet names;
   StrMap<ShortNode> short_data;
-  std::unique_ptr<LongNode> toplevel_long_node;
 
 private:
   SchemaData () = default;

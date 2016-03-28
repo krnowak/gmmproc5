@@ -13,12 +13,22 @@
  *   <short>
  *     <element name="name">
  *       <attributes>
- *         <attribute name="name" type="string|int|bool-f|bool-t" unique="0|1"/>
- *         ...
+ *         <listing>
+ *           <attribute name="name" type="string|int|bool-f|bool-t" unique="0|1"/>
+ *           ...
+ *         </listing>
  *       </attributes>
  *       <children>
- *         <element name="name" type="optional|single|vector|map|vector-map" extra-type-info="opt or ptr for optional type, attribute name for map or vector-map, nothing for vector or single"/>
- *         ...
+ *         <listing>
+ *           <element name="name" type="optional|single|vector|map|vector-map" extra-type-info="opt or ptr for optional type, pipe-separated attribute names for map or vector-map, nothing for vector or single"/>
+ *           ...
+ *         </listing>
+ *         <sets>
+ *           <set>
+ *             <element name="name">
+ *             ...
+ *           </set>
+ *         </sets>
  *       </children>
  *       <parents>
  *         <parent name="name"/>
@@ -27,20 +37,6 @@
  *     </element>
  *     ...
  *   </short>
- *   <long>
- *     <element name="name" type="optional|single|vector|map|vector-map">
- *       <attributes>
- *         <attribute name="name" type="string|int|bool-f|bool-t" unique="0|1"/>
- *         ...
- *       </attributes>
- *       <children>
- *         <element name="name" type="optional|single|vector|map|vector-map">
- *           ...
- *         </element>
- *         ...
- *       </children>
- *     </element>
- *   </long>
  * </lameschema>
  */
 

@@ -4,6 +4,7 @@
 #include <limits>
 #include <memory>
 #include <queue>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -26,6 +27,7 @@ namespace LameSchemaGen
 
 using Str = std::string;
 using StrSet = std::unordered_set<Str>;
+using StrSortedSet = std::set<Str>;
 using StrMultiSet = std::unordered_multiset<Str>;
 template <typename T>
 using StrMap = std::unordered_map<Str, T>;

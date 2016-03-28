@@ -58,8 +58,7 @@ update_leaf_type (Xml::Base::Node const& node,
 
 void
 process_element (ShortNode& data,
-                 Xml::Base::Node const& data_node,
-                 bool recursive)
+                 Xml::Base::Node const& data_node)
 {
   ++data.count;
   data.has_text = (data.has_text || !data_node.text ().empty ());
@@ -69,6 +68,59 @@ process_element (ShortNode& data,
   if (parent)
   {
     data.parents.emplace (parent->name (), false);
+  }
+}
+
+StrSortedSet
+get_diff (StrSortedSet const& first, StrSortedSet const& second)
+{
+  StrSortedSet output;
+
+  std::set_difference (first.cbegin (), first.cend (),
+                       second.cbegin (), second.cend (),
+                       std::inserter (output, output.begin ()));
+  return output;
+}
+
+void
+process_sets (StrSortedSet&& fresh_set, ShortNode::Sets& sets)
+{
+  auto iter = sets.begin ();
+
+  for (; iter != sets.cend (); ++iter)
+  {
+    auto& set = *iter;
+    StrSortedSet only_in_fresh = get_diff (fresh_set, set);
+
+    if (only_in_fresh.empty ())
+    {
+      // fresh set has nothing new, nothing to do
+      return;
+    }
+
+    StrSortedSet only_in_set = get_diff (set, fresh_set);
+    if (only_in_set.empty ())
+    {
+      // fresh has some new elements, update the set
+      set.insert (only_in_fresh.cbegin (), only_in_fresh.cend ());
+      break;
+    }
+    // fresh set and set have exclusive elements, try another set
+  }
+  if (iter != sets.cend ())
+  {
+    auto const& updated_set = *iter;
+    sets.erase (std::remove_if (sets.begin (), sets.end (),
+                                [&updated_set](auto const& set)
+                                {
+                                  return &updated_set != &set &&
+                                    get_diff (set, updated_set).empty ();
+                                }), sets.end ());
+    return;
+  }
+  else
+  {
+    sets.push_back (std::move (fresh_set));
   }
 }
 
@@ -91,11 +143,15 @@ void
 process_children (ShortNode& data,
                   Xml::Base::Node const& data_node)
 {
+  StrSortedSet children;
+
   for (auto child_node : data_node.children ())
   {
     auto const name = child_node.name ();
     data.children.emplace (name, name);
+    children.insert (name);
   }
+  process_sets (std::move (children), data.children_sets);
 }
 
 // implements NodeWrapperModel
@@ -254,34 +310,75 @@ private:
   Node* parent_impl;
 };
 
-// TODO: need to do a depth first search here
+class Path
+{
+public:
+  void
+  add (Str const& name)
+  {
+    mset.insert (name);
+    stack.push (name);
+  }
+
+  bool
+  visited (Str const &name)
+  {
+    return mset.find (name) != mset.cend ();
+  }
+
+  void
+  truncate(std::size_t depth) {
+    while (!stack.empty() && stack.size() >= depth)
+    {
+      auto& name = stack.top ();
+      auto iter = mset.find (name);
+
+      if (iter == mset.cend ()) {
+        throw std::runtime_error ("map and stack in path should have the same contents");
+      }
+      mset.erase (iter);
+      stack.pop ();
+    }
+  }
+
+private:
+  StrMultiSet mset;
+  std::stack<Str> stack;
+};
+
 void
-find_recursion_points (StrMap<ShortNode>& nodes
+find_recursion_points (StrMap<ShortNode>& nodes,
                        Str const& root_name)
 {
   using NodeRef = std::reference_wrapper<ShortNode>;
   using StrRef = std::reference_wrapper<Str>;
-  using NodeTuple = std::tuple<NodeRef, StrRef, int>;
-
+  using NodeTuple = std::tuple<NodeRef, StrRef, std::size_t>;
+  Path path;
   Str empty;
   std::stack<NodeTuple> node_stack;
-  StrMultiSet nodes_in_path;
-  std::stack<Str> path;
   auto& root = must_get (nodes, root_name);
 
   node_stack.emplace (root, empty, 0);
-  while (!node_queue.empty ())
+  while (!node_stack.empty ())
   {
-    auto& t = node_stack.top ().get ();
+    auto& t = node_stack.top ();
     auto& node = std::get<0> (t).get ();
     auto const& parent_name = std::get<1> (t).get ();
     auto const depth = std::get<2> (t);
-    node_queue.pop ();
+    node_stack.pop ();
 
-    // adjust path and nodes_in_path
-    // check if current node name already exists in nodes_in_path
-    // add current node to path and nodes_in_path
-    // add current node's children to node_stack (preferably in reverse order)
+    path.truncate (depth);
+    if (path.visited (node.name))
+    {
+      node.parents[parent_name] = true;
+      continue;
+    }
+    path.add (node.name);
+    for (auto const& p : node.children)
+    {
+      auto& child = must_get (nodes, p.first);
+      node_stack.emplace (child, node.name, depth + 1);
+    }
   }
 }
 
@@ -294,8 +391,6 @@ Short::process_node_vfunc (Xml::Base::Node const& data_node,
   auto const name = data_node.name ();
   auto pair = nodes.emplace (name, name);
   auto& data = pair.first->second;
-  auto iter = nodes_in_path.find (name);
-  auto recursive = iter != nodes_in_path.cend ();
 
   if (!depth)
   {
@@ -312,15 +407,14 @@ Short::process_node_vfunc (Xml::Base::Node const& data_node,
     }
   }
 
-  nodes_in_path.insert (name);
-  process_element (data, data_node, recursive);
+  process_element (data, data_node);
   process_attributes (data, data_node);
   process_children (data, data_node);
 }
 
 void
 Short::postprocess_node_vfunc (Xml::Base::Node const& data_node,
-                               int depth)
+                               int)
 {
   auto& data = must_get (nodes, data_node.name ());
   ShortNodeWrapper<ShortNode> data_wrapper {data, nodes};
