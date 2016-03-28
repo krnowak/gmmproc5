@@ -43,6 +43,10 @@ update_occurences (WithOccurences& wo,
   {
     wo.max_occurences = occurences;
   }
+  if (occurences > 0)
+  {
+    ++wo.parent_count;
+  }
 }
 
 void

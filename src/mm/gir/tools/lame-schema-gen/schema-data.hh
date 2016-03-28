@@ -17,9 +17,9 @@ namespace Tools
 namespace LameSchemaGen
 {
 
-struct ShortNode : public Named, public Counted, public Leafed
+struct ShortNode : public Named, public Counted
 {
-  struct Child : public Named, public WithOccurences
+  struct Child : public Named, public WithOccurences, public Counted
   {
     using Named::Named;
   };
@@ -31,9 +31,13 @@ struct ShortNode : public Named, public Counted, public Leafed
 
   StrMap<Attribute> attributes;
   Sets children_sets;
+  StrSortedSet exclusives;
+  StrSortedSet common;
   StrMap<bool> parents;
   ChildMap children;
   bool has_text = false;
+  std::size_t count_as_leaf = 0;
+  std::size_t count_as_nonleaf = 0;
 };
 
 class GirPaths;

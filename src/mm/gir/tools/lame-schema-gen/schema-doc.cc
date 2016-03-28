@@ -175,7 +175,8 @@ build_short_children (StrMap<ShortNode> const& short_data,
 {
   auto children_node = element_node.add_child ("children");
   auto children_listing_node = children_node.add_child ("listing");
-  auto children_sets_node = children_node.add_child ("sets");
+  auto children_common_node = children_node.add_child ("common");
+  auto children_exclusives_node = children_node.add_child ("exclusives");
   auto const sorted_children = get_sorted_strings_from_strmap (data.children);
 
   for (auto const& child_name : sorted_children)
@@ -187,21 +188,17 @@ build_short_children (StrMap<ShortNode> const& short_data,
     child_node.add_attribute ("name", child_name);
     set_short_child_type_attributes (child, full_child, child_node);
   }
-  for (auto const& set : data.children_sets)
+  for (auto const& common_name : data.common)
   {
-    if (set.empty ())
-    {
-      continue;
-    }
+    auto element_in_common_node = children_common_node.add_child ("element");
 
-    auto set_node = children_sets_node.add_child ("set");
+    element_in_common_node.add_attribute ("name", common_name);
+  }
+  for (auto const& exclusive_name : data.exclusives)
+  {
+    auto element_in_exclusives_node = children_exclusives_node.add_child ("element");
 
-    for (auto const& name : set)
-    {
-      auto element_in_set_node = set_node.add_child ("element");
-
-      element_in_set_node.add_attribute ("name", name);
-    }
+    element_in_exclusives_node.add_attribute ("name", exclusive_name);
   }
 }
 

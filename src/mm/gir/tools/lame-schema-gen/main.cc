@@ -23,12 +23,14 @@
  *           <element name="name" type="optional|single|vector|map|vector-map" extra-type-info="opt or ptr for optional type, pipe-separated attribute names for map or vector-map, nothing for vector or single"/>
  *           ...
  *         </listing>
- *         <sets>
- *           <set>
- *             <element name="name">
- *             ...
- *           </set>
- *         </sets>
+ *         <common>
+ *           <element name="name">
+ *           ...
+ *         </common>
+ *         <exclusives>
+ *           <element name="name">
+ *           ...
+ *         </exclusives>
  *       </children>
  *       <parents>
  *         <parent name="name"/>

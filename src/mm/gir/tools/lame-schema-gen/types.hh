@@ -52,19 +52,8 @@ struct WithOccurences
 {
   std::size_t min_occurences = std::numeric_limits<std::size_t>::max ();
   std::size_t max_occurences = 0;
-};
-
-enum class LeafType
-{
-  UNDETERMINED,
-  NEVER_A_LEAF,
-  SOMETIMES_A_LEAF,
-  ALWAYS_A_LEAF
-};
-
-struct Leafed
-{
-  LeafType is_leaf = LeafType::UNDETERMINED;
+  // how many parents have at least one child with this name
+  std::size_t parent_count = 0;
 };
 
 class Attribute : public Named, public Counted

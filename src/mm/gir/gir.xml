@@ -108,12 +108,11 @@
           <element name="doc" type="optional" extra-type-info="ptr" />
           <element name="type" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="type" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="type" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -134,14 +133,11 @@
           <element name="array" type="optional" extra-type-info="ptr" />
           <element name="type" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="type" />
-          </set>
-          <set>
-            <element name="array" />
-          </set>
-        </sets>
+        <common />
+        <exclusives>
+          <element name="array" />
+          <element name="type" />
+        </exclusives>
       </children>
       <parents>
         <parent name="array" recursion_point="1" />
@@ -170,13 +166,12 @@
           <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
           <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="member" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="member" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -190,7 +185,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="repository" recursion_point="0" />
@@ -215,14 +211,13 @@
           <element name="parameters" type="optional" extra-type-info="ptr" />
           <element name="return-value" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="parameters" />
-            <element name="return-value" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="parameters" />
+          <element name="return-value" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="field" recursion_point="0" />
@@ -262,19 +257,18 @@
           <element name="property" type="vector-map" extra-type-info="name" />
           <element name="virtual-method" type="vector-map" extra-type-info="name" />
         </listing>
-        <sets>
-          <set>
-            <element name="constructor" />
-            <element name="doc" />
-            <element name="field" />
-            <element name="function" />
-            <element name="glib:signal" />
-            <element name="implements" />
-            <element name="method" />
-            <element name="property" />
-            <element name="virtual-method" />
-          </set>
-        </sets>
+        <common>
+          <element name="constructor" />
+          <element name="doc" />
+          <element name="field" />
+          <element name="function" />
+          <element name="glib:signal" />
+          <element name="implements" />
+          <element name="method" />
+          <element name="property" />
+          <element name="virtual-method" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -297,13 +291,12 @@
           <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
           <element name="type" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="type" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="type" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -330,14 +323,13 @@
           <element name="parameters" type="optional" extra-type-info="ptr" />
           <element name="return-value" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="parameters" />
-            <element name="return-value" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="parameters" />
+          <element name="return-value" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="class" recursion_point="0" />
@@ -353,7 +345,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="alias" recursion_point="0" />
@@ -386,7 +379,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="bitfield" recursion_point="0" />
@@ -410,7 +404,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="method" recursion_point="0" />
@@ -436,18 +431,13 @@
           <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="function" />
-            <element name="member" />
-          </set>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="member" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="function" />
+          <element name="member" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -471,19 +461,14 @@
           <element name="doc" type="optional" extra-type-info="ptr" />
           <element name="type" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="type" />
-          </set>
-          <set>
-            <element name="callback" />
-          </set>
-          <set>
-            <element name="array" />
-            <element name="doc" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+        </common>
+        <exclusives>
+          <element name="array" />
+          <element name="callback" />
+          <element name="type" />
+        </exclusives>
       </children>
       <parents>
         <parent name="class" recursion_point="0" />
@@ -513,14 +498,13 @@
           <element name="parameters" type="optional" extra-type-info="ptr" />
           <element name="return-value" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="parameters" />
-            <element name="return-value" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="parameters" />
+          <element name="return-value" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="class" recursion_point="0" />
@@ -553,14 +537,13 @@
           <element name="parameters" type="optional" extra-type-info="ptr" />
           <element name="return-value" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="parameters" />
-            <element name="return-value" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="parameters" />
+          <element name="return-value" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="class" recursion_point="0" />
@@ -575,7 +558,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="class" recursion_point="0" />
@@ -590,7 +574,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="repository" recursion_point="0" />
@@ -612,12 +597,11 @@
           <element name="doc" type="optional" extra-type-info="ptr" />
           <element name="type" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="type" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="type" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="parameters" recursion_point="0" />
@@ -645,17 +629,16 @@
           <element name="property" type="vector-map" extra-type-info="name" />
           <element name="virtual-method" type="vector-map" extra-type-info="name" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="function" />
-            <element name="glib:signal" />
-            <element name="method" />
-            <element name="prerequisite" />
-            <element name="property" />
-            <element name="virtual-method" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="function" />
+          <element name="glib:signal" />
+          <element name="method" />
+          <element name="prerequisite" />
+          <element name="property" />
+          <element name="virtual-method" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -674,11 +657,10 @@
         <listing>
           <element name="doc" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="bitfield" recursion_point="0" />
@@ -708,20 +690,14 @@
           <element name="parameters" type="single" />
           <element name="return-value" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="parameters" />
-            <element name="return-value" />
-          </set>
-          <set>
-            <element name="doc" />
-            <element name="doc-version" />
-            <element name="parameters" />
-            <element name="return-value" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="doc-version" />
+          <element name="parameters" />
+          <element name="return-value" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="class" recursion_point="0" />
@@ -753,41 +729,19 @@
           <element name="record" type="vector-map" extra-type-info="c:type|name" />
           <element name="union" type="vector" />
         </listing>
-        <sets>
-          <set>
-            <element name="alias" />
-            <element name="bitfield" />
-            <element name="callback" />
-            <element name="class" />
-            <element name="constant" />
-            <element name="enumeration" />
-            <element name="function" />
-            <element name="interface" />
-            <element name="record" />
-          </set>
-          <set>
-            <element name="alias" />
-            <element name="bitfield" />
-            <element name="callback" />
-            <element name="class" />
-            <element name="constant" />
-            <element name="enumeration" />
-            <element name="function" />
-            <element name="record" />
-            <element name="union" />
-          </set>
-          <set>
-            <element name="alias" />
-            <element name="bitfield" />
-            <element name="callback" />
-            <element name="class" />
-            <element name="constant" />
-            <element name="function" />
-            <element name="interface" />
-            <element name="record" />
-            <element name="union" />
-          </set>
-        </sets>
+        <common>
+          <element name="alias" />
+          <element name="bitfield" />
+          <element name="callback" />
+          <element name="class" />
+          <element name="constant" />
+          <element name="enumeration" />
+          <element name="function" />
+          <element name="interface" />
+          <element name="record" />
+          <element name="union" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="repository" recursion_point="0" />
@@ -801,7 +755,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="repository" recursion_point="0" />
@@ -829,20 +784,14 @@
           <element name="type" type="optional" extra-type-info="ptr" />
           <element name="varargs" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="type" />
-          </set>
-          <set>
-            <element name="doc" />
-            <element name="varargs" />
-          </set>
-          <set>
-            <element name="array" />
-            <element name="doc" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+        </common>
+        <exclusives>
+          <element name="array" />
+          <element name="type" />
+          <element name="varargs" />
+        </exclusives>
       </children>
       <parents>
         <parent name="parameters" recursion_point="0" />
@@ -857,12 +806,11 @@
           <element name="instance-parameter" type="optional" extra-type-info="ptr" />
           <element name="parameter" type="vector-map" extra-type-info="name" />
         </listing>
-        <sets>
-          <set>
-            <element name="instance-parameter" />
-            <element name="parameter" />
-          </set>
-        </sets>
+        <common>
+          <element name="instance-parameter" />
+          <element name="parameter" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="callback" recursion_point="0" />
@@ -881,7 +829,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="interface" recursion_point="0" />
@@ -909,17 +858,14 @@
           <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
           <element name="type" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="type" />
-          </set>
-          <set>
-            <element name="array" />
-            <element name="doc" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+        </common>
+        <exclusives>
+          <element name="array" />
+          <element name="type" />
+        </exclusives>
       </children>
       <parents>
         <parent name="class" recursion_point="0" />
@@ -953,29 +899,16 @@
           <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="union" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="field" />
-            <element name="function" />
-            <element name="method" />
-          </set>
-          <set>
-            <element name="constructor" />
-            <element name="doc" />
-            <element name="field" />
-            <element name="method" />
-            <element name="union" />
-          </set>
-          <set>
-            <element name="constructor" />
-            <element name="doc" />
-            <element name="field" />
-            <element name="function" />
-            <element name="method" />
-          </set>
-        </sets>
+        <common>
+          <element name="constructor" />
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="field" />
+          <element name="function" />
+          <element name="method" />
+          <element name="union" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -998,14 +931,13 @@
           <element name="namespace" type="single" />
           <element name="package" type="vector-map" extra-type-info="name" />
         </listing>
-        <sets>
-          <set>
-            <element name="c:include" />
-            <element name="include" />
-            <element name="namespace" />
-            <element name="package" />
-          </set>
-        </sets>
+        <common>
+          <element name="c:include" />
+          <element name="include" />
+          <element name="namespace" />
+          <element name="package" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="" recursion_point="0" />
@@ -1024,16 +956,13 @@
           <element name="doc" type="optional" extra-type-info="ptr" />
           <element name="type" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="type" />
-          </set>
-          <set>
-            <element name="array" />
-            <element name="doc" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+        </common>
+        <exclusives>
+          <element name="array" />
+          <element name="type" />
+        </exclusives>
       </children>
       <parents>
         <parent name="callback" recursion_point="0" />
@@ -1056,14 +985,11 @@
           <element name="array" type="optional" extra-type-info="ptr" />
           <element name="type" type="vector" />
         </listing>
-        <sets>
-          <set>
-            <element name="type" />
-          </set>
-          <set>
-            <element name="array" />
-          </set>
-        </sets>
+        <common />
+        <exclusives>
+          <element name="array" />
+          <element name="type" />
+        </exclusives>
       </children>
       <parents>
         <parent name="alias" recursion_point="0" />
@@ -1096,20 +1022,15 @@
           <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="record" type="optional" extra-type-info="ptr" />
         </listing>
-        <sets>
-          <set>
-            <element name="constructor" />
-            <element name="doc" />
-            <element name="field" />
-            <element name="function" />
-            <element name="method" />
-          </set>
-          <set>
-            <element name="doc" />
-            <element name="field" />
-            <element name="record" />
-          </set>
-        </sets>
+        <common>
+          <element name="constructor" />
+          <element name="doc" />
+          <element name="field" />
+          <element name="function" />
+          <element name="method" />
+          <element name="record" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="namespace" recursion_point="0" />
@@ -1122,7 +1043,8 @@
       </attributes>
       <children>
         <listing />
-        <sets />
+        <common />
+        <exclusives />
       </children>
       <parents>
         <parent name="parameter" recursion_point="0" />
@@ -1147,14 +1069,13 @@
           <element name="parameters" type="single" />
           <element name="return-value" type="single" />
         </listing>
-        <sets>
-          <set>
-            <element name="doc" />
-            <element name="doc-deprecated" />
-            <element name="parameters" />
-            <element name="return-value" />
-          </set>
-        </sets>
+        <common>
+          <element name="doc" />
+          <element name="doc-deprecated" />
+          <element name="parameters" />
+          <element name="return-value" />
+        </common>
+        <exclusives />
       </children>
       <parents>
         <parent name="class" recursion_point="0" />

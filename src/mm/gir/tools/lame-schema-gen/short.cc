@@ -1,8 +1,10 @@
 #include "node-common.hh"
 #include "short.hh"
+#include "utils.hh"
 
-#include <boost/range/iterator_range_core.hpp>
+#include <boost/functional/hash.hpp>
 #include <boost/iterator/transform_iterator.hpp>
+#include <boost/range/iterator_range_core.hpp>
 
 #include <functional>
 #include <iterator>
@@ -30,30 +32,7 @@ bool
 is_a_leaf (Xml::Base::Node const& node)
 {
   auto r = node.children ();
-  return std::distance (r.begin (), r.end ()) == 0;
-}
-
-LeafType
-update_leaf_type (Xml::Base::Node const& node,
-                  LeafType const& previous_type)
-{
-  switch (previous_type)
-  {
-  case LeafType::UNDETERMINED:
-    return (is_a_leaf (node) ? LeafType::ALWAYS_A_LEAF : LeafType::NEVER_A_LEAF);
-
-  case LeafType::NEVER_A_LEAF:
-    return (is_a_leaf (node) ? LeafType::SOMETIMES_A_LEAF : LeafType::NEVER_A_LEAF);
-
-  case LeafType::SOMETIMES_A_LEAF:
-    return LeafType::SOMETIMES_A_LEAF;
-
-  case LeafType::ALWAYS_A_LEAF:
-    return (is_a_leaf (node) ? LeafType::ALWAYS_A_LEAF : LeafType::SOMETIMES_A_LEAF);
-  }
-
-  // invalid case
-  return LeafType::UNDETERMINED;
+  return r.begin () == r.end ();
 }
 
 void
@@ -62,7 +41,14 @@ process_element (ShortNode& data,
 {
   ++data.count;
   data.has_text = (data.has_text || !data_node.text ().empty ());
-  data.is_leaf = update_leaf_type (data_node, data.is_leaf);
+  if (is_a_leaf (data_node))
+  {
+    ++data.count_as_leaf;
+  }
+  else
+  {
+    ++data.count_as_nonleaf;
+  }
 
   auto parent = data_node.parent ();
   if (parent)
@@ -72,7 +58,8 @@ process_element (ShortNode& data,
 }
 
 StrSortedSet
-get_diff (StrSortedSet const& first, StrSortedSet const& second)
+get_diff (StrSortedSet const& first,
+          StrSortedSet const& second)
 {
   StrSortedSet output;
 
@@ -83,14 +70,27 @@ get_diff (StrSortedSet const& first, StrSortedSet const& second)
 }
 
 void
-process_sets (StrSortedSet&& fresh_set, ShortNode::Sets& sets)
+deduplicate_sets (StrSortedSet const& updated_set,
+                  ShortNode::Sets& sets)
+{
+  sets.erase (std::remove_if (sets.begin (), sets.end (),
+                              [&updated_set](auto const& set)
+                              {
+                                return &updated_set != &set &&
+                                  get_diff (set, updated_set).empty ();
+                              }), sets.end ());
+}
+
+void
+process_sets (StrSortedSet&& fresh_set,
+              ShortNode::Sets& sets)
 {
   auto iter = sets.begin ();
 
   for (; iter != sets.cend (); ++iter)
   {
     auto& set = *iter;
-    StrSortedSet only_in_fresh = get_diff (fresh_set, set);
+    StrSortedSet const only_in_fresh = get_diff (fresh_set, set);
 
     if (only_in_fresh.empty ())
     {
@@ -98,7 +98,7 @@ process_sets (StrSortedSet&& fresh_set, ShortNode::Sets& sets)
       return;
     }
 
-    StrSortedSet only_in_set = get_diff (set, fresh_set);
+    StrSortedSet const only_in_set = get_diff (set, fresh_set);
     if (only_in_set.empty ())
     {
       // fresh has some new elements, update the set
@@ -109,13 +109,7 @@ process_sets (StrSortedSet&& fresh_set, ShortNode::Sets& sets)
   }
   if (iter != sets.cend ())
   {
-    auto const& updated_set = *iter;
-    sets.erase (std::remove_if (sets.begin (), sets.end (),
-                                [&updated_set](auto const& set)
-                                {
-                                  return &updated_set != &set &&
-                                    get_diff (set, updated_set).empty ();
-                                }), sets.end ());
+    deduplicate_sets (*iter, sets);
     return;
   }
   else
@@ -148,7 +142,8 @@ process_children (ShortNode& data,
   for (auto child_node : data_node.children ())
   {
     auto const name = child_node.name ();
-    data.children.emplace (name, name);
+    auto p = data.children.emplace (name, name);
+    ++p.first->second.count;
     children.insert (name);
   }
   process_sets (std::move (children), data.children_sets);
@@ -254,7 +249,7 @@ private:
     using ParentType = typename FromNodeWrapper::NodeType;
     using PairType = add_const_if_const_t<typename ChildMapType::value_type, ParentType>;
 
-    // Default construct is provided only because
+    // Default constructor is provided only because
     // boost::transform_iterator requires the functor to be default
     // constructible.
     ChildToWrapper () = default;
@@ -382,6 +377,181 @@ find_recursion_points (StrMap<ShortNode>& nodes,
   }
 }
 
+StrSortedSet
+get_symmetric_diff (StrSortedSet const& first,
+                    StrSortedSet const& second)
+{
+  StrSortedSet output;
+
+  std::set_symmetric_difference (first.cbegin (), first.cend (),
+                                 second.cbegin (), second.cend (),
+                                 std::inserter (output, output.begin ()));
+
+  return output;
+}
+
+StrSortedSet
+get_maybe_exclusives (ShortNode const& node)
+{
+  StrSortedSet exclusives;
+
+  for (auto const& set : node.children_sets)
+  {
+    exclusives = get_symmetric_diff (set, exclusives);
+  }
+
+  return exclusives;
+}
+
+using Combinations = std::vector<std::vector<std::size_t>>;
+
+class CombinationsCache
+{
+public:
+  Combinations const&
+  get_combinations(std::size_t n,
+                   std::size_t k)
+  {
+    auto cached = get_cached (n, k);
+    if (cached)
+    {
+      return cached->get ();
+    }
+    return put_to_cache (n, k, compute_combinations (n, k));
+  }
+
+private:
+  using CombOpt = std::experimental::optional<std::reference_wrapper<Combinations>>;
+  using CacheKey = std::tuple<std::size_t, std::size_t>;
+
+  CombOpt
+  get_cached (std::size_t n,
+              std::size_t k)
+  {
+    CacheKey key {n, k};
+    auto iter = cache.find (key);
+    if (iter == cache.cend ())
+    {
+      return CombOpt{};
+    }
+    return CombOpt{iter->second};
+  }
+
+  Combinations
+  compute_combinations(std::size_t n,
+                       std::size_t k)
+  {
+    Combinations combinations;
+    Str bitmask (k, 1);
+
+    bitmask.resize (n, 0);
+    do
+    {
+      std::vector<std::size_t> v;
+
+      for (auto i = 0u; i < n; ++i) // [0..N-1] integers
+      {
+        if (bitmask[i])
+        {
+          v.push_back (i);
+        }
+      }
+      std::sort (v.begin (), v.end ());
+      combinations.push_back (std::move (v));
+    }
+    while (std::prev_permutation (bitmask.begin(), bitmask.end()));
+
+    return combinations;
+  }
+
+  Combinations&
+  put_to_cache (std::size_t n,
+                std::size_t k,
+                Combinations&& c)
+  {
+    CacheKey key {n, k};
+    auto p = cache.emplace (key, std::move (c));
+
+    return p.first->second;
+  }
+
+  std::unordered_map<CacheKey, Combinations, boost::hash<CacheKey>> cache;
+};
+
+StrSortedSet
+get_exclusives_with_count (CombinationsCache& ccache,
+                           ShortNode const& node,
+                           StrSortedSet const& maybe_exclusives,
+                           std::size_t count)
+{
+  auto const& combinations = ccache.get_combinations (maybe_exclusives.size (), count);
+
+  for (auto const& cv : combinations)
+  {
+    auto mex_iter = maybe_exclusives.begin ();
+    StrSortedSet ex;
+
+    std::size_t last_c {};
+    std::size_t parent_count {};
+    for (auto c : cv)
+    {
+      std::advance (mex_iter, c - last_c);
+      last_c = c;
+      ex.insert (*mex_iter);
+      auto const& child = must_get (node.children, *mex_iter);
+      parent_count += child.parent_count;
+    }
+    if (parent_count == node.count_as_nonleaf)
+    {
+      return ex;
+    }
+  }
+  return StrSortedSet{};
+}
+
+StrSortedSet
+get_exclusives (CombinationsCache& ccache,
+                ShortNode const& node)
+{
+  auto maybe_exclusives = get_maybe_exclusives (node);
+  for (auto count = 2u; count <= maybe_exclusives.size (); ++count)
+  {
+    auto ex = get_exclusives_with_count (ccache, node, maybe_exclusives, count);
+
+    if (!ex.empty ())
+    {
+      return ex;
+    }
+  }
+  return StrSortedSet{};
+}
+
+StrSortedSet
+get_common (ShortNode const& node,
+            StrSortedSet const& exclusives)
+{
+  auto b = get_map_iterator<0> (node.children.begin ());
+  auto e = get_map_iterator<0> (node.children.end ());
+  StrSortedSet const all {b, e};
+
+  return get_diff (all, exclusives);
+}
+
+void
+fix_children_sets (StrMap<ShortNode>& nodes)
+{
+  CombinationsCache ccache;
+
+  for (auto& p : nodes)
+  {
+    auto& node = p.second;
+
+    node.exclusives = get_exclusives (ccache, node);
+    node.common = get_common (node, node.exclusives);
+    node.children_sets.clear ();
+  }
+}
+
 } // anonymous namespace
 
 void
@@ -426,10 +596,12 @@ Short::postprocess_node_vfunc (Xml::Base::Node const& data_node,
 void
 Short::wrap_up_vfunc ()
 {
-  if (!toplevel_name.empty ())
+  if (toplevel_name.empty ())
   {
-    find_recursion_points (nodes, toplevel_name);
+    return;
   }
+  find_recursion_points (nodes, toplevel_name);
+  fix_children_sets (nodes);
 }
 
 StrMap<ShortNode>&&
