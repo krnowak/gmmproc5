@@ -105,7 +105,7 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
           <element name="type" type="single" />
         </listing>
         <common>
@@ -162,8 +162,8 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
           <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
         </listing>
         <common>
@@ -206,9 +206,9 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
-          <element name="parameters" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
+          <element name="parameters" type="optional" extra-type-info="opt" />
           <element name="return-value" type="single" />
         </listing>
         <common>
@@ -248,7 +248,7 @@
       <children>
         <listing>
           <element name="constructor" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="doc" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
           <element name="field" type="vector-map" extra-type-info="name" />
           <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="glib:signal" type="vector-map" extra-type-info="name" />
@@ -287,8 +287,8 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
           <element name="type" type="single" />
         </listing>
         <common>
@@ -318,9 +318,9 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
-          <element name="parameters" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
+          <element name="parameters" type="optional" extra-type-info="opt" />
           <element name="return-value" type="single" />
         </listing>
         <common>
@@ -426,8 +426,8 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
           <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
         </listing>
@@ -456,10 +456,10 @@
       </attributes>
       <children>
         <listing>
-          <element name="array" type="optional" extra-type-info="ptr" />
-          <element name="callback" type="optional" extra-type-info="ptr" />
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="type" type="optional" extra-type-info="ptr" />
+          <element name="array" type="optional" extra-type-info="opt" />
+          <element name="callback" type="optional" extra-type-info="opt" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="type" type="optional" extra-type-info="opt" />
         </listing>
         <common>
           <element name="doc" />
@@ -493,9 +493,9 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
-          <element name="parameters" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
+          <element name="parameters" type="optional" extra-type-info="opt" />
           <element name="return-value" type="single" />
         </listing>
         <common>
@@ -532,9 +532,9 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
-          <element name="parameters" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
+          <element name="parameters" type="optional" extra-type-info="opt" />
           <element name="return-value" type="single" />
         </listing>
         <common>
@@ -594,7 +594,7 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
           <element name="type" type="single" />
         </listing>
         <common>
@@ -621,7 +621,7 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
           <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="glib:signal" type="vector-map" extra-type-info="name" />
           <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
@@ -655,7 +655,7 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
         </listing>
         <common>
           <element name="doc" />
@@ -684,9 +684,9 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
-          <element name="doc-version" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
+          <element name="doc-version" type="optional" extra-type-info="opt" />
           <element name="parameters" type="single" />
           <element name="return-value" type="single" />
         </listing>
@@ -779,10 +779,10 @@
       </attributes>
       <children>
         <listing>
-          <element name="array" type="optional" extra-type-info="ptr" />
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="type" type="optional" extra-type-info="ptr" />
-          <element name="varargs" type="optional" extra-type-info="ptr" />
+          <element name="array" type="optional" extra-type-info="opt" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="type" type="optional" extra-type-info="opt" />
+          <element name="varargs" type="optional" extra-type-info="opt" />
         </listing>
         <common>
           <element name="doc" />
@@ -803,7 +803,7 @@
       </attributes>
       <children>
         <listing>
-          <element name="instance-parameter" type="optional" extra-type-info="ptr" />
+          <element name="instance-parameter" type="optional" extra-type-info="opt" />
           <element name="parameter" type="vector-map" extra-type-info="name" />
         </listing>
         <common>
@@ -853,10 +853,10 @@
       </attributes>
       <children>
         <listing>
-          <element name="array" type="optional" extra-type-info="ptr" />
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
-          <element name="type" type="optional" extra-type-info="ptr" />
+          <element name="array" type="optional" extra-type-info="opt" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
+          <element name="type" type="optional" extra-type-info="opt" />
         </listing>
         <common>
           <element name="doc" />
@@ -892,8 +892,8 @@
       <children>
         <listing>
           <element name="constructor" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
           <element name="field" type="vector-map" extra-type-info="name" />
           <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
@@ -952,9 +952,9 @@
       </attributes>
       <children>
         <listing>
-          <element name="array" type="optional" extra-type-info="ptr" />
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="type" type="optional" extra-type-info="ptr" />
+          <element name="array" type="optional" extra-type-info="opt" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="type" type="optional" extra-type-info="opt" />
         </listing>
         <common>
           <element name="doc" />
@@ -1015,8 +1015,8 @@
       </attributes>
       <children>
         <listing>
-          <element name="constructor" type="optional" extra-type-info="ptr" />
-          <element name="doc" type="optional" extra-type-info="ptr" />
+          <element name="constructor" type="optional" extra-type-info="opt" />
+          <element name="doc" type="optional" extra-type-info="opt" />
           <element name="field" type="vector-map" extra-type-info="name" />
           <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
           <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
@@ -1064,8 +1064,8 @@
       </attributes>
       <children>
         <listing>
-          <element name="doc" type="optional" extra-type-info="ptr" />
-          <element name="doc-deprecated" type="optional" extra-type-info="ptr" />
+          <element name="doc" type="optional" extra-type-info="opt" />
+          <element name="doc-deprecated" type="optional" extra-type-info="opt" />
           <element name="parameters" type="single" />
           <element name="return-value" type="single" />
         </listing>

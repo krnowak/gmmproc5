@@ -113,11 +113,9 @@ get_unique_attribute_names (StrMap<Attribute> const& attributes)
                              get_map_iterator<0> (std::move (fe)));
 }
 
-// optional-ptr - bottommost recursive node (type -> array -> type)
-//                                                opt      ptr
-// optional-opt - others
 void
-set_short_child_type_attributes (ShortNode::Child const& child,
+set_short_child_type_attributes (ShortNode const& parent,
+                                 ShortNode::Child const& child,
                                  ShortNode const& full_child,
                                  Xml::Base::Node& child_node)
 {
@@ -128,9 +126,12 @@ set_short_child_type_attributes (ShortNode::Child const& child,
     break;
 
   case ChildType::OPTIONAL:
-    child_node.add_attribute ("type", "optional");
-    // TODO: use opt for non-recursive children
-    child_node.add_attribute ("extra-type-info", "ptr");
+    {
+      bool const recursion_point = must_get (full_child.parents, parent.name);
+
+      child_node.add_attribute ("type", "optional");
+      child_node.add_attribute ("extra-type-info", recursion_point ? "ptr" : "opt");
+    }
     break;
 
   case ChildType::MULTI:
@@ -186,7 +187,7 @@ build_short_children (StrMap<ShortNode> const& short_data,
     auto const& full_child = must_get (short_data, child_name);
 
     child_node.add_attribute ("name", child_name);
-    set_short_child_type_attributes (child, full_child, child_node);
+    set_short_child_type_attributes (data, child, full_child, child_node);
   }
   for (auto const& common_name : data.common)
   {
