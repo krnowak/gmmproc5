@@ -14,13 +14,13 @@
  *     <element name="name">
  *       <attributes>
  *         <listing>
- *           <attribute name="name" type="string|int|bool-f|bool-t" unique="0|1"/>
+ *           <attribute name="name" type="string|int|bool|bool-f|bool-t" unique="0|1"/>
  *           ...
  *         </listing>
  *       </attributes>
- *       <children>
+ *       <children is_leaf_sometimes="0|1">
  *         <listing>
- *           <element name="name" type="optional|single|vector|map|vector-map" extra-type-info="opt or ptr for optional type, pipe-separated attribute names for map or vector-map, nothing for vector or single"/>
+ *           <element name="name" type="optional|single|vector|map|map-vector" extra-type-info="opt or ptr for optional type, pipe-separated attribute names for map or map-vector, nothing for vector or single"/>
  *           ...
  *         </listing>
  *         <common>

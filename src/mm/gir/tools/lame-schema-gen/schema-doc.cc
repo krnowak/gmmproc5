@@ -143,7 +143,7 @@ set_short_child_type_attributes (ShortNode const& parent,
       }
       else
       {
-        child_node.add_attribute ("type", "vector-map");
+        child_node.add_attribute ("type", "map-vector");
         child_node.add_attribute ("extra-type-info", boost::algorithm::join (unique_attrs, "|"));
       }
     }
@@ -166,6 +166,7 @@ build_short_attributes (ShortNode const& data,
 
     attribute_node.add_attribute ("name", attr_name);
     attribute_node.add_attribute ("type", attr.to_string ());
+    attribute_node.add_attribute ("unique", attr.is_unique() ? "1" : "0");
   }
 }
 
@@ -180,6 +181,7 @@ build_short_children (StrMap<ShortNode> const& short_data,
   auto children_exclusives_node = children_node.add_child ("exclusives");
   auto const sorted_children = get_sorted_strings_from_strmap (data.children);
 
+  children_node.add_attribute ("is_leaf_sometimes", (data.count_as_leaf > 0) ? "1" : "0");
   for (auto const& child_name : sorted_children)
   {
     auto const& child = must_get (data.children, child_name);
@@ -203,6 +205,7 @@ build_short_children (StrMap<ShortNode> const& short_data,
   }
 }
 
+// TODO: probably not needed anymore
 void
 build_short_parents (ShortNode const& data,
                      Xml::Base::Node& element_node)
@@ -215,7 +218,6 @@ build_short_parents (ShortNode const& data,
     auto parent_node = parents_node.add_child ("parent");
 
     parent_node.add_attribute ("name", parent_name);
-    parent_node.add_attribute ("recursion_point", must_get (data.parents, parent_name) ? "1" : "0");
   }
 }
 
