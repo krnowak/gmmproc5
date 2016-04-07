@@ -1,4 +1,4 @@
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/iterator/zip_iterator.hpp>
@@ -15,7 +15,7 @@ main ()
   std::vector<std::string> expected {"b", "c", "d"};
   std::vector<std::string> got {};
 
-  Mm::Xml::Base::Document doc;
+  Mm::Xml::Document doc;
 
   //    __a__
   //   |  |  |

@@ -1,10 +1,10 @@
-#ifndef MM_XML_NODE_BASE_HH
-#define MM_XML_NODE_BASE_HH
+#ifndef MM_XML_STRUCTURED_NODE_BASE_HH
+#define MM_XML_STRUCTURED_NODE_BASE_HH
 
-#include "generic-attr.hh"
-#include "generic-child.hh"
+#include <mm/xml/structured/generic-attr.hh>
+#include <mm/xml/structured/generic-child.hh>
 
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <ext/kr/kr.hh>
 
@@ -20,7 +20,10 @@ namespace Mm
 namespace Xml
 {
 
-namespace XmlDetails
+namespace Structured
+{
+
+namespace StructuredDetails
 {
 
 // attr type getters
@@ -79,7 +82,7 @@ using VectorMapChildImplPredicate = ChildImplTagPredicate<VectorMapChildTag>::te
 template <typename ChildType>
 using OptionalChildImplPredicate = ChildImplTagPredicate<OptionalChildTag>::template P<ChildType>;
 
-} // namespace XmlDetails
+} // namespace StructuredDetails
 
 // node base code
 
@@ -95,26 +98,26 @@ public:
   using HasTextType = HasTextTypeP;
 
   // attribute names and types
-  using AllAttrNames = Kr::ForEachT<AttrList, XmlDetails::GetAttrName>;
-  using AllAttrTypes = Kr::ForEachT<AttrList, XmlDetails::GetAttrType>;
+  using AllAttrNames = Kr::ForEachT<AttrList, StructuredDetails::GetAttrName>;
+  using AllAttrTypes = Kr::ForEachT<AttrList, StructuredDetails::GetAttrType>;
 
   // children per impl
-  using AllSingleChildren = Kr::SieveT<ChildList, XmlDetails::SingleChildImplPredicate>;
-  using AllVectorChildren = Kr::SieveT<ChildList, XmlDetails::VectorChildImplPredicate>;
-  using AllMapChildren = Kr::SieveT<ChildList, XmlDetails::MapChildImplPredicate>;
-  using AllVectorMapChildren = Kr::SieveT<ChildList, XmlDetails::VectorMapChildImplPredicate>;
-  using AllOptionalChildren = Kr::SieveT<ChildList, XmlDetails::OptionalChildImplPredicate>;
+  using AllSingleChildren = Kr::SieveT<ChildList, StructuredDetails::SingleChildImplPredicate>;
+  using AllVectorChildren = Kr::SieveT<ChildList, StructuredDetails::VectorChildImplPredicate>;
+  using AllMapChildren = Kr::SieveT<ChildList, StructuredDetails::MapChildImplPredicate>;
+  using AllVectorMapChildren = Kr::SieveT<ChildList, StructuredDetails::VectorMapChildImplPredicate>;
+  using AllOptionalChildren = Kr::SieveT<ChildList, StructuredDetails::OptionalChildImplPredicate>;
 
   // child names per impl
-  using AllSingleChildNames = Kr::ForEachT<AllSingleChildren, XmlDetails::GetChildName>;
-  using AllVectorChildNames = Kr::ForEachT<AllVectorChildren, XmlDetails::GetChildName>;
-  using AllMapChildNames = Kr::ForEachT<AllMapChildren, XmlDetails::GetChildName>;
-  using AllVectorMapChildNames = Kr::ForEachT<AllVectorMapChildren, XmlDetails::GetChildName>;
-  using AllOptionalChildNames = Kr::ForEachT<AllOptionalChildren, XmlDetails::GetChildName>;
+  using AllSingleChildNames = Kr::ForEachT<AllSingleChildren, StructuredDetails::GetChildName>;
+  using AllVectorChildNames = Kr::ForEachT<AllVectorChildren, StructuredDetails::GetChildName>;
+  using AllMapChildNames = Kr::ForEachT<AllMapChildren, StructuredDetails::GetChildName>;
+  using AllVectorMapChildNames = Kr::ForEachT<AllVectorMapChildren, StructuredDetails::GetChildName>;
+  using AllOptionalChildNames = Kr::ForEachT<AllOptionalChildren, StructuredDetails::GetChildName>;
 
   // child names and container types
-  using AllChildNames = Kr::ForEachT<ChildList, XmlDetails::GetChildName>;
-  using AllChildContainerTypes = Kr::ForEachT<ChildList, XmlDetails::GetChildContainerType>;
+  using AllChildNames = Kr::ForEachT<ChildList, StructuredDetails::GetChildName>;
+  using AllChildContainerTypes = Kr::ForEachT<ChildList, StructuredDetails::GetChildContainerType>;
 
   // attribute and child names and types
   using AllChildAttrNames = Kr::ConcatT<AllAttrNames, AllChildNames>;
@@ -139,7 +142,7 @@ public:
   {
   public:
     static void
-    call (ThisType* t, Base::Node& node)
+    call (ThisType* t, Xml::Node& node)
     {
       using AttrIndex = ThisType::TupleIdxType<typename Attr::Name>;
       Attr::set (std::get<AttrIndex::value> (t->stuff), node);
@@ -151,7 +154,7 @@ public:
   {
   public:
     static void
-    call (ThisType* t, Base::Node& node)
+    call (ThisType* t, Xml::Node& node)
     {
       using ChildIndex = ThisType::TupleIdxType<typename Child::Name>;
       Child::set (std::get<ChildIndex::value> (t->stuff), node);
@@ -162,7 +165,7 @@ public:
   {
   public:
     static void
-    set (ThisType* t, Base::Node& node)
+    set (ThisType* t, Xml::Node& node)
     {
       std::get<LastIndex::value> (t->stuff) = node.text ();
       node.remove_text ();
@@ -173,7 +176,7 @@ public:
   {
   public:
     static void
-    set (ThisType*, Base::Node&)
+    set (ThisType*, Xml::Node&)
     {}
   };
 
@@ -187,7 +190,7 @@ public:
                                           std::string>;
 
   void
-  process_node (Base::Node& node)
+  process_node (Xml::Node& node)
   {
     Kr::MultiCall<ThisType::MCAttrWrapper, AttrList>::call (this, node);
     Kr::MultiCall<ThisType::MCChildWrapper, ChildList>::call (this, node);
@@ -281,8 +284,10 @@ private:
 template <typename ChildName, typename ChildTag>
 using Root = NodeBase<Kr::TypeList<>, Kr::TypeList<SingleChild<ChildName, ChildTag>>, NoText>;
 
+} // namespace Structured
+
 } // namespace Xml
 
 } // namespace Mm
 
-#endif // MM_XML_NODE_BASE_HH
+#endif // MM_XML_STRUCTURED_NODE_BASE_HH

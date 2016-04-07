@@ -3,7 +3,7 @@
 
 #include "types.hh"
 
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <iosfwd>
 
@@ -33,7 +33,7 @@ public:
 private:
   SchemaDoc () = default;
 
-  Xml::Base::Document doc;
+  Xml::Document doc;
 };
 
 } // namespace LameSchemaGen

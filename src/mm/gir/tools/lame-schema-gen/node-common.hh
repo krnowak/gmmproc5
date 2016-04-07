@@ -4,7 +4,7 @@
 #include "types.hh"
 #include "utils.hh"
 
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <cstddef>
 
@@ -56,7 +56,7 @@ public:
 };
 
 StrMap<std::size_t>
-get_initial_occurences(Xml::Base::Node const& data_node);
+get_initial_occurences(Xml::Node const& data_node);
 
 void
 update_occurences (WithOccurences& wo,
@@ -91,7 +91,7 @@ get_initial_attribute_maps (NodeWrapper const& data_wrapper)
 }
 
 void
-get_attributes_uniqueness (Xml::Base::Node const& data_node,
+get_attributes_uniqueness (Xml::Node const& data_node,
                            UniqueAttributes& unique_attributes_per_child);
 
 void
@@ -120,7 +120,7 @@ save_attribute_uniqueness (NodeWrapper& data_wrapper,
 template <typename NodeWrapper>
 void
 get_occurences (NodeWrapper& data_wrapper,
-                Xml::Base::Node const& data_node)
+                Xml::Node const& data_node)
 {
   auto occurences_per_child = LameSchemaGenDetails::get_initial_occurences (data_node);
 
@@ -137,7 +137,7 @@ get_occurences (NodeWrapper& data_wrapper,
 template <typename NodeWrapper>
 void
 get_unique_attributes (NodeWrapper& data_wrapper,
-                       Xml::Base::Node const& data_node)
+                       Xml::Node const& data_node)
 {
   auto unique_attributes_per_child = LameSchemaGenDetails::get_initial_attribute_maps (data_wrapper);
 

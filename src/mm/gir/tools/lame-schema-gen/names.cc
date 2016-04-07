@@ -30,7 +30,7 @@ maybe_emplace (StrSet& names,
 } // anonymous namespace
 
 void
-Names::process_node_vfunc (Xml::Base::Node const& node,
+Names::process_node_vfunc (Xml::Node const& node,
                            int)
 {
   maybe_emplace (names, node.name ());
@@ -42,7 +42,7 @@ Names::process_node_vfunc (Xml::Base::Node const& node,
 }
 
 void
-Names::postprocess_node_vfunc (Xml::Base::Node const&,
+Names::postprocess_node_vfunc (Xml::Node const&,
                                int)
 {}
 

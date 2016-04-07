@@ -1,7 +1,7 @@
-#ifndef MM_XML_BASE_XML_PUGI_HH
-#define MM_XML_BASE_XML_PUGI_HH
+#ifndef MM_XML_XML_PUGI_HH
+#define MM_XML_XML_PUGI_HH
 
-#ifndef MM_XML_BASE_INCLUDING_IMPL
+#ifndef MM_XML_INCLUDING_IMPL
 
 #error This file should not be included directly
 
@@ -30,9 +30,6 @@ namespace Mm
 {
 
 namespace Xml
-{
-
-namespace Base
 {
 
 namespace PugiXmlDetails
@@ -462,10 +459,8 @@ Document::save (std::ostream& os)
   impl->save (os, "  ");
 }
 
-} // namespace Base
-
 } // namespace Xml
 
 } // namespace Mm
 
-#endif // MM_XML_BASE_XML_PUGI_HH
+#endif // MM_XML_XML_PUGI_HH

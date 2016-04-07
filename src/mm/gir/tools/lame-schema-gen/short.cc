@@ -29,7 +29,7 @@ namespace
 {
 
 bool
-is_a_leaf (Xml::Base::Node const& node)
+is_a_leaf (Xml::Node const& node)
 {
   auto r = node.children ();
   return r.begin () == r.end ();
@@ -37,7 +37,7 @@ is_a_leaf (Xml::Base::Node const& node)
 
 void
 process_element (ShortNode& data,
-                 Xml::Base::Node const& data_node)
+                 Xml::Node const& data_node)
 {
   ++data.count;
   data.has_text = (data.has_text || !data_node.text ().empty ());
@@ -120,7 +120,7 @@ process_sets (StrSortedSet&& fresh_set,
 
 void
 process_attributes (ShortNode& data,
-                    Xml::Base::Node const& data_node)
+                    Xml::Node const& data_node)
 {
   for (auto attr : data_node.attributes ())
   {
@@ -135,7 +135,7 @@ process_attributes (ShortNode& data,
 
 void
 process_children (ShortNode& data,
-                  Xml::Base::Node const& data_node)
+                  Xml::Node const& data_node)
 {
   StrSortedSet children;
 
@@ -555,7 +555,7 @@ fix_children_sets (StrMap<ShortNode>& nodes)
 } // anonymous namespace
 
 void
-Short::process_node_vfunc (Xml::Base::Node const& data_node,
+Short::process_node_vfunc (Xml::Node const& data_node,
                            int depth)
 {
   auto const name = data_node.name ();
@@ -583,7 +583,7 @@ Short::process_node_vfunc (Xml::Base::Node const& data_node,
 }
 
 void
-Short::postprocess_node_vfunc (Xml::Base::Node const& data_node,
+Short::postprocess_node_vfunc (Xml::Node const& data_node,
                                int)
 {
   auto& data = must_get (nodes, data_node.name ());

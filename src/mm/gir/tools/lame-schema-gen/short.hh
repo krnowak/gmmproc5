@@ -5,7 +5,7 @@
 #include "schema-data.hh"
 #include "types.hh"
 
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 namespace Mm
 {
@@ -27,10 +27,10 @@ public:
 
 private:
   virtual void
-  process_node_vfunc (Xml::Base::Node const& node, int depth) override;
+  process_node_vfunc (Xml::Node const& node, int depth) override;
 
   virtual void
-  postprocess_node_vfunc (Xml::Base::Node const& node, int depth) override;
+  postprocess_node_vfunc (Xml::Node const& node, int depth) override;
 
   virtual void
   wrap_up_vfunc () override;

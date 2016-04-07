@@ -1,7 +1,7 @@
 #ifndef MM_GIR_TOOLS_LAME_SCHEMA_GEN_BASE_NODE_DATA_HH
 #define MM_GIR_TOOLS_LAME_SCHEMA_GEN_BASE_NODE_DATA_HH
 
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 namespace Mm
 {
@@ -19,11 +19,11 @@ class BaseNodeData
 {
 public:
   void
-  process_node (Xml::Base::Node const& node,
+  process_node (Xml::Node const& node,
                 int depth);
 
   void
-  postprocess_node (Xml::Base::Node const& node,
+  postprocess_node (Xml::Node const& node,
                     int depth);
 
   void
@@ -31,11 +31,11 @@ public:
 
 private:
   virtual void
-  process_node_vfunc (Xml::Base::Node const& node,
+  process_node_vfunc (Xml::Node const& node,
                       int depth) = 0;
 
   virtual void
-  postprocess_node_vfunc (Xml::Base::Node const& node,
+  postprocess_node_vfunc (Xml::Node const& node,
                           int depth) = 0;
 
   virtual void

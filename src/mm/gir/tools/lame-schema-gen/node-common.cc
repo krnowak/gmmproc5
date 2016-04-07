@@ -19,7 +19,7 @@ namespace LameSchemaGenDetails
 {
 
 StrMap<std::size_t>
-get_initial_occurences(Xml::Base::Node const& data_node)
+get_initial_occurences(Xml::Node const& data_node)
 {
   StrMap<std::size_t> occurences_per_child;
 
@@ -63,7 +63,7 @@ update_attribute(Attribute const& attribute,
 }
 
 void
-get_attributes_uniqueness (Xml::Base::Node const& data_node,
+get_attributes_uniqueness (Xml::Node const& data_node,
                            UniqueAttributes& unique_attributes_per_child)
 {
   for (auto const& child_node : data_node.children ())

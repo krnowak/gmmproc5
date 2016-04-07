@@ -1,5 +1,5 @@
-#ifndef MM_XML_BASE_XML_HH
-#define MM_XML_BASE_XML_HH
+#ifndef MM_XML_XML_HH
+#define MM_XML_XML_HH
 
 #include <experimental/optional>
 
@@ -12,9 +12,6 @@ namespace Mm
 {
 
 namespace Xml
-{
-
-namespace Base
 {
 
 template <typename Impl>
@@ -123,19 +120,17 @@ private:
   typename Impl::DocumentImpl impl;
 };
 
-} // namespace Base
-
 } // namespace Xml
 
 } // namespace Mm
 
-#define MM_XML_BASE_INCLUDING_IMPL
+#define MM_XML_INCLUDING_IMPL
 
-#if defined(MM_XML_BASE_USE_PUGI)
+#if defined(MM_XML_USE_PUGI)
 
 #include "xml-pugi.hh"
 
-#elif defined(MM_XML_BASE_USE_LIBXML)
+#elif defined(MM_XML_USE_LIBXML)
 
 #include "xml-libxml.hh"
 
@@ -145,6 +140,6 @@ private:
 
 #endif
 
-#undef MM_XML_BASE_INCLUDING_IMPL
+#undef MM_XML_INCLUDING_IMPL
 
-#endif // MM_XML_BASE_XML_HH
+#endif // MM_XML_XML_HH

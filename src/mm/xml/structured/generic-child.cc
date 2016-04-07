@@ -7,11 +7,14 @@ namespace Mm
 namespace Xml
 {
 
-namespace XmlDetails
+namespace Structured
+{
+
+namespace StructuredDetails
 {
 
 std::size_t
-siblings_count (Base::Node const& node)
+siblings_count (Xml::Node const& node)
 {
   auto r = node.siblings (node.name ());
   auto b = std::cbegin (r);
@@ -28,7 +31,7 @@ siblings_count (Base::Node const& node)
 }
 
 void
-ensure_empty (Base::Node const& node)
+ensure_empty (Xml::Node const& node)
 {
   if (!node.text ().empty ())
   {
@@ -45,7 +48,7 @@ ensure_empty (Base::Node const& node)
 }
 
 void
-remove_one (Base::Node const& node)
+remove_one (Xml::Node const& node)
 {
   auto parent = node.parent ();
   if (!parent)
@@ -56,7 +59,7 @@ remove_one (Base::Node const& node)
 }
 
 void
-remove_siblings (Base::Node const& node)
+remove_siblings (Xml::Node const& node)
 {
   auto parent = node.parent ();
   if (!parent)
@@ -71,7 +74,9 @@ remove_siblings (Base::Node const& node)
   }
 }
 
-} // namespace XmlDetails
+} // namespace StructuredDetails
+
+} // namespace Structured
 
 } // namespace Xml
 

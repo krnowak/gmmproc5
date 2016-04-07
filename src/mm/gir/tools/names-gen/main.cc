@@ -1,4 +1,4 @@
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <boost/algorithm/string.hpp>
 
@@ -11,7 +11,7 @@
 
 #include <cctype>
 
-namespace Xml = Mm::Xml::Base;
+namespace Xml = Mm::Xml;
 
 namespace
 {

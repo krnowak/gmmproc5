@@ -1,7 +1,7 @@
-#include <algorithm>
-
 #include "exceptions.hh"
 #include "generic-attr.hh"
+
+#include <algorithm>
 
 namespace Mm
 {
@@ -9,19 +9,22 @@ namespace Mm
 namespace Xml
 {
 
-namespace XmlDetails
+namespace Structured
+{
+
+namespace StructuredDetails
 {
 
 // attr value getters
 
 /* static */ std::string
-AttrValue<std::string>::get (Base::Attribute& attr)
+AttrValue<std::string>::get (Xml::Attribute& attr)
 {
   return attr.value ();
 }
 
 /* static */ int
-AttrValue<int>::get (Base::Attribute& attr)
+AttrValue<int>::get (Xml::Attribute& attr)
 {
   try
   {
@@ -48,7 +51,7 @@ AttrValue<int>::get (Base::Attribute& attr)
 }
 
 /* static */ bool
-AttrValue<bool>::get (Base::Attribute& attr)
+AttrValue<bool>::get (Xml::Attribute& attr)
 {
   std::string const value = attr.value ();
 
@@ -66,7 +69,7 @@ AttrValue<bool>::get (Base::Attribute& attr)
   throw InvalidAttribute (attr, "boolean", oss.str ());
 }
 
-} // namespace XmlDetails
+} // namespace StructuredDetails
 
 } // namespace Xml
 

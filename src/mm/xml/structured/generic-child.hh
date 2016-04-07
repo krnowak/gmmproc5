@@ -1,7 +1,7 @@
-#ifndef MM_XML_GENERIC_CHILD_HH
-#define MM_XML_GENERIC_CHILD_HH
+#ifndef MM_XML_STRUCTURED_GENERIC_CHILD_HH
+#define MM_XML_STRUCTURED_GENERIC_CHILD_HH
 
-#include "exceptions.hh"
+#include <mm/xml/structured/exceptions.hh>
 
 #include <mm/utils/type-to-type.hh>
 #include <mm/xml/base/xml.hh>
@@ -22,20 +22,23 @@ namespace Mm
 namespace Xml
 {
 
-namespace XmlDetails
+namespace Structured
+{
+
+namespace StructuredDetails
 {
 
 std::size_t
-siblings_count (Base::Node const& node);
+siblings_count (Xml::Node const& node);
 
 void
-ensure_empty (Base::Node const& node);
+ensure_empty (Xml::Node const& node);
 
 void
-remove_one (Base::Node const& node);
+remove_one (Xml::Node const& node);
 
 void
-remove_siblings (Base::Node const& node);
+remove_siblings (Xml::Node const& node);
 
 class SingleChildTag;
 class VectorChildTag;
@@ -48,7 +51,7 @@ class CommonChildImpl
 {
 public:
   static void
-  set (ChildType& child, Base::Node& raw_child)
+  set (ChildType& child, Xml::Node& raw_child)
   {
     child.process_node (raw_child);
     ensure_empty (raw_child);
@@ -70,7 +73,7 @@ public:
   }
 
   static void
-  set (ContainerType& child, Base::Node& raw_child)
+  set (ContainerType& child, Xml::Node& raw_child)
   {
     CommonChildImpl<ChildType>::set (child, raw_child);
     remove_one (raw_child);
@@ -86,7 +89,7 @@ public:
 
   template <typename ChildType>
   static void
-  set (Type<ChildType>& container, Base::Node& raw_child)
+  set (Type<ChildType>& container, Xml::Node& raw_child)
   {
     ChildType child;
     CommonChildImpl<ChildType>::set (child, raw_child);
@@ -103,7 +106,7 @@ public:
 
   template <typename ChildType>
   static void
-  set (Type<ChildType>& container, Base::Node& raw_child)
+  set (Type<ChildType>& container, Xml::Node& raw_child)
   {
     auto tmp_container = std::make_unique<ChildType> ();
     auto& child = *(tmp_container.get ());
@@ -129,7 +132,7 @@ public:
   }
 
   static void
-  set (ContainerType& opt_child, Base::Node& raw_child)
+  set (ContainerType& opt_child, Xml::Node& raw_child)
   {
     OptCont::set (opt_child, raw_child);
     remove_one (raw_child);
@@ -173,7 +176,7 @@ public:
   }
 
   static void
-  set (ContainerType& children, Base::Node& raw_child)
+  set (ContainerType& children, Xml::Node& raw_child)
   {
     auto const name = raw_child.name ();
 
@@ -217,7 +220,7 @@ public:
   }
 
   static void
-  set (ContainerType& children, Base::Node& raw_child)
+  set (ContainerType& children, Xml::Node& raw_child)
   {
     auto child_name = raw_child.name ();
 
@@ -307,7 +310,7 @@ public:
   }
 
   static void
-  set (ContainerType& children, Base::Node& raw_child)
+  set (ContainerType& children, Xml::Node& raw_child)
   {
     auto& vector_children = std::get<VType> (children);
     std::unordered_set<std::string> names;
@@ -373,7 +376,7 @@ public:
   using Type = OptionalChildImpl<ChildTagType, use_optional>;
 };
 
-} // namespace XmlDetails
+} // namespace StructuredDetails
 
 template <typename NameString, typename ChildTagType, template <typename> class ChildImpl>
 class GenericChild
@@ -387,7 +390,7 @@ public:
   using ImplTag = typename ImplType::Tag;
 
   static void
-  set (typename ImplType::ContainerType& child, Base::Node& node)
+  set (typename ImplType::ContainerType& child, Xml::Node& node)
   {
     auto raw_child = node.child (Name::raw.data ());
     if (raw_child)
@@ -400,25 +403,27 @@ public:
 // some standard attribute aliases
 
 template <typename NameString, typename ChildTagType>
-using SingleChild = GenericChild<NameString, ChildTagType, XmlDetails::SingleChildImpl>;
+using SingleChild = GenericChild<NameString, ChildTagType, StructuredDetails::SingleChildImpl>;
 
 template <typename NameString, typename ChildTagType>
-using VectorChild = GenericChild<NameString, ChildTagType, XmlDetails::VectorChildImpl>;
+using VectorChild = GenericChild<NameString, ChildTagType, StructuredDetails::VectorChildImpl>;
 
 template <typename NameString, typename ChildTagType, typename Name>
-using MapChild = GenericChild<NameString, ChildTagType, XmlDetails::GetKeyedChildImpl<Name>::template MapType>;
+using MapChild = GenericChild<NameString, ChildTagType, StructuredDetails::GetKeyedChildImpl<Name>::template MapType>;
 
 template <typename NameString, typename ChildTagType, typename Name>
-using VectorMapChild = GenericChild<NameString, ChildTagType, XmlDetails::GetKeyedChildImpl<Name>::template VectorMapType>;
+using VectorMapChild = GenericChild<NameString, ChildTagType, StructuredDetails::GetKeyedChildImpl<Name>::template VectorMapType>;
 
 using UseStdOptional = std::true_type;
 using UseStdUniquePtr = std::false_type;
 
 template <typename NameString, typename ChildTagType, typename WhatToUse>
-using OptionalChild = GenericChild<NameString, ChildTagType, XmlDetails::GetOptionalChildImpl<WhatToUse::value>::template Type>;
+using OptionalChild = GenericChild<NameString, ChildTagType, StructuredDetails::GetOptionalChildImpl<WhatToUse::value>::template Type>;
+
+} // namespace Structured
 
 } // namespace Xml
 
 } // namespace Mm
 
-#endif // MM_XML_GENERIC_CHILD_HH
+#endif // MM_XML_STRUCTURED_GENERIC_CHILD_HH

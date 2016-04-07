@@ -1,7 +1,7 @@
 AM_DEFAULT_SOURCE_EXT = .cc
 
 common_cxxflags = -Wall -Wextra -Wpedantic -Werror
-common_cppflags = -I$(top_srcdir)/src $(xml_base_impl_cppflags)
+common_cppflags = -I$(top_srcdir)/src
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 

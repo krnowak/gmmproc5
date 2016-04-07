@@ -1,15 +1,18 @@
-#ifndef MM_XML_EXCEPTIONS_HH
-#define MM_XML_EXCEPTIONS_HH
+#ifndef MM_XML_STRUCTURED_EXCEPTIONS_HH
+#define MM_XML_STRUCTURED_EXCEPTIONS_HH
+
+#include <mm/xml/xml.hh>
 
 #include <stdexcept>
 #include <string>
-
-#include "base/xml.hh"
 
 namespace Mm
 {
 
 namespace Xml
+{
+
+namespace Structured
 {
 
 // invalid attribute exception
@@ -18,7 +21,7 @@ class InvalidAttribute
   : public std::invalid_argument
 {
 public:
-  InvalidAttribute (Base::Attribute const& attr,
+  InvalidAttribute (Xml::Attribute const& attr,
                     std::string const& type,
                     std::string const& what);
 };
@@ -36,13 +39,15 @@ class InvalidParserAssumption
   : public std::logic_error
 {
 public:
-  InvalidParserAssumption (AttributesOnly, Base::Node const& node, std::string const& attribute);
-  InvalidParserAssumption (ChildrenOnly, Base::Node const& node, std::string const& child);
-  InvalidParserAssumption (DataOnly, Base::Node const& node);
+  InvalidParserAssumption (AttributesOnly, Xml::Node const& node, std::string const& attribute);
+  InvalidParserAssumption (ChildrenOnly, Xml::Node const& node, std::string const& child);
+  InvalidParserAssumption (DataOnly, Xml::Node const& node);
 };
+
+} // namespace Structured
 
 } // namespace Xml
 
 } // namespace Mm
 
-#endif // MM_XML_EXCEPTIONS_HH
+#endif // MM_XML_STRUCTURED_EXCEPTIONS_HH

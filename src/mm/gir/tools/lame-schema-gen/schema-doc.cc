@@ -3,7 +3,7 @@
 #include "types.hh"
 #include "utils.hh"
 
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/iterator/transform_iterator.hpp>
@@ -52,7 +52,7 @@ get_sorted_strings_from_cont (Cont const& c)
 }
 
 void
-build_names (Xml::Base::Node& root,
+build_names (Xml::Node& root,
              StrSet const& names_set)
 {
   auto names_node = root.add_child ("names");
@@ -117,7 +117,7 @@ void
 set_short_child_type_attributes (ShortNode const& parent,
                                  ShortNode::Child const& child,
                                  ShortNode const& full_child,
-                                 Xml::Base::Node& child_node)
+                                 Xml::Node& child_node)
 {
   switch (get_child_type (child))
   {
@@ -153,7 +153,7 @@ set_short_child_type_attributes (ShortNode const& parent,
 
 void
 build_short_attributes (ShortNode const& data,
-                        Xml::Base::Node& element_node)
+                        Xml::Node& element_node)
 {
   auto attributes_node = element_node.add_child ("attributes");
   auto attributes_listing_node = attributes_node.add_child ("listing");
@@ -173,7 +173,7 @@ build_short_attributes (ShortNode const& data,
 void
 build_short_children (StrMap<ShortNode> const& short_data,
                       ShortNode const& data,
-                      Xml::Base::Node& element_node)
+                      Xml::Node& element_node)
 {
   auto children_node = element_node.add_child ("children");
   auto children_listing_node = children_node.add_child ("listing");
@@ -208,7 +208,7 @@ build_short_children (StrMap<ShortNode> const& short_data,
 // TODO: probably not needed anymore
 void
 build_short_parents (ShortNode const& data,
-                     Xml::Base::Node& element_node)
+                     Xml::Node& element_node)
 {
   auto parents_node = element_node.add_child ("parents");
   auto const sorted_parents = get_sorted_strings_from_strmap (data.parents);
@@ -224,7 +224,7 @@ build_short_parents (ShortNode const& data,
 void
 build_short_single_element (StrMap<ShortNode> const& short_data,
                             ShortNode const& data,
-                            Xml::Base::Node& short_node)
+                            Xml::Node& short_node)
 {
   auto element_node = short_node.add_child ("element");
 
@@ -235,7 +235,7 @@ build_short_single_element (StrMap<ShortNode> const& short_data,
 }
 
 void
-build_short (Xml::Base::Node& root,
+build_short (Xml::Node& root,
              StrMap<ShortNode> const& short_data)
 {
   auto short_node = root.add_child ("short");

@@ -1,14 +1,17 @@
+#include "exceptions.hh"
+
 #include <algorithm>
 #include <iterator>
 #include <sstream>
 #include <vector>
 
-#include "exceptions.hh"
-
 namespace Mm
 {
 
 namespace Xml
+{
+
+namespace Structured
 {
 
 namespace
@@ -33,7 +36,7 @@ join (std::vector<std::string> const& v)
   return oss.str ();
 }
 
-std::string get_name (Base::Node const& node)
+std::string get_name (Xml::Node const& node)
 {
   std::string n = node.name ();
 
@@ -50,11 +53,11 @@ std::string get_name (Base::Node const& node)
 }
 
 std::string
-get_backtrace (Base::Node const& node)
+get_backtrace (Xml::Node const& node)
 {
   std::vector<std::string> v{};
 
-  std::experimental::optional<Base::Node> n = node;
+  std::experimental::optional<Xml::Node> n = node;
   while (n)
   {
     std::string const node_name = get_name (*n);
@@ -77,7 +80,7 @@ get_backtrace (Base::Node const& node)
 }
 
 std::string
-get_ia_error (Base::Attribute const& attr,
+get_ia_error (Xml::Attribute const& attr,
               std::string const& type,
               std::string const& what)
 {
@@ -89,7 +92,7 @@ get_ia_error (Base::Attribute const& attr,
 }
 
 std::string
-get_ipa_error (Base::Node const& node,
+get_ipa_error (Xml::Node const& node,
                std::string const& type,
                std::string const& name)
 {
@@ -108,7 +111,7 @@ get_ipa_error (Base::Node const& node,
 
 // invalid attribute exception
 
-InvalidAttribute::InvalidAttribute (Base::Attribute const& attr,
+InvalidAttribute::InvalidAttribute (Xml::Attribute const& attr,
                                     std::string const& type,
                                     std::string const& what)
   : std::invalid_argument {get_ia_error (attr, type, what)}
@@ -117,21 +120,23 @@ InvalidAttribute::InvalidAttribute (Base::Attribute const& attr,
 // invalid parser assumption
 
 InvalidParserAssumption::InvalidParserAssumption (AttributesOnly,
-                                                  Base::Node const& node,
+                                                  Xml::Node const& node,
                                                   std::string const& attribute)
   : std::logic_error {get_ipa_error (node, "attribute", attribute)}
 {}
 
 InvalidParserAssumption::InvalidParserAssumption (ChildrenOnly,
-                                                  Base::Node const& node,
+                                                  Xml::Node const& node,
                                                   std::string const& child)
   : std::logic_error {get_ipa_error (node, "child", child)}
 {}
 
 InvalidParserAssumption::InvalidParserAssumption (DataOnly,
-                                                  Base::Node const& node)
+                                                  Xml::Node const& node)
   : std::logic_error {get_ipa_error (node, "text data", "")}
 {}
+
+} // namespace Structured
 
 } // namespace Xml
 

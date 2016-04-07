@@ -3,7 +3,7 @@
 #include "schema-data.hh"
 #include "short.hh"
 
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <stdexcept>
 
@@ -22,7 +22,7 @@ namespace LameSchemaGen
 namespace
 {
 
-class GirWalker final : public Xml::Base::Walker
+class GirWalker final : public Xml::Walker
 {
 public:
   void
@@ -36,7 +36,7 @@ public:
 
 private:
   virtual bool
-  node (Xml::Base::Node& node,
+  node (Xml::Node& node,
         int depth) override
   {
     n.process_node (node, depth);
@@ -45,7 +45,7 @@ private:
   }
 
   virtual bool
-  postprocess_node (Xml::Base::Node& node,
+  postprocess_node (Xml::Node& node,
                     int depth) override
   {
     n.postprocess_node (node, depth);
@@ -63,7 +63,7 @@ parse_doc_in_path (GirWalker& walker, std::string const& dir, std::string const&
   try
   {
     StrVector files;
-    Xml::Base::Document doc {path};
+    Xml::Document doc {path};
     auto const repo = doc.root_tag ();
 
     if (!repo)

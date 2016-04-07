@@ -1,4 +1,4 @@
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/iterator/zip_iterator.hpp>
@@ -31,20 +31,20 @@ operator!= (N const& n1, N const& n2)
   return !(n1 == n2);
 }
 
-class TestWalker : public Mm::Xml::Base::Walker
+class TestWalker : public Mm::Xml::Walker
 {
 public:
   std::vector<N> nodes;
 
 private:
-  virtual bool node (Mm::Xml::Base::Node& node,
+  virtual bool node (Mm::Xml::Node& node,
                      int depth) override
   {
     nodes.emplace_back (node.name (), depth);
     return true;
   }
 
-  virtual bool postprocess_node (Mm::Xml::Base::Node& node,
+  virtual bool postprocess_node (Mm::Xml::Node& node,
                                  int depth) override
   {
     auto pname = "-" + node.name ();
@@ -58,7 +58,7 @@ main ()
 {
   std::vector<N> expected {{"a", 0}, {"b", 1}, {"c", 2}, {"-c", 2}, {"d", 2}, {"-d", 2}, {"-b", 1}, {"e", 1}, {"f", 2}, {"-f", 2}, {"g", 2}, {"-g", 2}, {"-e", 1}, {"-a", 0}};
 
-  Mm::Xml::Base::Document doc;
+  Mm::Xml::Document doc;
 
   //    __a__
   //   |     |

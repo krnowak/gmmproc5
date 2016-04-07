@@ -2,5 +2,5 @@ bin_PROGRAMS += src/mm/main/main
 
 src_mm_main_main_SOURCES = src/mm/main/main.cc
 src_mm_main_main_CXXFLAGS = $(common_cxxflags)
-src_mm_main_main_CPPFLAGS = $(common_cppflags)
-src_mm_main_main_LDADD = $(xml_base_impl_ldadd)
+src_mm_main_main_CPPFLAGS = $(common_cppflags) $(mm_xml_cppflags)
+src_mm_main_main_LDADD = $(mm_xml_ldadd)
