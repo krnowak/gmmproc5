@@ -164,7 +164,7 @@
         <listing>
           <element name="doc" type="optional" extra-type-info="opt" />
           <element name="doc-deprecated" type="optional" extra-type-info="opt" />
-          <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
+          <element name="member" type="map-vector" extra-type-info="c:identifier|name" />
         </listing>
         <common>
           <element name="doc" />
@@ -247,15 +247,15 @@
       </attributes>
       <children is_leaf_sometimes="1">
         <listing>
-          <element name="constructor" type="vector-map" extra-type-info="c:identifier|name" />
+          <element name="constructor" type="map-vector" extra-type-info="c:identifier|name" />
           <element name="doc" type="optional" extra-type-info="opt" />
-          <element name="field" type="vector-map" extra-type-info="name" />
-          <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="glib:signal" type="vector-map" extra-type-info="name" />
-          <element name="implements" type="vector-map" extra-type-info="name" />
-          <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="property" type="vector-map" extra-type-info="name" />
-          <element name="virtual-method" type="vector-map" extra-type-info="name" />
+          <element name="field" type="map-vector" extra-type-info="name" />
+          <element name="function" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="glib:signal" type="map-vector" extra-type-info="name" />
+          <element name="implements" type="map-vector" extra-type-info="name" />
+          <element name="method" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="property" type="map-vector" extra-type-info="name" />
+          <element name="virtual-method" type="map-vector" extra-type-info="name" />
         </listing>
         <common>
           <element name="constructor" />
@@ -428,8 +428,8 @@
         <listing>
           <element name="doc" type="optional" extra-type-info="opt" />
           <element name="doc-deprecated" type="optional" extra-type-info="opt" />
-          <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="member" type="vector-map" extra-type-info="c:identifier|name" />
+          <element name="function" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="member" type="map-vector" extra-type-info="c:identifier|name" />
         </listing>
         <common>
           <element name="doc" />
@@ -622,12 +622,12 @@
       <children is_leaf_sometimes="0">
         <listing>
           <element name="doc" type="optional" extra-type-info="opt" />
-          <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="glib:signal" type="vector-map" extra-type-info="name" />
-          <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="prerequisite" type="vector-map" extra-type-info="name" />
-          <element name="property" type="vector-map" extra-type-info="name" />
-          <element name="virtual-method" type="vector-map" extra-type-info="name" />
+          <element name="function" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="glib:signal" type="map-vector" extra-type-info="name" />
+          <element name="method" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="prerequisite" type="map-vector" extra-type-info="name" />
+          <element name="property" type="map-vector" extra-type-info="name" />
+          <element name="virtual-method" type="map-vector" extra-type-info="name" />
         </listing>
         <common>
           <element name="doc" />
@@ -718,15 +718,15 @@
       </attributes>
       <children is_leaf_sometimes="0">
         <listing>
-          <element name="alias" type="vector-map" extra-type-info="c:type|name" />
-          <element name="bitfield" type="vector-map" extra-type-info="c:type|name" />
-          <element name="callback" type="vector-map" extra-type-info="name" />
-          <element name="class" type="vector-map" extra-type-info="c:symbol-prefix|glib:type-name|name" />
-          <element name="constant" type="vector-map" extra-type-info="c:type|name" />
-          <element name="enumeration" type="vector-map" extra-type-info="c:type|name" />
-          <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="interface" type="vector-map" extra-type-info="c:symbol-prefix|c:type|glib:get-type|glib:type-name|name" />
-          <element name="record" type="vector-map" extra-type-info="c:type|name" />
+          <element name="alias" type="map-vector" extra-type-info="c:type|name" />
+          <element name="bitfield" type="map-vector" extra-type-info="c:type|name" />
+          <element name="callback" type="map-vector" extra-type-info="name" />
+          <element name="class" type="map-vector" extra-type-info="c:symbol-prefix|glib:type-name|name" />
+          <element name="constant" type="map-vector" extra-type-info="c:type|name" />
+          <element name="enumeration" type="map-vector" extra-type-info="c:type|name" />
+          <element name="function" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="interface" type="map-vector" extra-type-info="c:symbol-prefix|c:type|glib:get-type|glib:type-name|name" />
+          <element name="record" type="map-vector" extra-type-info="c:type|name" />
           <element name="union" type="vector" />
         </listing>
         <common>
@@ -804,7 +804,7 @@
       <children is_leaf_sometimes="1">
         <listing>
           <element name="instance-parameter" type="optional" extra-type-info="opt" />
-          <element name="parameter" type="vector-map" extra-type-info="name" />
+          <element name="parameter" type="map-vector" extra-type-info="name" />
         </listing>
         <common>
           <element name="instance-parameter" />
@@ -891,12 +891,12 @@
       </attributes>
       <children is_leaf_sometimes="1">
         <listing>
-          <element name="constructor" type="vector-map" extra-type-info="c:identifier|name" />
+          <element name="constructor" type="map-vector" extra-type-info="c:identifier|name" />
           <element name="doc" type="optional" extra-type-info="opt" />
           <element name="doc-deprecated" type="optional" extra-type-info="opt" />
-          <element name="field" type="vector-map" extra-type-info="name" />
-          <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
+          <element name="field" type="map-vector" extra-type-info="name" />
+          <element name="function" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="method" type="map-vector" extra-type-info="c:identifier|name" />
           <element name="union" type="optional" extra-type-info="ptr" />
         </listing>
         <common>
@@ -926,10 +926,10 @@
       </attributes>
       <children is_leaf_sometimes="0">
         <listing>
-          <element name="c:include" type="vector-map" extra-type-info="name" />
-          <element name="include" type="vector-map" extra-type-info="name" />
+          <element name="c:include" type="map-vector" extra-type-info="name" />
+          <element name="include" type="map-vector" extra-type-info="name" />
           <element name="namespace" type="single" />
-          <element name="package" type="vector-map" extra-type-info="name" />
+          <element name="package" type="map-vector" extra-type-info="name" />
         </listing>
         <common>
           <element name="c:include" />
@@ -1017,9 +1017,9 @@
         <listing>
           <element name="constructor" type="optional" extra-type-info="opt" />
           <element name="doc" type="optional" extra-type-info="opt" />
-          <element name="field" type="vector-map" extra-type-info="name" />
-          <element name="function" type="vector-map" extra-type-info="c:identifier|name" />
-          <element name="method" type="vector-map" extra-type-info="c:identifier|name" />
+          <element name="field" type="map-vector" extra-type-info="name" />
+          <element name="function" type="map-vector" extra-type-info="c:identifier|name" />
+          <element name="method" type="map-vector" extra-type-info="c:identifier|name" />
           <element name="record" type="optional" extra-type-info="ptr" />
         </listing>
         <common>

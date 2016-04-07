@@ -4,7 +4,7 @@
 #include <mm/xml/structured/exceptions.hh>
 
 #include <mm/utils/type-to-type.hh>
-#include <mm/xml/base/xml.hh>
+#include <mm/xml/xml.hh>
 
 #include <boost/range/iterator_range_core.hpp>
 

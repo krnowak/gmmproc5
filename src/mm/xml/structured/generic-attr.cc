@@ -71,6 +71,8 @@ AttrValue<bool>::get (Xml::Attribute& attr)
 
 } // namespace StructuredDetails
 
+} // namespace Structured
+
 } // namespace Xml
 
 } // namespace Mm

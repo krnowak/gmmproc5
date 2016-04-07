@@ -41,8 +41,8 @@ m4_foreach([XML_LIB], [[pugi], [libxml]],
             AS_VAR_IF([xml_library],XML_LIB,
                       [xml_valid='yes'])
             m4_define([XML_LIB_UC], [m4_translit(XML_LIB,[a-z],[A-Z])])
-            m4_define([XML_LIB_COND], [XML_]XML_LIB_UC)
-            m4_define([XML_LIB_USE_COND], [XML_USE_]XML_LIB_UC)
+            m4_define([XML_LIB_COND], [MM_XML_]XML_LIB_UC)
+            m4_define([XML_LIB_USE_COND], [MM_XML_USE_]XML_LIB_UC)
             AM_CONDITIONAL(XML_LIB_COND,[test "x${xml_lib_found}" = 'xyes'])
             AM_CONDITIONAL(XML_LIB_USE_COND,[test "x${xml_library}" = 'x[]XML_LIB'])])
 AS_VAR_IF([xml_valid],[yes],
