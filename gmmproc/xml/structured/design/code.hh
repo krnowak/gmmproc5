@@ -1,3 +1,6 @@
+namespace Gmmproc
+{
+
 namespace Xml
 {
 
@@ -110,6 +113,11 @@ using DocNode = Node<
 } // namespace Structured
 
 } // namespace Xml
+
+} // namespace Gmmproc
+
+namespace Gmmproc
+{
 
 namespace Gir
 {
@@ -252,3 +260,5 @@ public:
 } // namespace Structured
 
 } // namespace Xml
+
+} // namespace Gmmproc
