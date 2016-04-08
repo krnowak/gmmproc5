@@ -1,6 +1,12 @@
 #ifndef GMMPROC_XML_STRUCTURED_NODE_HH
 #define GMMPROC_XML_STRUCTURED_NODE_HH
 
+#include <gmmproc/xml/structured/detail/processor-and-getters.hh>
+#include <gmmproc/xml/structured/child.hh>
+#include <gmmproc/xml/structured/attribute.hh>
+
+#include <boost/mpl/vector.hpp>
+
 namespace Gmmproc
 {
 
@@ -22,7 +28,7 @@ class NodeInfo;
 } // namespace Registry
 
 template <typename AttrListP, typename ChildListP, typename HasTextTypeP>
-class Node
+class Node : public typename ProcessorAndGetters<AttrListP, ChildListP, HasTextTypeP>::Type
 {
   // TODO
 };
