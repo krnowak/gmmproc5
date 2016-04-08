@@ -2,7 +2,7 @@ AC_INIT([gmmproc5], [0.0.1], [qdlacz@gmail.com])
 AC_PREREQ([2.68])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SRCDIR([src/mm/main/main.cc])
+AC_CONFIG_SRCDIR([mm/main/main.cc])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([m4])
 

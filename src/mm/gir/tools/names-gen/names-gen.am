@@ -1,7 +1,0 @@
-noinst_PROGRAMS += src/mm/gir/tools/names-gen/names-gen
-
-src_mm_gir_tools_names_gen_names_gen_SOURCES = \
-  src/mm/gir/tools/names-gen/main.cc
-src_mm_gir_tools_names_gen_names_gen_CXXFLAGS = $(common_cxxflags)
-src_mm_gir_tools_names_gen_names_gen_CPPFLAGS = $(common_cppflags) $(mm_xml_cppflags)
-src_mm_gir_tools_names_gen_names_gen_LDADD = $(mm_xml_ldadd)

@@ -1,0 +1,6 @@
+bin_PROGRAMS += mm/main/main
+
+mm_main_main_SOURCES = mm/main/main.cc
+mm_main_main_CXXFLAGS = $(common_cxxflags)
+mm_main_main_CPPFLAGS = $(common_cppflags) $(mm_xml_cppflags)
+mm_main_main_LDADD = $(mm_xml_ldadd)

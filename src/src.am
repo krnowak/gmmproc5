@@ -1,2 +1,0 @@
-include $(top_srcdir)/src/ext/ext.am
-include $(top_srcdir)/src/mm/mm.am

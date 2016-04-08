@@ -1,0 +1,6 @@
+include $(top_srcdir)/mm/dumper/dumper.am
+include $(top_srcdir)/mm/gir/gir.am
+include $(top_srcdir)/mm/main/main.am
+include $(top_srcdir)/mm/test/test.am
+include $(top_srcdir)/mm/utils/utils.am
+include $(top_srcdir)/mm/xml/xml.am

@@ -1,7 +1,7 @@
 AM_DEFAULT_SOURCE_EXT = .cc
 
 common_cxxflags = -Wall -Wextra -Wpedantic -Werror
-common_cppflags = -I$(top_srcdir)/src
+common_cppflags =
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
@@ -21,6 +21,7 @@ BUILT_SOURCES =
 check_PROGRAMS =
 TESTS =
 
-include $(top_srcdir)/src/src.am
+include $(top_srcdir)/mm/mm.am
+include $(top_srcdir)/ext/ext.am
 
 .DELETE_ON_ERROR:

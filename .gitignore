@@ -35,18 +35,18 @@
 /m4/ltversion.m4
 /m4/lt~obsolete.m4
 
-/src/mm/dumper/dumper
+/mm/dumper/dumper
 
-/src/mm/gir/names/gen-names
-/src/mm/gir/names/names.hh
+/mm/gir/names/gen-names
+/mm/gir/names/names.hh
 
-/src/mm/gir/tools/lame-schema-gen/lame-schema-gen
+/mm/gir/tools/lame-schema-gen/lame-schema-gen
 
-/src/mm/gir/tools/names-gen/names-gen
+/mm/gir/tools/names-gen/names-gen
 
-/src/mm/main/main
+/mm/main/main
 
-/src/mm/test/test
+/mm/test/test
 
-/src/mm/xml/base/tests/pugi-node
-/src/mm/xml/base/tests/pugi-walker
+/mm/xml/base/tests/pugi-node
+/mm/xml/base/tests/pugi-walker

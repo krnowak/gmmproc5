@@ -1,0 +1,15 @@
+noinst_LIBRARIES += mm/xml/structured/libstructuredxml.a
+
+mm_xml_structured_libstructuredxml_a_SOURCES = \
+  mm/xml/structured/exceptions.cc \
+  mm/xml/structured/generic-attr.cc \
+  mm/xml/structured/generic-child.cc
+
+mm_xml_structured_libstructuredxml_a_CPPFLAGS = $(common_cppflags) $(mm_xml_cppflags)
+mm_xml_structured_libstructuredxml_a_CXXFLAGS = $(common_cxxflags)
+
+# for other subprojects using the libstructuredxml.a library
+mm_xml_structured_cppflags = $(mm_xml_cppflags)
+mm_xml_structured_ldadd = \
+  $(mm_xml_ldadd) \
+  $(top_builddir)/mm/xml/structured/libstructuredxml.a

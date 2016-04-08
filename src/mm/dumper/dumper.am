@@ -1,6 +1,0 @@
-noinst_PROGRAMS += src/mm/dumper/dumper
-
-src_mm_dumper_dumper_SOURCES = src/mm/dumper/main.cc
-src_mm_dumper_dumper_CXXFLAGS = $(common_cxxflags)
-src_mm_dumper_dumper_CPPFLAGS = $(common_cppflags)
-src_mm_dumper_dumper_LDADD = -lpugixml

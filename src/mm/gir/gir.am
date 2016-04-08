@@ -1,8 +1,0 @@
-include $(top_srcdir)/src/mm/gir/names/names.am
-include $(top_srcdir)/src/mm/gir/tools/tools.am
-
-src_mm_gir_girs = GtkSource-3.0.gir
-
-src/mm/gir/gir.xml: src/mm/gir/tools/lame-schema-gen/lame-schema-gen
-	$(AM_V_GEN)$(top_builddir)/src/mm/gir/tools/lame-schema-gen/lame-schema-gen $(GIRDIR) $(src_mm_gir_girs) >"$@.tmp"
-	$(AM_V_at)mv "$@.tmp" "$@"
