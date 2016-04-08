@@ -1,0 +1,6 @@
+bin_PROGRAMS += gmmproc/main/main
+
+gmmproc_main_main_SOURCES = gmmproc/main/main.cc
+gmmproc_main_main_CXXFLAGS = $(common_cxxflags)
+gmmproc_main_main_CPPFLAGS = $(common_cppflags) $(gmmproc_xml_cppflags)
+gmmproc_main_main_LDADD = $(gmmproc_xml_ldadd)

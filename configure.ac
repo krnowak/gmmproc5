@@ -2,7 +2,7 @@ AC_INIT([gmmproc5], [0.0.1], [qdlacz@gmail.com])
 AC_PREREQ([2.68])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SRCDIR([mm/main/main.cc])
+AC_CONFIG_SRCDIR([gmmproc/main/main.cc])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -41,8 +41,8 @@ m4_foreach([XML_LIB], [[pugi], [libxml]],
             AS_VAR_IF([xml_library],XML_LIB,
                       [xml_valid='yes'])
             m4_define([XML_LIB_UC], [m4_translit(XML_LIB,[a-z],[A-Z])])
-            m4_define([XML_LIB_COND], [MM_XML_]XML_LIB_UC)
-            m4_define([XML_LIB_USE_COND], [MM_XML_USE_]XML_LIB_UC)
+            m4_define([XML_LIB_COND], [GMMPROC_XML_]XML_LIB_UC)
+            m4_define([XML_LIB_USE_COND], [GMMPROC_XML_USE_]XML_LIB_UC)
             AM_CONDITIONAL(XML_LIB_COND,[test "x${xml_lib_found}" = 'xyes'])
             AM_CONDITIONAL(XML_LIB_USE_COND,[test "x${xml_library}" = 'x[]XML_LIB'])])
 AS_VAR_IF([xml_valid],[yes],

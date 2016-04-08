@@ -1,6 +1,0 @@
-noinst_PROGRAMS += mm/test/test
-
-mm_test_test_SOURCES = mm/test/test.cc
-mm_test_test_CXXFLAGS = $(common_cxxflags)
-mm_test_test_CPPFLAGS = $(common_cppflags) $(mm_xml_cppflags)
-mm_test_test_LDADD = $(mm_xml_ldadd)

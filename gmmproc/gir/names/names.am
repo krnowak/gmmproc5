@@ -1,0 +1,6 @@
+BUILT_SOURCES += gmmproc/gir/names/names.hh
+
+gmmproc/gir/names/names.hh: gmmproc/gir/tools/names-gen/names-gen
+gmmproc/gir/names/names.hh: gmmproc/gir/gir.xml
+	$(AM_V_GEN)gmmproc/gir/tools/names-gen/names-gen gmmproc/gir/gir.xml >"$@.tmp"
+	$(AM_V_at)mv "$@.tmp" "$@"

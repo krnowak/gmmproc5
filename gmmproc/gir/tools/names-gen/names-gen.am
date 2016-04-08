@@ -1,0 +1,7 @@
+noinst_PROGRAMS += gmmproc/gir/tools/names-gen/names-gen
+
+gmmproc_gir_tools_names_gen_names_gen_SOURCES = \
+  gmmproc/gir/tools/names-gen/main.cc
+gmmproc_gir_tools_names_gen_names_gen_CXXFLAGS = $(common_cxxflags)
+gmmproc_gir_tools_names_gen_names_gen_CPPFLAGS = $(common_cppflags) $(gmmproc_xml_cppflags)
+gmmproc_gir_tools_names_gen_names_gen_LDADD = $(gmmproc_xml_ldadd)

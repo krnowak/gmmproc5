@@ -1,0 +1,2 @@
+include $(top_srcdir)/gmmproc/gir/tools/lame-schema-gen/lame-schema-gen.am
+include $(top_srcdir)/gmmproc/gir/tools/names-gen/names-gen.am

@@ -1,0 +1,15 @@
+noinst_PROGRAMS += gmmproc/gir/tools/lame-schema-gen/lame-schema-gen
+
+gmmproc_gir_tools_lame_schema_gen_lame_schema_gen_SOURCES = \
+  gmmproc/gir/tools/lame-schema-gen/base-node-data.cc \
+  gmmproc/gir/tools/lame-schema-gen/gir-paths.cc \
+  gmmproc/gir/tools/lame-schema-gen/main.cc \
+  gmmproc/gir/tools/lame-schema-gen/names.cc \
+  gmmproc/gir/tools/lame-schema-gen/node-common.cc \
+  gmmproc/gir/tools/lame-schema-gen/schema-data.cc \
+  gmmproc/gir/tools/lame-schema-gen/schema-doc.cc \
+  gmmproc/gir/tools/lame-schema-gen/short.cc \
+  gmmproc/gir/tools/lame-schema-gen/types.cc
+gmmproc_gir_tools_lame_schema_gen_lame_schema_gen_CXXFLAGS = $(common_cxxflags)
+gmmproc_gir_tools_lame_schema_gen_lame_schema_gen_CPPFLAGS = $(common_cppflags) $(gmmproc_xml_cppflags)
+gmmproc_gir_tools_lame_schema_gen_lame_schema_gen_LDADD = $(gmmproc_xml_ldadd)

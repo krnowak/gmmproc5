@@ -1,2 +1,0 @@
-include $(top_srcdir)/mm/gir/tools/lame-schema-gen/lame-schema-gen.am
-include $(top_srcdir)/mm/gir/tools/names-gen/names-gen.am

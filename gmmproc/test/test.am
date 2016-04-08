@@ -1,0 +1,6 @@
+noinst_PROGRAMS += gmmproc/test/test
+
+gmmproc_test_test_SOURCES = gmmproc/test/test.cc
+gmmproc_test_test_CXXFLAGS = $(common_cxxflags)
+gmmproc_test_test_CPPFLAGS = $(common_cppflags) $(gmmproc_xml_cppflags)
+gmmproc_test_test_LDADD = $(gmmproc_xml_ldadd)

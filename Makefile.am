@@ -21,7 +21,7 @@ BUILT_SOURCES =
 check_PROGRAMS =
 TESTS =
 
-include $(top_srcdir)/mm/mm.am
+include $(top_srcdir)/gmmproc/gmmproc.am
 include $(top_srcdir)/ext/ext.am
 
 .DELETE_ON_ERROR:

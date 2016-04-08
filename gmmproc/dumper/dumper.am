@@ -1,0 +1,6 @@
+noinst_PROGRAMS += gmmproc/dumper/dumper
+
+gmmproc_dumper_dumper_SOURCES = gmmproc/dumper/main.cc
+gmmproc_dumper_dumper_CXXFLAGS = $(common_cxxflags)
+gmmproc_dumper_dumper_CPPFLAGS = $(common_cppflags)
+gmmproc_dumper_dumper_LDADD = -lpugixml
