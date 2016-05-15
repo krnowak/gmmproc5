@@ -34,17 +34,20 @@ private:
                                     DoFoo,
                                     Mpl::VectorBackInserter>;
 
+
+  template <std::size_t... IdxP>
+  static auto
+  get_tuple_impl (Xml::Node& node, std::index_sequence<I...>)
+  {
+
+    return std::make_tuple (Mpl::AtT<PartStuff, Utils::StdSizeTConstant<IdxP>>::generate (node)...);
+  }
+
 public:
   static auto
   get_tuple (Xml::Node& node)
   {
-    // TODO: generate a vector with useful types, convert it to
-    // std::tuple and use it as a parameter for get_tuple_impl.
-    // get_tuple_impl would have a specialization for std::tuples, so
-    // we will be able to access its members as a parameter pack.
-    // Each parameter from the pack would be transformed and used for
-    // creating a member in a storage tuple.
-    return get_tuple_impl<> ();
+    return get_tuple_impl (node, std::make_index_sequence <Mpl::SizeT<PartStuff>::value>);
   }
 };
 

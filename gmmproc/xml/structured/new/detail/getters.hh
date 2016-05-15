@@ -19,9 +19,11 @@ namespace Structured
 namespace Detail
 {
 
+template <typename GetterP>
+using GetterWithDefaultPolicy = Mpl::Map<Mpl::Pair<GetterP, typename GetterP::DefaultPolicy>>;
+
 template <typename StorageP>
-using SingleGetterWithDefaultPolicy = Mpl::Map<Mpl::Pair<Getters::SingleGetter<StorageP>,
-                                                         typename Getters::SingleGetter<StorageP>::DefaultPolicy>>;
+using SingleGetterWithDefaultPolicy = GetterWithDefaultPolicy<Getters::SingleGetter<StorageP>>;
 
 class MapVectorVectorPolicy
 {

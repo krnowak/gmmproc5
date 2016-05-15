@@ -112,8 +112,7 @@ public:
     class Apply
     {
     public:
-      using Type = Mpl::Map<Mpl::Pair<Getters::VectorGetter<StorageP>,
-                                      typename Getters::VectorGetter<StorageP>::DefaultPolicy>>;
+      using Type = Detail::GetterWithDefaultPolicy<Getters::VectorGetter<StorageP>>;
     };
   };
 

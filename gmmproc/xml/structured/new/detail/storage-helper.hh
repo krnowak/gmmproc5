@@ -23,34 +23,39 @@ template <typename NodeSchemaP>
 class StorageHelper
 {
 private:
+  using PrivText = typename NodeSchemaP::Text;
+  using PrivTextType = Mpl::ApplyT<typename PrivText::GetContainedType>;
+
   using PrivAttrList = typename NodeSchemaP::AttrList;
   using PrivChildList = typename NodeSchemaP::ChildList;
-  using PrivPartList = Mpl::InsertRangeT<PrivAttrList,
-                                         Mpl::EndT<PrivAttrList>,
-                                         PrivChildList>;
+  using PrivTextList = std::conditional_t<std::is_same<void, PrivTextType>::value,
+                                          Mpl::Vector<>,
+                                          Mpl::Vector<PrivTextType>>;
+
   using PrivAttrTypes = GetPartTypeListT<PrivAttrList>;
   using PrivChildTypes = GetPartTypeListT<PrivChildList>;
+  using PrivTextTypes = GetPartTypeListT<PrivTextList>;
+
+  using PrivPartListTmp = Mpl::InsertRangeT<PrivAttrList,
+                                            Mpl::EndT<PrivAttrList>,
+                                            PrivChildList>;
+  using PrivPartList = Mpl::InsertRangeT<PrivAttrListTmp,
+                                         Mpl::EndT<PrivAttrListTmp>,
+                                         PrivTextList>;
   using PrivPartTypes = GetPartTypeListT<PrivPartList>;
-  using PrivMaybeStringType = std::conditional_t<NodeSchemaP::HasText::value,
-                                                 Mpl::Vector<std::string>,
-                                                 Mpl::Vector<>>;
-  using PrivAllTypes = Mpl::InsertRangeT<PrivPartTypes,
-                                         Mpl::EndT<PrivPartTypes>,
-                                         PrivMaybeStringType>;
 
 public:
-  using HasChild = typename NodeSchemaP::HasText;
-
   using AttrList = PrivAttrList;
   using ChildList = PrivChildList;
+  using TextList = PrivTextList;
   using PartList = PrivPartList;
 
   using AttrTypes = PrivAttrTypes;
   using ChildTypes = PrivChildTypes;
+  using TextTypes = PrivTextTypes;
   using PartTypes = PrivPartTypes;
 
-  using AllTypes = PrivAllTypes;
-  using TupleType = GetStdTupleTypeT<PrivAllTypes>;
+  using TupleType = GetStdTupleTypeT<PartTypes>;
 };
 
 } // namespace Detail

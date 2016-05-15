@@ -25,7 +25,7 @@ private:
 
 protected:
   template <typename AccessKeyP, typename GetterP>
-  using PolicyT = Mpl::AtT<GetterPolicyMapT<AccessKeyP, GetterP, void>;
+  using PolicyT = Mpl::AtT<GetterPolicyMapT<AccessKeyP>, GetterP, void>;
 
   template <typename AccessKeyP, typename GetterP>
   auto const&
@@ -169,6 +169,62 @@ public:
     }
 
     return Optional {};
+  }
+};
+
+template <typename StorageP>
+class TextGetter : private virtual GetterBase<StorageP>
+{
+  using ThisGetter = TextGetter<StorageP>;
+  using Helper = typename StorageP::Helper;
+
+  auto const&
+  text_get () const
+  {
+    using Text = Mpl::AtT<typename Helper::TextList, Utils::StdSizeTConstant<1>, void>;
+    static_assert (!std::is_same<Text, void>, "storage has the text stored");
+    using AccessKey = Mpl::ApplyT<typename Text::GetAccessKey>;
+    using GettersMap = Mpl::ApplyT<typename Text::GetGetters, StorageP>;
+    // TODO: finish
+    using Policy = PolicyT<AccessKeyP, ThisGetter>;
+
+    return Policy::get (this->base_get<AccessKeyP, ThisGetter> ());
+  }
+
+public:
+  class DefaultPolicy
+  {
+  public:
+    template <typename ValueP>
+    static auto const&
+    get (ValueP const& value)
+    {
+      return value;
+    }
+  };
+
+  auto const&
+  get_text () const
+  {
+    return text_get ();
+  }
+private:
+  template <typename AccessKeyP>
+  using GetterPolicyMapT = Mpl::ApplyT<StorageP::GetGetters, AccessKeyP>;
+
+protected:
+  template <typename AccessKeyP, typename GetterP>
+  using PolicyT = Mpl::AtT<GetterPolicyMapT<AccessKeyP, GetterP, void>;
+
+  template <typename AccessKeyP, typename GetterP>
+  auto const&
+  base_get () const
+  {
+    using Policy = PolicyT<AccessKeyP, GetterP>;
+    static_assert (!std::is_same<Policy, void>::value, "The Getter is associated with this AccessKeyP");
+    using IndexT = Mpl::ApplyT<StorageP::GetIndex, AccessKeyP>;
+
+    return std::get<IndexT::value> (this->storage);
   }
 };
 

@@ -24,7 +24,7 @@ class Storage
 {
 private:
   using ThisStorage = Storage<NodeSchemaP>;
-  using Helper = StorageHelper<NodeSchemaP>;
+  using PrivHelper = StorageHelper<NodeSchemaP>;
 
   template <typename OffsetP = Utils::StdSizeTConstant<0>>
   class AppendGetterAndIndexForAccessKey
@@ -45,21 +45,11 @@ private:
     };
   };
 
-  using AttrMap = Mpl::FoldT<typename Helper::AttrList,
+  using PartMap = Mpl::FoldT<typename PrivHelper::PartList,
                              Mpl::Map<>,
                              AppendGetterAndIndexForAccessKey<>>;
-  using ChildMap = Mpl::FoldT<typename Helper::ChildList,
-                              Mpl::Map<>,
-                              AppendGetterAndIndexForAccessKey<Mpl::SizeT<AttrList>>>;
-
-  static_assert (Mpl::SizeT<AttrMap>::value == Mpl::SizeT<typename Helper::AttrList>::value,
-                 "attribute access keys are unique");
-  static_assert (Mpl::SizeT<ChildMap>::value == Mpl::SizeT<typename Helper::ChildList>::value,
-                 "child access keys are unique");
-
-  using PartMap = Mpl::InsertRangeT<AttrMap, Mpl::BeginT<AttrMap>, ChildMap>;
-  static_assert (Mpl::SizeT<PartMap>::value == Mpl::SizeT<typename Helper::PartTypes>,
-                 "attribute and child access keys are unique");
+  static_assert (Mpl::SizeT<PartMap>::value == Mpl::SizeT<typename PrivHelper::PartList>,
+                 "all access keys are unique");
 
   template <typename PairMemberP>
   class QueryPair
@@ -79,6 +69,7 @@ private:
 protected:
   using GetGetters = QueryPair<Mpl::First>;
   using GetIndex = QueryPair<Mpl::Second>;
+  using Helper = PrivHelper;
 
   typename Helper::TupleType storage;
 };
