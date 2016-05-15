@@ -42,7 +42,15 @@ public:
     };
   };
 
-  // TODO: process?
+  template <typename NodeTagP>
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+      using Type = TODO;
+    }
+  };
 };
 
 // TODO: rename to OptionalKind?
@@ -82,7 +90,15 @@ public:
     };
   };
 
-  // TODO: process?
+  template <typename NodeTagP>
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+      using Type = TODO;
+    }
+  };
 };
 
 // Node& get<Node>(std::size_t idx)
@@ -116,7 +132,15 @@ public:
     };
   };
 
-  // TODO: process?
+  template <typename NodeTagP>
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+      using Type = TODO;
+    }
+  };
 };
 
 // Node& get<Node>(std::size_t idx)
@@ -152,7 +176,15 @@ public:
     };
   };
 
-  // TODO: process?
+  template <typename NodeTagP>
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+      using Type = TODO;
+    }
+  };
 };
 
 template <typename BasicP, typename NodeTagP> // BasicP - single, optional, vector, mapvector
@@ -189,7 +221,15 @@ public:
     };
   };
 
-  // TODO: process
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+    public:
+      using Type = Mpl::ApplyT<typename BasicP::GetGenerator, NodeTagP>;
+    };
+  };
 };
 
 } // namespace Basic
@@ -232,7 +272,15 @@ public:
     };
   };
 
-  // TODO: process
+  template <typename NodeTagP>
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+      using Type = TODO;
+    }
+  };
 };
 
 // Optional<Exclusive>& get<ExclusiveKey>()
@@ -272,7 +320,16 @@ public:
       using Type = ExclusiveKeyP;
     };
   };
-  // TODO: process
+
+  template <typename NodeTagP>
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+      using Type = TODO;
+    }
+  };
 };
 
 } // namespace Ext

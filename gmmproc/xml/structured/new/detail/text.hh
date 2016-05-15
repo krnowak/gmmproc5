@@ -13,6 +13,16 @@ namespace Structured
 namespace Detail
 {
 
+class TextGenerator
+{
+public:
+  static auto
+  generate (Xml::Node& node)
+  {
+    return node.get_text ();
+  }
+};
+
 template <typename ContainedTypeP>
 class TextBase
 {
@@ -34,7 +44,7 @@ public:
     class Apply
     {
     public:
-      using Type = Detail::GetterWithDefaultPolicy<Getters::TextGetter<StorageP, Mpl::ApplyT<GetAccessKey>>>;
+      using Type = Detail::GetterWithDefaultPolicy<Getters::TextGetter<StorageP>>;
     };
   };
 
@@ -47,7 +57,15 @@ public:
     };
   };
 
-  // TODO: process
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+    public:
+      using Type = TextGenerator;
+    }
+  };
 };
 
 } // namespace Detail

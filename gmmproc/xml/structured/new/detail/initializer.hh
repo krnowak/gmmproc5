@@ -20,27 +20,27 @@ private:
   using Helper = StorageHelper<NodeSchemaP>;
   using StorageType = Storage<NodeSchemaP>;
 
-  class DoFoo
+  class GetGenerator
   {
   public:
     template <typename PartP>
     class Apply
     {
     public:
-      using Type = TODO;
+      using Type = Mpl::ApplyT<typename PartP::GetGenerator>;
     };
   };
-  using PartStuff = Mpl::TransformT<typename Helper::PartList,
-                                    DoFoo,
-                                    Mpl::VectorBackInserter>;
+
+  using PartGenerators = Mpl::TransformT<typename Helper::PartList,
+                                         GetGenerator,
+                                         Mpl::VectorBackInserter>;
 
 
   template <std::size_t... IdxP>
   static auto
   get_tuple_impl (Xml::Node& node, std::index_sequence<I...>)
   {
-
-    return std::make_tuple (Mpl::AtT<PartStuff, Utils::StdSizeTConstant<IdxP>>::generate (node)...);
+    return std::make_tuple (Mpl::AtT<PartGenerators, Utils::StdSizeTConstant<IdxP>>::generate (node)...);
   }
 
 public:

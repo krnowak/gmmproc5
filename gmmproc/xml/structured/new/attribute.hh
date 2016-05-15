@@ -18,6 +18,63 @@ namespace Structured
 namespace Basic
 {
 
+class String
+{
+  using Type = std::string;
+  class Generator
+  {
+  public:
+    static Type
+    generate (std::string const& value)
+    {
+      return value;
+    }
+  };
+};
+
+class Int
+{
+  using Type = int;
+  class Generator
+  {
+  public:
+    static Type
+    generate (Xml::Node& node)
+    {
+      return TODO;
+    }
+  };
+};
+
+class OptBool
+{
+  using Type = std::experimental::optional<bool>;
+  class Generator
+  {
+  public:
+    static Type
+    generate (Xml::Node& node)
+    {
+      return TODO;
+    }
+  };
+}
+
+template <bool DefaultValueP>
+class Bool
+{
+  using Type = bool;
+  class Generator
+  {
+  public:
+    static Type
+    generate (Xml::Node& node)
+    {
+      return TODO;
+    }
+  };
+};
+
 template <typename AttributeTypeP, typename AttributeKeyP>
 class Attribute
 {
@@ -52,36 +109,36 @@ public:
     };
   };
 
-  // TODO: process
-};
+  class GetGenerator
+  {
+  public:
+    class Apply
+    {
+    private:
+      class Generator
+      {
+      public:
+        static auto
+        generate (Xml::Node& node)
+        {
+          // TODO: get attribute name from registry
+          using TypeGenerator = typename AttributeTypeP::Generator;
+          using Name = Registry::AttrInfo<AttributeKeyP>::Name;
 
-class String
-{
-  using Type = std::string;
+          auto attr = node.attribute (Name::raw);
+          if (!attr)
+          {
+            throw something{};
+          }
 
-  // TODO: process?
-};
+          return TypeGenerator::generate (attr->value ());
+        }
+      };
 
-class Int
-{
-  using Type = int;
-
-  // TODO: process?
-};
-
-class OptBool
-{
-  using Type = std::experimental::optional<bool>;
-
-  // TODO: process?
-}
-
-template <bool DefaultValueP>
-class Bool
-{
-  using Type = bool;
-
-  // TODO: process?
+    public:
+      using Type = Generator;
+    }
+  };
 };
 
 } // namespace Basic

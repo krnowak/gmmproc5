@@ -1,5 +1,5 @@
-#ifndef GMMPROC_XML_STRUCTURED_GETTERS_HH
-#define GMMPROC_XML_STRUCTURED_GETTERS_HH
+#ifndef GMMPROC_XML_STRUCTURED_GENERATORS_HH
+#define GMMPROC_XML_STRUCTURED_GENERATORS_HH
 
 #include <gmmproc/xml/structured/detail/mpl.hh>
 #include <gmmproc/xml/structured/registry.hh>
@@ -172,42 +172,6 @@ public:
   }
 };
 
-template <typename StorageP>
-class TextGetter : private virtual GetterBase<StorageP>
-{
-  using ThisGetter = TextGetter<StorageP>;
-  using Helper = typename StorageP::Helper;
-
-  auto const&
-  text_get () const
-  {
-    using Text = Mpl::AtT<typename Helper::TextList, Utils::StdSizeTConstant<0u>, void>;
-    static_assert (!std::is_same<Text, void>, "storage has the text stored");
-    using AccessKey = Mpl::ApplyT<typename Text::GetAccessKey>;
-    using Policy = PolicyT<AccessKey, ThisGetter>;
-
-    return Policy::get (this->base_get<AccessKey, ThisGetter> ());
-  }
-
-public:
-  class DefaultPolicy
-  {
-  public:
-    template <typename ValueP>
-    static auto const&
-    get (ValueP const& value)
-    {
-      return value;
-    }
-  };
-
-  auto const&
-  get_text () const
-  {
-    return text_get ();
-  }
-};
-
 } // namespace Getters
 
 } // namespace Structured
@@ -216,4 +180,4 @@ public:
 
 } // namespace Gmmproc
 
-#endif // GMMPROC_XML_STRUCTURED_GETTERS_HH
+#endif // GMMPROC_XML_STRUCTURED_GENERATORS_HH
