@@ -15,8 +15,49 @@ namespace Xml
 namespace Structured
 {
 
+// TODO: Name this namespace differently.
 namespace Basic
 {
+
+template <typename AttributeTypeP>
+class Optional
+{
+private:
+  using UnderlyingType = typename AttributeTypeP::Type;
+  using Type = std::experimental::optional<UnderlyingType>;
+
+public:
+  class Generator
+  {
+  public:
+    static Type
+    generate (std::experimental::optional<Xml::Attribute> const& attr)
+    {
+      if (!attr)
+        return Type {};
+
+      return Type {UnderlyingType::generate (attr->value ());
+    }
+  };
+};
+
+template <typename AttributeTypeP>
+class Single
+{
+  using Type = typename AttributeTypeP::Type;
+  class Generator
+  {
+  public:
+    static Type
+    generate (std::experimental::optional<Xml::Attribute> const& attr)
+    {
+      if (!attr)
+        throw something{};
+
+      return Type::generate (attr->value ());
+    }
+  };
+};
 
 class String
 {
@@ -39,28 +80,20 @@ class Int
   {
   public:
     static Type
-    generate (Xml::Node& node)
+    generate (std::string& const value)
     {
-      return TODO;
+      std::size_t idx {};
+      Type num = std::stoi (value, &idx);
+
+      if (idx < value.size ())
+      {
+        throw something {};
+      }
+      return num;
     }
   };
 };
 
-class OptBool
-{
-  using Type = std::experimental::optional<bool>;
-  class Generator
-  {
-  public:
-    static Type
-    generate (Xml::Node& node)
-    {
-      return TODO;
-    }
-  };
-}
-
-template <bool DefaultValueP>
 class Bool
 {
   using Type = bool;
@@ -68,9 +101,30 @@ class Bool
   {
   public:
     static Type
-    generate (Xml::Node& node)
+    generate (std::string const& value)
     {
-      return TODO;
+      if (value == "0" || value == "f" || value == "false")
+        return false;
+      if (value == "1" || value == "t" || value == "true")
+        return true;
+      throw something {};
+    }
+  };
+}
+
+template <bool DefaultValueP>
+class DefBool
+{
+  using Type = bool;
+  class Generator
+  {
+  public:
+    static Type
+    generate (std::string const& value)
+    {
+      if (value.empty ())
+        return DefaultValueP;
+      return Bool::Generator::generate (value);
     }
   };
 };
@@ -121,17 +175,10 @@ public:
         static auto
         generate (Xml::Node& node)
         {
-          // TODO: get attribute name from registry
           using TypeGenerator = typename AttributeTypeP::Generator;
           using Name = Registry::AttrInfo<AttributeKeyP>::Name;
 
-          auto attr = node.attribute (Name::raw);
-          if (!attr)
-          {
-            throw something{};
-          }
-
-          return TypeGenerator::generate (attr->value ());
+          return TypeGenerator::generate (node.attribute (Name::raw));
         }
       };
 
