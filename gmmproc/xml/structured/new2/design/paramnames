@@ -1,0 +1,24 @@
+AttributeKey - a user-facing type used for getting the attribute from the node
+AttributeKeyList
+ExclusiveKey - a user-facing type used for getting the "exclusive" type from the node
+Child - either a child from Basic namespace or the "exclusive" type from Ext namespace, may be also an other implementation
+ChildList
+HasText - a std::bool_constant
+NodeSchema - description of the node
+NodeTag - a tag for getting node info from registry
+ChildTag - a tag for getting child info from registry
+Basic - a basic node type (single, optional, etc...)
+OptionalType - an optional type (pointer or value)
+AttributeName - a static string being a name of an attribute
+AttributeNameList
+Attribute - an attribute type from the "Attribute" namespace
+NodeName - static string being a name of the node
+Node - a Node<NodeSchema>
+BasicChild - a Basic::Child
+Exclusive - an Ext::Exclusive
+OptExclusive - an Ext::OptExclusive
+Part - either a Child or an Attribute
+
+suffixes
+P - template parameter
+T - Foo<Bar>::type

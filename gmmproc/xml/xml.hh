@@ -17,6 +17,8 @@ namespace Xml
 template <typename Impl>
 class NodeTmpl;
 template <typename Impl>
+class TextTmpl;
+template <typename Impl>
 class AttributeTmpl;
 template <typename Impl>
 class DocumentTmpl;
@@ -26,6 +28,7 @@ class WalkerTmpl;
 class XmlImpl;
 
 using Node = NodeTmpl<XmlImpl>;
+using Text = TextTmpl<XmlImpl>;
 using Attribute = AttributeTmpl<XmlImpl>;
 using Document = DocumentTmpl<XmlImpl>;
 using Walker = WalkerTmpl<XmlImpl>;
@@ -35,6 +38,12 @@ class ParseError : public std::runtime_error
 public:
   using std::runtime_error::runtime_error;
 };
+
+enum class TextType
+  {
+    Plain, // PCDATA
+    Special // CDATA
+  };
 
 template <typename Impl>
 class NodeTmpl
@@ -48,23 +57,43 @@ public:
   std::experimental::optional<NodeTmpl<Impl>> parent () const;
   std::experimental::optional<NodeTmpl<Impl>> child (std::string const& name) const;
   std::experimental::optional<AttributeTmpl<Impl>> attribute (std::string const& name) const;
-  std::string text () const;
 
   typename Impl::ChildRange children () const;
   typename Impl::AttributeRange attributes () const;
   typename Impl::SiblingRange siblings (std::string const& name) const;
+  typename Impl::TextRange texts () const;
+  typename Impl::ChildTextRange all () const;
 
   NodeTmpl<Impl> add_child (std::string const& name);
-  AttributeTmpl<Impl> add_attribute (std::string const& name, std::string const& value);
-  void set_text (std::string const& text);
+  AttributeTmpl<Impl> add_attribute (std::string const& name,
+                                     std::string const& value);
+  TextTmpl<Impl> add_text (std::string const& text,
+                           TextType text_type = TextType::Plain);
 
   void remove (NodeTmpl<Impl> const& child);
   void remove (AttributeTmpl<Impl> const &attribute);
-  void remove_text ();
+  void remove (TextImpl<Impl> const& text);
 
 private:
   typename Impl::NodeImpl impl;
 };
+
+template <typename Impl>
+class TextTmpl
+{
+public:
+  TextTmpl (typename Impl::TextImpl i)
+    : impl {std::move (i)}
+  {}
+
+  std::string text () const;
+  NodeTmpl<Impl> parent () const;
+  TextType type () const;
+
+private:
+  friend class NodeTmpl<Impl>;
+  typename Impl::TextImpl impl;
+}
 
 template <typename Impl>
 class AttributeTmpl
@@ -92,6 +121,7 @@ public:
 
 private:
   virtual bool node (NodeTmpl<Impl>& node, int depth) = 0;
+  virtual bool text (TextTmpl<Impl>& text, int depth) = 0;
   virtual bool postprocess_node (NodeTmpl<Impl>& node, int depth) = 0;
 
   friend typename Impl::WalkerImpl;

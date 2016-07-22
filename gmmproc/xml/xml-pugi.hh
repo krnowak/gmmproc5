@@ -3,7 +3,7 @@
 
 #ifndef GMMPROC_XML_INCLUDING_IMPL
 
-#error This file should not be included directly
+#error "This file should not be included directly"
 
 #endif
 
@@ -38,7 +38,8 @@ namespace PugiXmlDetails
 class AttributeWrapper
 {
 public:
-  AttributeWrapper (pugi::xml_node p, pugi::xml_attribute a);
+  AttributeWrapper (pugi::xml_node p,
+                    pugi::xml_attribute a);
 
   pugi::xml_node parent;
   pugi::xml_attribute attr;
@@ -56,7 +57,19 @@ private:
   pugi::xml_node parent;
 };
 
-class TagPredicate
+class ChildPredicate
+{
+public:
+  bool operator() (pugi::xml_node const& node) const;
+};
+
+class TextPredicate
+{
+public:
+  bool operator() (pugi::xml_node const& node) const;
+};
+
+class ChildTextPredicate
 {
 public:
   bool operator() (pugi::xml_node const& node) const;
@@ -64,10 +77,19 @@ public:
 
 using NodeTransform = Node (*) (pugi::xml_node const&);
 
-using ChildFilterIterator = boost::filter_iterator<TagPredicate, pugi::xml_node_iterator>;
+using ChildFilterIterator = boost::filter_iterator<ChildPredicate, pugi::xml_node_iterator>;
 using ChildTransformIterator = boost::transform_iterator<NodeTransform, ChildFilterIterator>;
+
 using AttributeIterator = boost::transform_iterator<AttributeTransform, pugi::xml_attribute_iterator>;
+
 using SiblingIterator = boost::transform_iterator<NodeTransform, pugi::xml_named_node_iterator>;
+
+using TextFilterIterator = boost::filter_iterator<TextPredicate, pugi::xml_node_iterator>;
+using TextTransformIterator = boost::transform_iterator<NodeTransform, TextFilterIterator>;
+
+using NodeTransform2 = boost::variant<Node, Text> (*) (pugi::xml_node const&);
+using TextFilterIterator = boost::filter_iterator<ChildTextPredicate, pugi::xml_node_iterator>;
+using ChildTextTransformIterator = boost::transform_iterator<NodeTransform2, ChildTextFilterIterator>
 
 class WalkerWrapper final : public pugi::xml_tree_walker
 {
@@ -88,6 +110,45 @@ private:
   std::stack<std::pair<Node, int>> nodes;
 };
 
+pugi::xml_node_type
+text_type_to_pugi_node_type (TextType text_type)
+{
+  switch (text_type)
+  {
+  case TextType::Plain:
+    return pugi::node_pcdata;
+
+  case TextType::Special:
+    return pugi::node_cdata;
+
+  case pugi::node_null:
+  case pugi::node_document:
+  case pugi::node_element:
+  case pugi::node_comment:
+  case pugi::node_pi:
+  case pugi::node_declaration:
+  case pugi::node_doctype:
+    break;
+  }
+
+  throw std::runtime_error {"argh"};
+}
+
+TextType
+text_type_to_pugi_node_type (pugi::xml_node_type node_type)
+{
+  switch (text_type)
+  {
+  case pugi::node_pcdata:
+    return TextType::Plain;
+
+  case pugi::node_cdata:
+    return TextType::Special;
+  }
+
+  throw std::runtime_error {"argh"};
+}
+
 } // namespace PugiXmlDetails
 
 class XmlImpl
@@ -101,13 +162,16 @@ public:
   using ChildRange = boost::iterator_range<PugiXmlDetails::ChildTransformIterator>;
   using AttributeRange = boost::iterator_range<PugiXmlDetails::AttributeIterator>;
   using SiblingRange = boost::iterator_range<PugiXmlDetails::SiblingIterator>;
+  using TextRange = boost::iterator_range<PugiXmlDetails::TextTransformIterator>;
+  using ChildTextRange = boost::iterator_range<PugiXmlDetails::ChildTextTransformIterator>;
 };
 
 namespace PugiXmlDetails
 {
 
 inline
-AttributeWrapper::AttributeWrapper (pugi::xml_node p, pugi::xml_attribute a)
+AttributeWrapper::AttributeWrapper (pugi::xml_node p,
+                                    pugi::xml_attribute a)
   : parent {std::move (p)},
     attr {std::move (a)}
 {}
@@ -127,9 +191,25 @@ AttributeTransform::operator() (pugi::xml_attribute const& a) const
 }
 
 inline bool
-TagPredicate::operator() (pugi::xml_node const& node) const
+ChildPredicate::operator() (pugi::xml_node const& node) const
 {
   return node.type () == pugi::node_element;
+}
+
+inline bool
+TextPredicate::operator() (pugi::xml_node const& node) const
+{
+  auto const type = node.type ();
+
+  return (type == pugi::node_pcdata) || (type == pugi::node_cdata);
+}
+
+inline bool
+ChildTextPredicate::operator() (pugi::xml_node const& node) const
+{
+  auto const type = node.type ();
+
+  return (type == pugi::node_pcdata) || (type == pugi::node_cdata) || (type == pugi::node_element);
 }
 
 inline
@@ -141,19 +221,29 @@ WalkerWrapper::WalkerWrapper (Walker& w)
 inline bool
 WalkerWrapper::for_each (pugi::xml_node& node)
 {
-  if (node.type () != pugi::node_element)
+  auto const d = depth ();
+
+  switch (node.type ())
   {
+  case pugi::node_pcdata:
+  case pugi::node_cdata:
+    return walker.text (Text {node}, d);
+
+  case pugi::node_element:
+    {
+      if (!run_postprocessing ())
+      {
+        return false;
+      }
+
+      Node n {node};
+      nodes.push (std::make_pair (n, d));
+      return walker.node (n, d);
+    }
+
+  default:
     return true;
   }
-  if (!run_postprocessing ())
-  {
-    return false;
-  }
-
-  Node n {node};
-  auto d = depth ();
-  nodes.push (std::make_pair (n, d));
-  return walker.node (n, d);
 }
 
 inline bool
@@ -236,13 +326,6 @@ Node::attribute (std::string const& name) const
 }
 
 template <>
-inline std::string
-Node::text () const
-{
-  return std::string {impl.text ().get ()};
-}
-
-template <>
 inline XmlImpl::ChildRange
 Node::children () const
 {
@@ -250,13 +333,12 @@ Node::children () const
   auto convert = [](pugi::xml_node const& node) { return Node {node}; };
   auto rb = r.begin ();
   auto re = r.end ();
-  auto fb = PugiXmlDetails::ChildFilterIterator {PugiXmlDetails::TagPredicate {}, rb, re};
-  auto fe = PugiXmlDetails::ChildFilterIterator {PugiXmlDetails::TagPredicate {}, re, re};
+  auto fb = PugiXmlDetails::ChildFilterIterator {PugiXmlDetails::ChildPredicate {}, rb, re};
+  auto fe = PugiXmlDetails::ChildFilterIterator {PugiXmlDetails::ChildPredicate {}, re, re};
   auto b = PugiXmlDetails::ChildTransformIterator {fb, convert};
   auto e = PugiXmlDetails::ChildTransformIterator {fe, convert};
   return XmlImpl::ChildRange {b, e};
 }
-
 
 template <>
 inline XmlImpl::AttributeRange
@@ -281,6 +363,21 @@ Node::siblings (std::string const& name) const
 }
 
 template <>
+inline XmlImpl::TextRange
+Node::texts () const
+{
+  auto r = impl.children ();
+  auto convert = [](pugi::xml_node const& node) { return Text {node}; };
+  auto rb = r.begin ();
+  auto re = r.end ();
+  auto fb = PugiXmlDetails::TextFilterIterator {PugiXmlDetails::TextPredicate {}, rb, re};
+  auto fe = PugiXmlDetails::TextFilterIterator {PugiXmlDetails::TextPredicate {}, re, re};
+  auto b = PugiXmlDetails::TextTransformIterator {fb, convert};
+  auto e = PugiXmlDetails::TextTransformIterator {fe, convert};
+  return XmlImpl::TextRange {b, e};
+}
+
+template <>
 inline Node
 Node::add_child (std::string const& name)
 {
@@ -299,7 +396,8 @@ Node::add_child (std::string const& name)
 
 template <>
 inline Attribute
-Node::add_attribute (std::string const &name, std::string const& value)
+Node::add_attribute (std::string const& name,
+                     std::string const& value)
 {
   auto pattr = impl.append_attribute (name.c_str ());
 
@@ -316,13 +414,18 @@ Node::add_attribute (std::string const &name, std::string const& value)
 }
 
 template <>
-inline void
-Node::set_text (std::string const& text)
+inline Text
+Node::add_text (std::string const& value,
+                TextType text_type)
 {
-  if (!impl.text ().set (text.c_str ()))
+  auto pnode = impl.append_child (PugiXmlDetails::text_type_to_pugi_node_type (text_type));
+
+  if (!pnode)
   {
-    throw std::runtime_error {"could not set text"};
+    throw std::runtime_error {"could not add a text child"};
   }
+  pnode.set_value (value.c_str ());
+  return Text {pnode};
 }
 
 template <>
@@ -341,9 +444,32 @@ Node::remove (Attribute const &attribute)
 
 template <>
 inline void
-Node::remove_text ()
+Node::remove (Text const& text)
 {
-  impl.remove_child (impl.text ().data ());
+  impl.remove_child (text.impl);
+}
+
+// text methods
+
+template <>
+inline std::string
+Text::text () const
+{
+  return impl.value ();
+}
+
+template <>
+inline Node
+Text::parent () const
+{
+  return Node {impl.parent ()};
+}
+
+template <>
+inline TextType
+Text::type () const
+{
+  return PugiXmlDetails::text_type_to_pugi_node_type (impl.type ());
 }
 
 // attribute methods

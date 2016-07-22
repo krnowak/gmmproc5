@@ -1,11 +1,11 @@
 #ifndef GMMPROC_XML_XML_LIBXML_HH
 #define GMMPROC_XML_XML_LIBXML_HH
 
-#error xml with libxml backend is not yet implemented
+#error "xml with libxml backend is not yet implemented"
 
 #ifndef GMMPROC_XML_INCLUDING_IMPL
 
-#error This file should not be included directly
+#error "This file should not be included directly"
 
 #endif
 
