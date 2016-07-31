@@ -1,4 +1,4 @@
-include $(top_srcdir)/gmmproc/xml/structured/structured.am
+#include $(top_srcdir)/gmmproc/xml/structured/structured.am
 
 gmmproc_xml_tests_node_sources = gmmproc/xml/tests/node.cc
 gmmproc_xml_tests_walker_sources = gmmproc/xml/tests/walker.cc

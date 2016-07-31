@@ -1,0 +1,164 @@
+wrapper<T> (ref, ccref [const-correct reference], ccwrapper)
+  copyable, movable, swappable
+  methods
+    wrapper<T>(wrapper<remove_const_T<T>>)
+    T const& operator-> () const
+    T& operator-> ()
+  pugi impl
+    likely generic
+  libxml impl
+    likely generic
+  notes
+    could use the overloadable operator.()
+
+basicnode (to be used inside the wrapper class)
+  privately copyable, privately movable, privately swappable
+  methods
+    wrapper<document> document()
+    wrapper<document const> document() const
+    opt<wrapper<node const>> child(stringview name) const
+    opt<wrapper<node>> child(stringview name)
+    range<wrapper<node>> children()
+    range<wrapper<node const>> children() const
+    range<wrapper<node>> children(stringview name)
+    range<wrapper<node const>> children(stringview name) const
+    void remove(wrapper<node const> child)
+    bool equal (basicnode const& other)
+    PRIVATE void swap (basicnode const& other)
+    FRIEND documentview (for swap)
+    FRIEND node (for swap)
+  pugi impl
+    type::wrapper<document> // meh…
+    variant<swappablexmlnode,ref<pugi::xml_document>>
+  libxml impl
+    ???
+
+bundle (data, structure, datahost, parseddata, parseddatahost, container, core, kernel)
+  noncopyable, movable, swappable
+  methods
+    wrapper<document>
+  pugi impl
+    std::unique_ptr<pugi::xml_document>
+  libxml impl
+    ???
+  notes
+    a safe mode could track all instances of document view
+
+document (to be used inside the wrapper)
+  privately copyable, privately movable, privately swappable
+  methods
+    wrapper<basic_node> as_basic_node ()
+    wrapper<basic_node const> as_basic_node () const
+    opt<wrapper<node>> root_tag ()
+    opt<wrapper<node const>> root_tag () const
+    wrapper<node> add_root (stringview name)
+    FRIEND wrapper<document const>
+    FRIEND wrapper<document>
+  pugi impl
+    ref<pugi::xml_document>
+  libxml impl
+    ???
+
+nodeordoc = variant<wrapper<node>, wrapper<document>>
+nodeordocconst = variant<wrapper<node const>, wrapper<document const>>
+
+nodeortext = variant<wrapper<node>, wrapper<text>>
+nodeortextconst = variant<wrapper<node const>, wrapper<text const>>
+
+node (to be used inside the wrapper)
+  privately copyable, privately movable, privately swappable
+  methods
+    wrapper<basic_node> as_basic_node ()
+    wrapper<basic_node const> as_basic_node () const
+    wrapper<document> document ()
+    wrapper<document const> document () const
+    stringview name () const
+    nodeordoc parent ()
+    nodeordocconst parent () const
+    wrapper<basic_node> basic_parent ()
+    wrapper<basic_node const> basic_parent () const
+    opt<wrapper<node>> child(stringview name)
+    opt<wrapper<node const>> child(stringview name) const
+    range<wrapper<node>> children ()
+    range<wrapper<node const>> children () const
+    range<wrapper<node>> children (stringview name)
+    range<wrapper<node const>> children (stringview name) const
+    opt<wrapper<attribute>> attribute (stringview name)
+    opt<wrapper<attribute const>> attribute (stringview name) const
+    range<wrapper<attribute>> attributes ()
+    range<wrapper<attribute const>> attributes () const
+    range<wrapper<text>> texts ()
+    range<wrapper<text const>> texts () const
+    range<nodeortext> all ()
+    range<nodeortextconst> all () const
+    wrapper<node> add_child (stringview name)
+    wrapper<attribute> add_attribute (stringview name)
+    wrapper<text> add_text (texttype text_type = parsed)
+    void remove (wrapper<node> const& node)
+    void remove (wrapper<attribute> const& attribute)
+    void remove (wrapper<text> const& text)
+  pugi impl
+    wrapper<document>
+    swappablexmlnode
+  libxml impl
+    ???
+
+text (to be used inside the wrapper)
+  privately copyable, privately movable, privately swappable
+  methods
+    wrapper<document> document ()
+    wrapper<document const> document () const
+    stringview text () const
+    void set_text (stringview text)
+    wrapper<node> parent ()
+    wrapper<node const> parent () const
+    texttype type () const
+  pugi impl
+    swappablexmlnode
+    documentview
+  libxml impl
+    ???
+
+attribute (to be used inside the wrapper)
+  privately copyable, privately movable, privately swappable
+  methods
+    wrapper<document> document ()
+    wrapper<document const> document () const
+    stringview name() const
+    void set_name (stringview name) const
+    stringview value() const
+    void set_value (stringview value)
+    wrapper<node> parent ()
+    wrapper<node const> parent () const
+  pugi impl
+    swappablexmlnode
+    swappablexmlattribute
+    documentview
+  libxml impl
+    ???
+
+walker
+  copyable, movable, swappable
+  methods:
+    walk(wrapper<node const>& node)
+    PRIVATE VIRTUAL bool node(wrapper<node const>& node, int depth)
+    PRIVATE VIRTUAL bool text(wrapper<text const>& text, int depth)
+    PRIVATE VIRTUAL bool postprocess_node(wrapper<node const>& node, int depth)
+  pugi impl
+    likely empty impl
+    walk could create a walkcontext that gets the walker for vfunc forwarding and the document from the walked node to easily create visited nodes and texts
+  libxml impl
+    ???
+
+modwalker
+  copyable, movable, swappable
+  methods:
+    walk(wrapper<node>& node)
+    PRIVATE VIRTUAL bool node(wrapper<node>& node, int depth)
+    PRIVATE VIRTUAL bool text(wrapper<text>& text, int depth)
+    PRIVATE VIRTUAL bool postprocess_node(wrapper<node>& node, int depth)
+  pugi impl
+    likely empty impl
+    walk could create a walkcontext that gets the walker for vfunc forwarding and the document from the walked node to easily create visited nodes and texts
+  libxml impl
+    ???
