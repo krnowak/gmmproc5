@@ -17,6 +17,8 @@
 
 #endif
 
+#include "xml-impl-helpers.hh"
+
 #undef GMMPROC_XML_INCLUDING_IMPL
 
 #include <gmmproc/utils/wrapper.h>
@@ -78,11 +80,7 @@ template <typename ImplP>
 using NodeOrDocTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP>>, Type::Wrapper<DocumentTmpl<ImplP>>>;
 template <typename ImplP>
 using NodeOrDocConstTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<DocumentTmpl<ImplP> const>>;
-template <typename ImplP>
-class MutWalkerTypeTmpl;
-template <typename ImplP>
-class ConstWalkerTypeTmpl;
-template <typename WalkerTypeP>
+template <typename ImplP, Helpers::WrapperType TypeV>
 class WalkerTmpl;
 
 class XmlImpl;
@@ -97,10 +95,10 @@ using NodeOrText = NodeOrTextTmpl<XmlImpl>;
 using NodeOrTextConst = NodeOrTextConstTmpl<XmlImpl>;
 using NodeOrDoc = NodeOrDocTmpl<XmlImpl>;
 using NodeOrDocConst = NodeOrDocConstTmpl<XmlImpl>;
-using MutWalkerType = MutWalkerTypeTmpl<XmlImpl>;
-using ConstWalkerType = ConstWalkerTypeTmpl<XmlImpl>;
-using Walker = WalkerTmpl<MutWalkerType>;
-using MutWalker = WalkerTmpl<ConstWalkerType>;
+template <Helpers::WrapperType TypeV>
+using Walker = WalkerTmpl<XmlImpl, TypeV>;
+using ConstWalker = Walker<Helpers::WrapperType::Const>;
+using MutableWalker = Walker<Helpers::WrapperType::Mutable>;
 
 class ParseError : public std::runtime_error
 {
@@ -345,44 +343,21 @@ private:
   typename ImplP::BundleImpl impl;
 };
 
-// TODO: include helpers earlier and use them instead of duplicating the code
-template <typename ImplP>
-class ConstWalkerTypeTmpl
-{
-public:
-  using Document = Type::Wrapper<DocumentTmpl<ImplP> const>;
-  using Node = Type::Wrapper<NodeTmpl<ImplP> const>;
-  using Text = Type::Wrapper<TextTmpl<ImplP> const>;
-  using NodeOrDoc = NodeOrDocConstTmpl<ImplP>;
-  using Impl = ImplP::ConstWalkerTypeImpl;
-};
-
-template <typename ImplP>
-class MutWalkerTypeTmpl
-{
-public:
-  using Document = Type::Wrapper<DocumentTmpl<ImplP>>;
-  using Node = Type::Wrapper<NodeTmpl<ImplP>>;
-  using Text = Type::Wrapper<TextTmpl<ImplP>>;
-  using NodeOrDoc = NodeOrDocTmpl<ImplP>;
-  using Impl = ImplP::MutWalkerTypeImpl;
-};
-
-template <typename WalkerTypeP>
+template <typename ImplP, Helpers::WrapperType TypeV>
 class WalkerTmpl
 {
 public:
   WalkerTmpl ();
-  void walk (typename WalkerTypeP::NodeOrDoc node_or_doc) const;
+  void walk (typename Helpers::CreatorTmpl<ImplP, TypeV>::NodeOrDocType node_or_doc) const;
 
 private:
-  virtual bool doc (typename WalkerTypeP::Document& doc, int depth) const = 0;
-  virtual bool node (typename WalkerTypeP::Node& node, int depth) const = 0;
-  virtual bool text (typename WalkerTypeP::Text& text, int depth) const = 0;
-  virtual bool postprocess_node (typename WalkerTypeP::Node& node, int depth) const = 0;
-  virtual bool postprocess_doc (typename WalkerTypeP::Document& doc, int depth) const = 0;
+  virtual bool doc (typename Helpers::CreatorTmpl<ImplP, TypeV>::DocumentType& doc, int depth) const = 0;
+  virtual bool node (typename Helpers::CreatorTmpl<ImplP, TypeV>::NodeType& node, int depth) const = 0;
+  virtual bool text (typename Helpers::CreatorTmpl<ImplP, TypeV>::TextType& text, int depth) const = 0;
+  virtual bool postprocess_node (typename Helpers::CreatorTmpl<ImplP, TypeV>::NodeType& node, int depth) const = 0;
+  virtual bool postprocess_doc (typename Helpers::CreatorTmpl<ImplP, TypeV>::DocumentType& doc, int depth) const = 0;
 
-  friend typename WalkerTypeP::Impl;
+  friend typename ImplP::WalkerImpl<TypeV>;
 };
 
 } // namespace Xml
@@ -390,8 +365,6 @@ private:
 } // namespace Gmmproc
 
 #define GMMPROC_XML_INCLUDING_IMPL
-
-#include "xml-impl-helpers.hh"
 
 #if defined(GMMPROC_XML_USE_PUGI)
 

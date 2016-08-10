@@ -265,7 +265,145 @@ template <typename WalkerTypeP>
 class WalkerHost;
 
 template <typename HostTypeP>
-class PugiWalker : public pugi::xml_tree_walker
+class NodeOrDocVisitor : public boost::static_visitor<pugi::xml_node>
+{
+public:
+  NodeOrDocVisitor ();
+
+  pugi::xml_node
+  operator() (typename HostTypeP::Node const& node)
+  {
+    return WalkerHost<HostTypeP>::get_node (node.as_basic_node ());
+  }
+
+  pugi::xml_node
+  operator() (typename HostTypeP::Document const& doc)
+  {
+    return WalkerHost<HostTypeP>::get_node (doc.as_basic_node ());
+  }
+};
+
+template <typename HostTypeP>
+class NodeOrDocForDocVisitor : public boost::static_visitor<pugi::xml_document*>
+{
+public:
+  NodeOrDocVisitor ();
+
+  pugi::xml_document*
+  operator() (typename HostTypeP::Node const& node)
+  {
+    return WalkerHost<HostTypeP>::get_doc (node.as_basic_node ());
+  }
+
+  pugi::xml_document*
+  operator() (typename HostTypeP::Document const& doc)
+  {
+    return WalkerHost<HostTypeP>::get_doc (doc.as_basic_node ());
+  }
+};
+
+class ConstHost;
+const MutHost;
+
+class BasicNodeImplNodeVisitor : public boost::static_visitor<pugi::xml_node>
+{
+public:
+  pugi::xml_node
+  operator() (SwappableXmlNode const& node)
+  {
+    return node;
+  }
+
+  pugi::xml_node
+  operator() (pugi::xml_document const* doc_ptr)
+  {
+    return doc_ptr->root ();
+  }
+};
+
+template <Helpers::WrapperType TypeV>
+class WalkerContext
+{
+public:
+  WalkerContext (Walker<TypeV> const* w, typename Helpers::Creator<TypeV>::NodeOrDocType nod)
+    : walker {w},
+      doc {get_doc_from_variant (nod)},
+      node {get_node_from_variant (nod)}
+  {}
+
+  void walk ()
+  {
+    node.traverse (PugiWalker {this});
+  }
+
+private:
+  class PugiWalker;
+  class 
+  PugiWalker<HostTypeP> pugi_walker()
+  {
+    return PugiWalker<HostTypeP> {this, doc};
+  }
+
+  pugi::xml_node& pugi_node ()
+  {
+    return node;
+  }
+
+  friend class PugiWalker<HostTypeP>;
+  friend class NodeOrDocVisitor<WalkerTypeP>;
+
+  static pugi::xml_document* get_doc_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc)
+  {
+    return boost::apply_visitor (NodeOrDocForDocVisitor{}, node_or_doc);
+  }
+
+  static pugi::xml_node get_node_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc)
+  {
+    return boost::apply_visitor (BasicNodeImplNodeVisitor {}, basic_node->impl.doc_or_node);
+  }
+
+  static pugi::xml_document* get_doc (typename HostTypeP::BasicNode const& basic_node)
+  {
+    return basic_node->impl.doc_ptr;
+  }
+
+  static pugi::xml_node get_node (typename HostTypeP::BasicNode const& basic_node)
+  {
+    return boost::apply_visitor (BasicNodeImplNodeVisitor {}, basic_node->impl.doc_or_node);
+  }
+
+  bool doc (typename WalkerTypeP::Document& doc, int depth) const
+  {
+    return walker->doc (doc, depth);
+  }
+
+  bool node (typename WalkerTypeP::Node& node, int depth) const
+  {
+    return walker->node (node, depth);
+  }
+
+  bool text (typename WalkerTypeP::Text& text, int depth) const
+  {
+    return walker->text (node, depth);
+  }
+
+  bool postprocess_node (typename WalkerTypeP::Node& node, int depth) const
+  {
+    return walker->postprocess_node (node, depth);
+  }
+
+  bool postprocess_doc (typename WalkerTypeP::Document& doc, int depth) const
+  {
+    return walker->postprocess_doc (doc, depth);
+  }
+
+  Walker<TypeV> const* walker;
+  pugi::xml_document* doc;
+  pugi::xml_node node;
+};
+
+template <Helpers::WrapperType TypeV>
+class WalkerContext<TypeV>::PugiWalker : public pugi::xml_tree_walker
 {
 public:
   PugiWalker (WalkerHost<HostTypeP> *h,
@@ -351,130 +489,6 @@ PugiWalker::run_postprocessing ()
   }
   return true;
 }
-
-template <typename HostTypeP>
-class NodeOrDocVisitor : public boost::static_visitor<pugi::xml_node>
-{
-public:
-  NodeOrDocVisitor ();
-
-  pugi::xml_node
-  operator() (typename HostTypeP::Node const& node)
-  {
-    return WalkerHost<HostTypeP>::get_node (node.as_basic_node ());
-  }
-
-  pugi::xml_node
-  operator() (typename HostTypeP::Document const& doc)
-  {
-    return WalkerHost<HostTypeP>::get_node (doc.as_basic_node ());
-  }
-};
-
-template <typename HostTypeP>
-class NodeOrDocForDocVisitor : public boost::static_visitor<pugi::xml_document*>
-{
-public:
-  NodeOrDocVisitor ();
-
-  pugi::xml_document*
-  operator() (typename HostTypeP::Node const& node)
-  {
-    return WalkerHost<HostTypeP>::get_doc (node.as_basic_node ());
-  }
-
-  pugi::xml_document*
-  operator() (typename HostTypeP::Document const& doc)
-  {
-    return WalkerHost<HostTypeP>::get_doc (doc.as_basic_node ());
-  }
-};
-
-class ConstHost;
-const MutHost;
-
-class BasicNodeImplNodeVisitor : public boost::static_visitor<pugi::xml_node>
-{
-public:
-  pugi::xml_node
-  operator() (SwappableXmlNode const& node)
-  {
-    return node;
-  }
-
-  pugi::xml_node
-  operator() (pugi::xml_document const* doc_ptr)
-  {
-    return doc_ptr->root ();
-  }
-};
-
-template <typename HostTypeP, typename RealWalkerP>
-class WalkerHost
-{
-public:
-  WalkerHost (RealWalkerP *w, typename HostType::NodeOrDoc node_or_doc)
-    : walker {w},
-      doc {get_doc_from_variant (node_or_doc)}
-  {}
-
-  PugiWalker<HostTypeP> pugi_walker() const
-  {
-    return Walker<HostTypeP> {this, doc};
-  }
-
-  NodeOrDocVisitor<WalkerTypeP> visitor() const
-  {
-    return NodeOrDocVisitor<HostTypeP> {};
-  }
-
-private:
-  friend class PugiWalker<HostTypeP>;
-  friend class NodeOrDocVisitor<WalkerTypeP>;
-
-  static pugi::xml_document* get_doc_from_variant (typename HostType::NodeOrDoc node_or_doc)
-  {
-    return boost::apply_visitor (NodeOrDocForDocVisitor{}, node_or_doc);
-  }
-
-  static pugi::xml_document* get_doc (typename HostTypeP::BasicNode const& basic_node)
-  {
-    return basic_node->impl.doc_ptr;
-  }
-
-  static pugi::xml_node get_node (typename HostTypeP::BasicNode const& basic_node)
-  {
-    return boost::apply_visitor (BasicNodeImplNodeVisitor {}, basic_node->impl.doc_or_node);
-  }
-
-  bool doc (typename WalkerTypeP::Document& doc, int depth) const
-  {
-    return walker->doc (doc, depth);
-  }
-
-  bool node (typename WalkerTypeP::Node& node, int depth) const
-  {
-    return walker->node (node, depth);
-  }
-
-  bool text (typename WalkerTypeP::Text& text, int depth) const
-  {
-    return walker->text (node, depth);
-  }
-
-  bool postprocess_node (typename WalkerTypeP::Node& node, int depth) const
-  {
-    return walker->postprocess_node (node, depth);
-  }
-
-  bool postprocess_doc (typename WalkerTypeP::Document& doc, int depth) const
-  {
-    return walker->postprocess_doc (doc, depth);
-  }
-
-  RealWalker *walker;
-  pugi::xml_document *doc;
-};
 
 using MutWalkerHost = WalkerHost<MutHost>;
 using ConstWalkerHost = WalkerHost<ConstHost>;
@@ -1992,41 +2006,17 @@ Bundle::document () const
 
 // walker
 
-template <typename ImplP>
-class ConstWalkerTypeTmpl
-{
-public:
-  using Document = Type::Wrapper<DocumentTmpl<ImplP> const>;
-  using Node = Type::Wrapper<NodeTmpl<ImplP> const>;
-  using Text = Type::Wrapper<TextTmpl<ImplP> const>;
-  using NodeOrDoc = NodeOrDocConstTmpl<ImplP>;
-  using Impl = ImplP::ConstWalkerTypeImpl;
-};
-
-template <typename ImplP>
-class MutWalkerTypeTmpl
-{
-public:
-  using Document = Type::Wrapper<DocumentTmpl<ImplP>>;
-  using Node = Type::Wrapper<NodeTmpl<ImplP>>;
-  using Text = Type::Wrapper<TextTmpl<ImplP>>;
-  using NodeOrDoc = NodeOrDocTmpl<ImplP>;
-  using Impl = ImplP::MutWalkerTypeImpl;
-};
-
-template <typename WalkerTypeP>
-WalkerTmpl::WalkerTmpl ()
+template <Helpers::WrapperType TypeV>
+Walker::WalkerTmpl ()
 {}
 
-template <typename WalkerTypeP>
+template <Helpers::WrapperType TypeV>
 void
-WalkerTmpl::walk (typename WalkerTypeP::NodeOrDoc node_or_doc) const
+Walker::walk (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc) const;
 {
-  typename WalkerTypeP::Impl host {this, node_or_doc};
-  auto pugi_walker = host.walker ();
-  auto visitor = host.visitor ();
+  typename XmlImpl::WalkerImpl<TypeV> context {this, std::move (node_or_doc)};
 
-  boost::apply_visitor (visitor, node_or_doc).traverse (pugi_walker);
+  context.walk ();
 }
 
 /*
