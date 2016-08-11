@@ -252,150 +252,21 @@ public:
   bool operator() (pugi::xml_node const& node) const;
 };
 
-template <typename TransformP, typename PredicateP>
-using IteratorType = boost::transform_iterator<TransformP, boost::filter_iterator<PredicateP, pugi::xml_node_iterator>>;
-
-template <typename WalkerTypeP>
-class Walker;
-
-template <typename WalkerTypeP>
-class NodeOrDocVisitor;
-
-template <typename WalkerTypeP>
-class WalkerHost;
-
-template <typename HostTypeP>
-class NodeOrDocVisitor : public boost::static_visitor<pugi::xml_node>
-{
-public:
-  NodeOrDocVisitor ();
-
-  pugi::xml_node
-  operator() (typename HostTypeP::Node const& node)
-  {
-    return WalkerHost<HostTypeP>::get_node (node.as_basic_node ());
-  }
-
-  pugi::xml_node
-  operator() (typename HostTypeP::Document const& doc)
-  {
-    return WalkerHost<HostTypeP>::get_node (doc.as_basic_node ());
-  }
-};
-
-template <typename HostTypeP>
-class NodeOrDocForDocVisitor : public boost::static_visitor<pugi::xml_document*>
-{
-public:
-  NodeOrDocVisitor ();
-
-  pugi::xml_document*
-  operator() (typename HostTypeP::Node const& node)
-  {
-    return WalkerHost<HostTypeP>::get_doc (node.as_basic_node ());
-  }
-
-  pugi::xml_document*
-  operator() (typename HostTypeP::Document const& doc)
-  {
-    return WalkerHost<HostTypeP>::get_doc (doc.as_basic_node ());
-  }
-};
-
-class ConstHost;
-const MutHost;
-
-class BasicNodeImplNodeVisitor : public boost::static_visitor<pugi::xml_node>
-{
-public:
-  pugi::xml_node
-  operator() (SwappableXmlNode const& node)
-  {
-    return node;
-  }
-
-  pugi::xml_node
-  operator() (pugi::xml_document const* doc_ptr)
-  {
-    return doc_ptr->root ();
-  }
-};
-
 template <Helpers::WrapperType TypeV>
 class WalkerContext
 {
 public:
-  WalkerContext (Walker<TypeV> const* w, typename Helpers::Creator<TypeV>::NodeOrDocType nod)
-    : walker {w},
-      doc {get_doc_from_variant (nod)},
-      node {get_node_from_variant (nod)}
-  {}
+  WalkerContext (Walker<TypeV> const* w, typename Helpers::Creator<TypeV>::NodeOrDocType nod);
 
-  void walk ()
-  {
-    node.traverse (PugiWalker {this});
-  }
+  void walk ();
 
 private:
   class PugiWalker;
-  class 
-  PugiWalker<HostTypeP> pugi_walker()
-  {
-    return PugiWalker<HostTypeP> {this, doc};
-  }
+  class NodeOrDocForDocVisitor;
+  class NodeOrDocForNodeVisitor;
 
-  pugi::xml_node& pugi_node ()
-  {
-    return node;
-  }
-
-  friend class PugiWalker<HostTypeP>;
-  friend class NodeOrDocVisitor<WalkerTypeP>;
-
-  static pugi::xml_document* get_doc_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc)
-  {
-    return boost::apply_visitor (NodeOrDocForDocVisitor{}, node_or_doc);
-  }
-
-  static pugi::xml_node get_node_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc)
-  {
-    return boost::apply_visitor (BasicNodeImplNodeVisitor {}, basic_node->impl.doc_or_node);
-  }
-
-  static pugi::xml_document* get_doc (typename HostTypeP::BasicNode const& basic_node)
-  {
-    return basic_node->impl.doc_ptr;
-  }
-
-  static pugi::xml_node get_node (typename HostTypeP::BasicNode const& basic_node)
-  {
-    return boost::apply_visitor (BasicNodeImplNodeVisitor {}, basic_node->impl.doc_or_node);
-  }
-
-  bool doc (typename WalkerTypeP::Document& doc, int depth) const
-  {
-    return walker->doc (doc, depth);
-  }
-
-  bool node (typename WalkerTypeP::Node& node, int depth) const
-  {
-    return walker->node (node, depth);
-  }
-
-  bool text (typename WalkerTypeP::Text& text, int depth) const
-  {
-    return walker->text (node, depth);
-  }
-
-  bool postprocess_node (typename WalkerTypeP::Node& node, int depth) const
-  {
-    return walker->postprocess_node (node, depth);
-  }
-
-  bool postprocess_doc (typename WalkerTypeP::Document& doc, int depth) const
-  {
-    return walker->postprocess_doc (doc, depth);
-  }
+  static pugi::xml_document* get_doc_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc);
+  static pugi::xml_node get_node_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc);
 
   Walker<TypeV> const* walker;
   pugi::xml_document* doc;
@@ -406,92 +277,51 @@ template <Helpers::WrapperType TypeV>
 class WalkerContext<TypeV>::PugiWalker : public pugi::xml_tree_walker
 {
 public:
-  PugiWalker (WalkerHost<HostTypeP> *h,
-              pugi::xml_document* d)
-    : host {h},
-      doc {d}
-  {}
+  PugiWalker (WalkerContext<TypeV> const* h,
+              pugi::xml_document* d);
 
 private:
-  virtual bool
-  for_each (pugi::xml_node& node) override;
+  virtual bool for_each (pugi::xml_node& node) override;
+  virtual bool end (pugi::xml_node& node) override;
 
-  virtual bool
-  end (pugi::xml_node& node) override;
+  bool run_postprocessing ();
 
-  bool
-  run_postprocessing ();
-
-  WalkerHost<HostTypeP>* host;
+  WalkerContext<TypeV> const* ctx;
   pugi::xml_document* doc;
   std::stack<std::pair<Node, int>> nodes;
+  bool visited_doc;
+  int doc_depth;
 };
 
-bool
-PugiWalker::for_each (pugi::xml_node& node)
+template <Helpers::WrapperType TypeV>
+class WalkerContext<TypeV>::NodeOrDocForDocVisitor : public boost::static_visitor<pugi::xml_document*>
 {
-  auto const d = depth ();
+public:
+  NodeOrDocForDocVisitor ();
 
-  switch (node.type ())
-  {
-  case pugi::node_pcdata:
-  case pugi::node_cdata:
-    {
-      auto t = Text::create_const
-      Text t {node};
+  template <typename NodeOrDocP>
+  pugi::xml_document*
+  operator() (NodeOrDocP const& node_or_doc);
+};
 
-      return host->text (t, d);
-    }
-
-  case pugi::node_element:
-    {
-      if (!run_postprocessing ())
-      {
-        return false;
-      }
-
-      Node n {NodeWrapper {std::ref (*doc), node}};
-      nodes.push (std::make_pair (n, d));
-      return walker.node (n, d);
-    }
-
-  default:
-    return true;
-  }
-}
-
-bool
-PugiWalker::end (pugi::xml_node&)
+template <Helpers::WrapperType TypeV>
+class WalkerContext<TypeV>::NodeOrDocForNodeVisitor : public boost::static_visitor<pugi::xml_node>
 {
-  auto result = run_postprocessing ();
-  doc = nullptr;
-  return result;
-}
+public:
+  NodeOrDocForNodeVisitor ();
 
-bool
-PugiWalker::run_postprocessing ()
-{
-  auto const d = depth ();
+  template <typename NodeOrDocP>
+  pugi::xml_node
+  operator() (NodeOrDocP const& node_or_doc);
+};
 
-  while (!nodes.empty ())
-  {
-    auto p = nodes.top ();
+template <typename TransformP, typename IteratorP>
+using TransformRange = boost::iterator_range<boost::transform_iterator<TransformP, IteratorP>;
 
-    if (p.second < d)
-    {
-      break;
-    }
-    nodes.pop ();
-    if (!walker.postprocess_node (p.first, p.second))
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-using MutWalkerHost = WalkerHost<MutHost>;
-using ConstWalkerHost = WalkerHost<ConstHost>;
+template <typename TransformP, typename PredicateP>
+using NodeTransformFilterRange = TransformRange<TransformP,
+                                                boost::filter_iterator<PredicateP,
+                                                                       pugi::xml_node_iterator>>;
 
 } // namespace PugiXmlDetails
 
@@ -504,17 +334,17 @@ public:
   using DocumentImpl = PugiXmlDetails::DocumentImpl;
   using BundleImpl = PugiXmlDetails::BundleImpl;
 
-  using NodeRange = boost::iterator_range<PugiXmlDetails::IteratorType<NodeTransform<Helpers::WrapperType::Mutable>, NodePredicate>>;
-  using NodeConstRange = boost::iterator_range<PugiXmlDetails::IteratorType<NodeTransform<Helpers::WrapperType::Const>, NodePredicate>>;
-  using AttributeRange = boost::iterator_range<boost::transform_iterator<AttributeTransform<Helpers::WrapperType::Mutable>, pugi::xml_attribute_iterator>>;
-  using AttributeConstRange = boost::iterator_range<boost::transform_iterator<AttributeTransform<Helpers::WrapperType::Const>, pugi::xml_attribute_iterator>>;
-  using TextRange = boost::iterator_range<PugiXmlDetails::IteratorType<TextTransform<Helpers::WrapperType::Mutable>, TextPredicate>>;
-  using TextConstRange = boost::iterator_range<PugiXmlDetails::IteratorType<TextTransform<Helpers::WrapperType::Const>, TextPredicate>>;
-  using NodeOrTextRange = boost::iterator_range<PugiXmlDetails::IteratorType<NodeOrTextTransform<Helpers::WrapperType::Mutable>, NodeOrTextPredicate>>;
-  using NodeOrTextConstRange = boost::iterator_range<PugiXmlDetails::IteratorType<NodeOrTextTransform<Helpers::WrapperType::Const>, NodeOrTextPredicate>>;
+  using NodeRange = PugiXmlDetails::NodeTransformFilterRange<NodeTransform<Helpers::WrapperType::Mutable>, NodePredicate>;
+  using NodeConstRange = PugiXmlDetails::NodeTransformFilterRange<NodeTransform<Helpers::WrapperType::Const>, NodePredicate>;
+  using AttributeRange = PugiXmlDetails::TransformRange<AttributeTransform<Helpers::WrapperType::Mutable>, pugi::xml_attribute_iterator>;
+  using AttributeConstRange = PugiXmlDetails::TransformRange<AttributeTransform<Helpers::WrapperType::Const>, pugi::xml_attribute_iterator>;
+  using TextRange = PugiXmlDetails::NodeTransformFilterRange<TextTransform<Helpers::WrapperType::Mutable>, TextPredicate>;
+  using TextConstRange = PugiXmlDetails::NodeTransformFilterRange<TextTransform<Helpers::WrapperType::Const>, TextPredicate>;
+  using NodeOrTextRange = PugiXmlDetails::NodeTransformFilterRange<NodeOrTextTransform<Helpers::WrapperType::Mutable>, NodeOrTextPredicate>;
+  using NodeOrTextConstRange = PugiXmlDetails::NodeTransformFilterRange<NodeOrTextTransform<Helpers::WrapperType::Const>, NodeOrTextPredicate>;
 
-  using MutWalkerTypeImpl = PugiXmlDetails::MutWalkerHost;
-  using ConstWalkerTypeImpl = PugiXmlDetails::ConstWalkerHost;
+  template <Helpers::WrapperType TypeV>
+  using WalkerImpl = PugiXmlDetails::WalkerContext<TypeV>;
 };
 
 namespace PugiXmlDetails
@@ -551,6 +381,22 @@ SwappableXmlNode::swap (SwappableXmlNode& node) noexcept
 }
 
 // basic node impl
+
+class BasicNodeImplNodeVisitor : public boost::static_visitor<pugi::xml_node>
+{
+public:
+  pugi::xml_node
+  operator() (SwappableXmlNode const& node)
+  {
+    return node;
+  }
+
+  pugi::xml_node
+  operator() (pugi::xml_document const* doc_ptr)
+  {
+    return doc_ptr->root ();
+  }
+};
 
 inline
 BasicNodeImpl::BasicNodeImpl (pugi::xml_document* d)
@@ -837,28 +683,6 @@ get_child (pugi::xml_document* doc_ptr,
   return Type::Optional<NodeImpl> {};
 }
 
-/*
-
-class RangeDetailsLayout
-{
-public:
-  static auto
-  pugi_range (pugi::xml_node& node)
-  {}
-
-  static auto
-  convert (pugi::xml_document* doc_ptr,
-           pugi::xml_node& node)
-  {}
-
-  template <typename IteratorP>
-  static auto
-  filter (IteratorP iterator, IteratorP end)
-  {}
-};
-
-*/
-
 class PugiGetChildrenRange
 {
 public:
@@ -1122,6 +946,153 @@ pugi_node_type_to_text_type (pugi::xml_node_type node_type)
   }
 
   throw std::runtime_error {"argh"};
+}
+
+template <Helpers::WrapperType TypeV>
+inline
+WalkerContext::WalkerContext (Walker<TypeV> const* w,
+                              typename Helpers::Creator<TypeV>::NodeOrDocType nod)
+  : walker {w},
+    doc {get_doc_from_variant (nod)},
+    node {get_node_from_variant (nod)}
+{}
+
+template <Helpers::WrapperType TypeV>
+inline void
+WalkerContext::walk ()
+{
+  node.traverse (PugiWalker {this});
+}
+
+template <Helpers::WrapperType TypeV>
+/* static */ inline pugi::xml_document*
+WalkerContext::get_doc_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc)
+{
+  return boost::apply_visitor (NodeOrDocForDocVisitor{}, node_or_doc);
+}
+
+template <Helpers::WrapperType TypeV>
+/* static */ inline pugi::xml_node
+WalkerContext::get_node_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc)
+{
+  return boost::apply_visitor (NodeOrDocForNodeVisitor {}, basic_node->impl.doc_or_node);
+}
+
+template <Helpers::WrapperType TypeV>
+WalkerContext<TypeV>::PugiWalker::PugiWalker (WalkerContext<HostTypeP> *c,
+                                              pugi::xml_document* d)
+  : ctx {c},
+    doc {d},
+    nodes {},
+    visited_doc {false},
+    doc_depth {0}
+{}
+
+template <Helpers::WrapperType TypeV>
+bool
+WalkerContext<TypeV>::PugiWalker::for_each (pugi::xml_node& node)
+{
+  if (!run_postprocessing ())
+  {
+    return false;
+  }
+
+  auto const d = depth ();
+
+  switch (node.type ())
+  {
+  case pugi::node_pcdata:
+  case pugi::node_cdata:
+    {
+      auto t = Helpers::Creator<TypeV>::create_text (TextImpl {this->doc, SwappableXmlNode {node}});
+
+      return ctx->walker->text (t, d);
+    }
+
+  case pugi::node_element:
+    {
+      auto n = Helpers::Creator<TypeV>::create_node (NodeImpl {doc, SwappableXmlNode {node}});
+
+      nodes.push (std::make_pair (n, d));
+      return ctx->walker->node (n, d);
+    }
+
+  case pugi::node_document:
+    {
+      auto dd = Helpers::Creator<TypeV>::create_doc (DocImpl {doc});
+
+      this->visited_doc = true;
+      this->doc_depth = d;
+      return ctx->walker->doc (dd, d);
+    }
+
+  default:
+    return true;
+  }
+}
+
+template <Helpers::WrapperType TypeV>
+bool
+WalkerContext<TypeV>::PugiWalker::end (pugi::xml_node&)
+{
+  if (!run_postprocessing ())
+  {
+    return false;
+  }
+  if (visited_doc)
+  {
+    auto d = Helpers::Creator<TypeV>::create_doc (DocImpl {doc});
+    return ctx->walker->postprocess_doc (d, doc_depth);
+  }
+  return true;
+}
+
+template <Helpers::WrapperType TypeV>
+bool
+PugiWalker::run_postprocessing ()
+{
+  auto const d = depth ();
+
+  while (!nodes.empty ())
+  {
+    auto p = nodes.top ();
+
+    if (p.second < d)
+    {
+      break;
+    }
+    nodes.pop ();
+    if (!ctx->walker->postprocess_node (p.first, p.second))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <Helpers::WrapperType TypeV>
+inline
+WalkerContext<TypeV>::NodeOrDocForDocVisitor::NodeOrDocForDocVisitor () = default;
+
+template <Helpers::WrapperType TypeV>
+template <typename NodeOrDocP>
+inline pugi::xml_document*
+WalkerContext<TypeV>::NodeOrDocForDocVisitor::operator() (NodeOrDocP const& node_or_doc)
+{
+  return node_or_doc->as_basic_node ()->impl.doc_ptr;
+}
+
+template <Helpers::WrapperType TypeV>
+inline
+WalkerContext<TypeV>::NodeOrDocForNodeVisitor::NodeOrDocForNodeVisitor () = default;
+
+template <Helpers::WrapperType TypeV>
+template <typename NodeOrDocP>
+inline pugi::xml_node
+WalkerContext<TypeV>::NodeOrDocForNodeVisitor::operator() (NodeOrDocP const& node_or_doc)
+{
+  return boost::apply_visitor (BasicNodeImplNodeVisitor {},
+                               node_or_doc->as_basic_node ()->impl.doc_or_node);
 }
 
 } // namespace PugiXmlDetails
@@ -2007,25 +1978,17 @@ Bundle::document () const
 // walker
 
 template <Helpers::WrapperType TypeV>
-Walker::WalkerTmpl ()
-{}
+inline
+Walker::WalkerTmpl () = default;
 
 template <Helpers::WrapperType TypeV>
-void
+inline void
 Walker::walk (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc) const;
 {
   typename XmlImpl::WalkerImpl<TypeV> context {this, std::move (node_or_doc)};
 
   context.walk ();
 }
-
-/*
-virtual bool doc (typename WalkerTypeP::Document& doc, int depth) const= 0;
-virtual bool node (typename WalkerTypeP::Node& node, int depth) const = 0;
-virtual bool text (typename WalkerTypeP::Text& text, int depth) const = 0;
-virtual bool postprocess_node (typename WalkerTypeP::Node& node, int depth) const = 0;
-virtual bool postprocess_doc (typename WalkerTypeP::Document& doc, int depth) const = 0;
-*/
 
 } // namespace Xml
 
