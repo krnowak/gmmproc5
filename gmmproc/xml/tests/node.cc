@@ -1,4 +1,4 @@
-#include <gmmproc/xml/xml.hh>
+#include <gmmproc/xml/xml2.hh>
 
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/iterator/zip_iterator.hpp>
@@ -12,24 +12,25 @@
 namespace
 {
 
-Gmmproc::Xml::Document
-get_doc ()
+Gmmproc::Xml::Bundle
+get_bundle ()
 {
-  Gmmproc::Xml::Document doc;
+  Gmmproc::Xml::Bundle bundle;
+  auto doc = bundle.document ();
   auto a_node = doc.add_root ("a");
 
   //    __a__
   //   |  |  |
   //   b  c  d
-  a_node.add_text ("text1");
+  a_node.add_text ().set_text ("text1");
   a_node.add_child ("b");
-  a_node.add_text ("text2");
+  a_node.add_text ().set_text ("text2");
   a_node.add_child ("c");
-  a_node.add_text ("text3");
+  a_node.add_text ().set_text ("text3");
   a_node.add_child ("d");
-  a_node.add_text ("text4");
+  a_node.add_text ().set_text ("text4");
 
-  return doc;
+  return bundle;
 }
 
 Gmmproc::Xml::Node
@@ -65,7 +66,7 @@ compare_ranges (RangeP const& got_range,
   }
 
   for (auto const& p : boost::make_iterator_range (boost::make_zip_iterator (boost::make_tuple (got_range.begin (), expected_range.begin ())),
-                                                  boost::make_zip_iterator (boost::make_tuple (got_range.end (), expected_range.end ()))))
+                                                   boost::make_zip_iterator (boost::make_tuple (got_range.end (), expected_range.end ()))))
   {
     auto const& g = p.get<0> ();
     auto const& ex = p.get<1> ();
