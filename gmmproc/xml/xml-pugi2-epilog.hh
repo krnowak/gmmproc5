@@ -33,32 +33,6 @@ namespace Xml
 namespace PugiXmlDetails
 {
 
-// noexcept swap pugi wrappers
-
-// swappable xml node
-
-class SwappableXmlNode : public pugi::xml_node
-{
-public:
-  using pugi::xml_node::xml_node;
-
-  SwappableXmlNode (pugi::xml_node const& n);
-
-  void swap (SwappableXmlNode& node) noexcept;
-};
-
-// swappable xml attribute
-
-class SwappableXmlAttribute : public pugi::xml_node
-{
-public:
-  using pugi::xml_node::xml_node;
-
-  SwappableXmlAttribute (pugi::xml_node const& n);
-
-  void swap (SwappableXmlAttribute& node) noexcept;
-};
-
 // impls
 
 // basic node
@@ -68,7 +42,7 @@ class BasicNodeImpl
 public:
   BasicNodeImpl (pugi::xml_document* d);
   BasicNodeImpl (pugi::xml_document* d,
-                 SwappableXmlNode n);
+                 pugi::xml_node n);
   ~BasicNodeImpl () noexcept;
 
   BasicNodeImpl (BasicNodeImpl const& other);
@@ -81,7 +55,7 @@ public:
   pugi::xml_node get_node () const;
 
   pugi::xml_document* doc_ptr;
-  Type::Variant<xml_document*, SwappableXmlNode> doc_or_node;
+  Type::Variant<pugi::xml_document*, pugi::xml_node> doc_or_node;
 };
 
 // attribute
@@ -90,8 +64,8 @@ class AttributeImpl
 {
 public:
   AttributeImpl (pugi::xml_document* d,
-                 SwappableXmlNode p,
-                 SwappableXmlAttribute a);
+                 pugi::xml_node p,
+                 pugi::xml_attribute a);
   ~AttributeImpl () noexcept;
 
   AttributeImpl (AttributeImpl const& other);
@@ -102,8 +76,8 @@ public:
   bool equal (AttributeImpl const& other) const;
 
   pugi::xml_document* doc_ptr;
-  SwappableXmlNode parent;
-  SwappableXmlAttribute attribute;
+  pugi::xml_node parent;
+  pugi::xml_attribute attribute;
 };
 
 // text
@@ -112,7 +86,7 @@ class TextImpl
 {
 public:
   TextImpl (pugi::xml_document* d,
-            SwappableXmlNode n);
+            pugi::xml_node n);
   ~TextImpl () noexcept;
 
   TextImpl (TextImpl const& other);
@@ -123,7 +97,7 @@ public:
   bool equal (TextImpl const& other) const;
 
   pugi::xml_document* doc_ptr;
-  SwappableXmlNode node;
+  pugi::xml_node node;
 };
 
 // node
@@ -132,7 +106,7 @@ class NodeImpl
 {
 public:
   NodeImpl (pugi::xml_document* d,
-            SwappableXmlNode n);
+            pugi::xml_node n);
   ~NodeImpl () noexcept;
 
   NodeImpl (NodeImpl const& other);
@@ -141,7 +115,7 @@ public:
   void swap (NodeImpl &other) noexcept;
 
   pugi::xml_document* doc_ptr;
-  SwappableXmlNode node;
+  pugi::xml_node node;
 };
 
 // document
@@ -173,7 +147,7 @@ public:
 
   void swap (BundleImpl &other) noexcept;
 
-  std::unique_ptr<xml_document> doc;
+  std::unique_ptr<pugi::xml_document> doc;
 };
 
 // transformers and predicates
@@ -322,7 +296,7 @@ public:
 };
 
 template <typename TransformP, typename IteratorP>
-using TransformRange = boost::iterator_range<boost::transform_iterator<TransformP, IteratorP>;
+using TransformRange = boost::iterator_range<boost::transform_iterator<TransformP, IteratorP>>;
 
 template <typename TransformP, typename PredicateP>
 using NodeTransformFilterRange = TransformRange<TransformP,
@@ -340,14 +314,14 @@ public:
   using DocumentImpl = PugiXmlDetails::DocumentImpl;
   using BundleImpl = PugiXmlDetails::BundleImpl;
 
-  using NodeRange = PugiXmlDetails::NodeTransformFilterRange<NodeTransform<Helpers::WrapperType::Mutable>, NodePredicate>;
-  using NodeConstRange = PugiXmlDetails::NodeTransformFilterRange<NodeTransform<Helpers::WrapperType::Const>, NodePredicate>;
-  using AttributeRange = PugiXmlDetails::TransformRange<AttributeTransform<Helpers::WrapperType::Mutable>, pugi::xml_attribute_iterator>;
-  using AttributeConstRange = PugiXmlDetails::TransformRange<AttributeTransform<Helpers::WrapperType::Const>, pugi::xml_attribute_iterator>;
-  using TextRange = PugiXmlDetails::NodeTransformFilterRange<TextTransform<Helpers::WrapperType::Mutable>, TextPredicate>;
-  using TextConstRange = PugiXmlDetails::NodeTransformFilterRange<TextTransform<Helpers::WrapperType::Const>, TextPredicate>;
-  using NodeOrTextRange = PugiXmlDetails::NodeTransformFilterRange<NodeOrTextTransform<Helpers::WrapperType::Mutable>, NodeOrTextPredicate>;
-  using NodeOrTextConstRange = PugiXmlDetails::NodeTransformFilterRange<NodeOrTextTransform<Helpers::WrapperType::Const>, NodeOrTextPredicate>;
+  using NodeRange = PugiXmlDetails::NodeTransformFilterRange<PugiXmlDetails::NodeTransform<Helpers::WrapperType::Mutable>, PugiXmlDetails::NodePredicate>;
+  using NodeConstRange = PugiXmlDetails::NodeTransformFilterRange<PugiXmlDetails::NodeTransform<Helpers::WrapperType::Const>, PugiXmlDetails::NodePredicate>;
+  using AttributeRange = PugiXmlDetails::TransformRange<PugiXmlDetails::AttributeTransform<Helpers::WrapperType::Mutable>, pugi::xml_attribute_iterator>;
+  using AttributeConstRange = PugiXmlDetails::TransformRange<PugiXmlDetails::AttributeTransform<Helpers::WrapperType::Const>, pugi::xml_attribute_iterator>;
+  using TextRange = PugiXmlDetails::NodeTransformFilterRange<PugiXmlDetails::TextTransform<Helpers::WrapperType::Mutable>, PugiXmlDetails::TextPredicate>;
+  using TextConstRange = PugiXmlDetails::NodeTransformFilterRange<PugiXmlDetails::TextTransform<Helpers::WrapperType::Const>, PugiXmlDetails::TextPredicate>;
+  using NodeOrTextRange = PugiXmlDetails::NodeTransformFilterRange<PugiXmlDetails::NodeOrTextTransform<Helpers::WrapperType::Mutable>, PugiXmlDetails::NodeOrTextPredicate>;
+  using NodeOrTextConstRange = PugiXmlDetails::NodeTransformFilterRange<PugiXmlDetails::NodeOrTextTransform<Helpers::WrapperType::Const>, PugiXmlDetails::NodeOrTextPredicate>;
 
   template <Helpers::WrapperType TypeV>
   using WalkerImpl = PugiXmlDetails::WalkerContext<TypeV>;
@@ -356,43 +330,13 @@ public:
 namespace PugiXmlDetails
 {
 
-// swappable xml node
-
-inline
-SwappableXmlNode::SwappableXmlNode (pugi::xml_node const& n)
-  : pugi::xml_node {n.internal_object ()}
-{}
-
-inline void
-SwappableXmlNode::swap (SwappableXmlNode& node) noexcept
-{
-  using std::swap;
-
-  swap (_root, node._root);
-}
-
-// swappable xml attribute
-
-inline
-SwappableXmlNode::SwappableXmlNode (pugi::xml_attribute const& a)
-  : pugi::xml_attribute {a.internal_object ()}
-{}
-
-inline void
-SwappableXmlNode::swap (SwappableXmlNode& node) noexcept
-{
-  using std::swap;
-
-  swap (_attr, node._attr);
-}
-
 // basic node impl
 
 class BasicNodeImplNodeVisitor : public boost::static_visitor<pugi::xml_node>
 {
 public:
   pugi::xml_node
-  operator() (SwappableXmlNode const& node)
+  operator() (pugi::xml_node const& node)
   {
     return node;
   }
@@ -406,13 +350,13 @@ public:
 
 inline
 BasicNodeImpl::BasicNodeImpl (pugi::xml_document* d)
-  : doc_ptr {d}
+  : doc_ptr {d},
     doc_or_node {d}
 {}
 
 inline
 BasicNodeImpl::BasicNodeImpl (pugi::xml_document* d,
-                              SwappableXmlNode n)
+                              pugi::xml_node n)
   : doc_ptr {d},
     doc_or_node {std::move (n)}
 {}
@@ -454,8 +398,8 @@ BasicNodeImpl::get_node () const
 
 inline
 AttributeImpl::AttributeImpl (pugi::xml_document* d,
-                              SwappableXmlNode p,
-                              SwappableXmlAttribute a)
+                              pugi::xml_node p,
+                              pugi::xml_attribute a)
   : doc_ptr {d},
     parent {std::move (p)},
     attribute {std::move (a)}
@@ -494,7 +438,7 @@ AttributeImpl::equal (AttributeImpl const& other) const
 
 inline
 TextImpl::TextImpl (pugi::xml_document* d,
-                    SwappableXmlNode n)
+                    pugi::xml_node n)
   : doc_ptr {d},
     node {std::move (n)}
 {}
@@ -530,7 +474,7 @@ TextImpl::equal (TextImpl const& other) const
 
 inline
 NodeImpl::NodeImpl (pugi::xml_document* d,
-                    SwappableXmlNode n)
+                    pugi::xml_node n)
   : doc_ptr {d},
     node {std::move (n)}
 {}
@@ -646,7 +590,7 @@ public:
 
   static ReturnType node(NodeImpl const& impl, pugi::xml_node&& parent)
   {
-    return ReturnType {Creator<TypeV>::create_node (NodeImpl {impl.doc_ptr, SwappableXmlNode {std::move (parent)}})};
+    return ReturnType {Creator<TypeV>::create_node (NodeImpl {impl.doc_ptr, std::move (parent)})};
   }
 };
 
@@ -662,7 +606,7 @@ public:
 
   static ReturnType node(NodeImpl const& impl, pugi::xml_node&& parent)
   {
-    return ReturnType {impl.doc_ptr, SwappableXmlNode {std::move (parent)}};
+    return ReturnType {impl.doc_ptr, std::move (parent)};
   }
 };
 
@@ -706,7 +650,7 @@ get_child (pugi::xml_document* doc_ptr,
 
   if (c)
   {
-    return Type::Optional<NodeImpl> {Type::OptionalInPlace{}, doc_ptr, SwappableXmlNode {std::move (c)}};
+    return Type::Optional<NodeImpl> {Type::OptionalInPlace{}, doc_ptr, std::move (c)};
   }
 
   return Type::Optional<NodeImpl> {};
@@ -776,7 +720,7 @@ template <Helpers::WrapperType TypeV>
 inline typename Creator<TypeV>::NodeType
 NodeTransform::operator() (pugi::xml_node const& n) const
 {
-  return Creator<TypeV>::create_node (NodeImpl {doc, SwappableXmlNode {n}});
+  return Creator<TypeV>::create_node (NodeImpl {doc, n});
 }
 
 inline bool
@@ -808,7 +752,7 @@ template <Helpers::WrapperType TypeV>
 inline typename Creator<TypeV>::AttributeType
 AttributeTransform::operator() (pugi::xml_attribute const& a) const
 {
-  return Creator<TypeV>::create_attribute (AttributeImpl {doc, SwappableXmlNode {parent}, SwappableXmlAttribute {a}});
+  return Creator<TypeV>::create_attribute (AttributeImpl {doc, parent, a});
 }
 
 template <typename ConverterP>
@@ -855,7 +799,7 @@ template <Helpers::WrapperType TypeV>
 inline typename Helpers::Creator<TypeV>::TextType
 TextTransform::operator() (pugi::xml_node const& n) const
 {
-  return Helpers::Creator<TypeV>::create_text (TextImpl {doc_ptr, SwappableXmlNode {n}});
+  return Helpers::Creator<TypeV>::create_text (TextImpl {doc_ptr, n});
 }
 
 inline bool
@@ -933,7 +877,7 @@ get_attribute (pugi::xml_document* doc_ptr,
 
   if (a)
   {
-    return Type::Optional<AttributeImpl> {Type::OptionalInPlace{}, doc_ptr, SwappableXmlNode {std::move (c)}, SwappableXmlAttribute {std::move (a)}};
+    return Type::Optional<AttributeImpl> {Type::OptionalInPlace{}, doc_ptr, std::move (c), std::move (a)};
   }
 
   return Type::Optional<AttributeImpl> {};
@@ -1034,14 +978,14 @@ WalkerContext<TypeV>::PugiWalker::for_each (pugi::xml_node& node)
   case pugi::node_pcdata:
   case pugi::node_cdata:
     {
-      auto t = Helpers::Creator<TypeV>::create_text (TextImpl {this->doc, SwappableXmlNode {node}});
+      auto t = Helpers::Creator<TypeV>::create_text (TextImpl {this->doc, node});
 
       return ctx->walker->text (t, d);
     }
 
   case pugi::node_element:
     {
-      auto n = Helpers::Creator<TypeV>::create_node (NodeImpl {doc, SwappableXmlNode {node}});
+      auto n = Helpers::Creator<TypeV>::create_node (NodeImpl {doc, node});
 
       nodes.push (std::make_pair (n, d));
       return ctx->walker->node (n, d);
@@ -1339,14 +1283,14 @@ template <>
 inline Type::Wrapper<Node>
 Attribute::parent ()
 {
-  return Node::create (NodeImpl {impl.doc_ptr, SwappableXmlNode {impl.parent}});
+  return Node::create (NodeImpl {impl.doc_ptr, impl.parent});
 }
 
 template <>
 inline Type::Wrapper<Node const>
 Attribute::parent () const
 {
-  return Node::create_const (NodeImpl {impl.doc_ptr, SwappableXmlNode {impl.parent}});
+  return Node::create_const (NodeImpl {impl.doc_ptr, impl.parent});
 }
 
 template <>
@@ -1454,14 +1398,14 @@ template <>
 inline Type::Wrapper<Node>
 Text::parent ()
 {
-  return Node::create (NodeImpl {impl.doc_ptr, SwappableXmlNode {impl.node.parent ()}});
+  return Node::create (NodeImpl {impl.doc_ptr, impl.node.parent ()});
 }
 
 template <>
 inline Type::Wrapper<Node const>
 Text::parent () const
 {
-  return Node::create_const (NodeImpl {impl.doc_ptr, SwappableXmlNode {impl.node.parent ()}});
+  return Node::create_const (NodeImpl {impl.doc_ptr, impl.node.parent ()});
 }
 
 template <>
@@ -1665,7 +1609,7 @@ Node::children (Type::StringView name) const
 
 template <>
 inline Type::Optional<Type::Wrapper<Attribute>>
-Node::attribute (StringView name)
+Node::attribute (Type::StringView name)
 {
   auto attr_impl = PugiXmlDetails::get_attribute (impl.doc_ptr, impl.node, name);
 
@@ -1679,7 +1623,7 @@ Node::attribute (StringView name)
 
 template <>
 inline Type::Optional<Type::Wrapper<Attribute const>>
-Node::attribute (StringView name) const
+Node::attribute (Type::StringView name) const
 {
   auto attr_impl = PugiXmlDetails::get_attribute (impl.doc_ptr, impl.node, name);
 
@@ -1754,7 +1698,7 @@ Node::add_attribute (Type::StringView name)
     throw std::runtime_error {oss.str ()};
   }
 
-  return Attribute::create (PugiXmlDetails::AttributeImpl {impl.doc_ptr, impl.node, SwappableXmlAttribute {std::move (pattr)}});
+  return Attribute::create (PugiXmlDetails::AttributeImpl {impl.doc_ptr, impl.node, std::move (pattr)});
 }
 
 template <>
@@ -1768,7 +1712,7 @@ Node::add_text (TextType text_type = TextType::Parsed)
     throw std::runtime_error {"could not add a text child"};
   }
 
-  return Text::create (TextImpl {impl.doc_ptr, SwappableXmlNode {std::move (pnode)}});
+  return Text::create (TextImpl {impl.doc_ptr, std::move (pnode)});
 }
 
 template <>

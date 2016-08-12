@@ -40,8 +40,8 @@ public:
   bool equal (BasicNodeTmpl const& rhs) const;
 
 private:
-  friend class Type::Wrapper<BasicNodeTmpl>;
-  friend class Type::Wrapper<BasicNodeTmpl const>;
+  friend Type::Wrapper<BasicNodeTmpl>;
+  friend Type::Wrapper<BasicNodeTmpl const>;
 
   BasicNodeTmpl (typename ImplP::BasicNodeImpl i);
   BasicNodeTmpl (BasicNodeTmpl const& other);
@@ -95,8 +95,8 @@ public:
   bool equal (AttributeTmpl const& other) const;
 
 private:
-  friend class Type::Wrapper<AttributeTmpl>;
-  friend class Type::Wrapper<AttributeTmpl const>;
+  friend Type::Wrapper<AttributeTmpl>;
+  friend Type::Wrapper<AttributeTmpl const>;
 
   AttributeTmpl (typename ImplP::AttributeImpl i);
   AttributeTmpl (AttributeTmpl const& other);
@@ -149,8 +149,8 @@ public:
   bool equal (TextTmpl const& other) const;
 
 private:
-  friend class Type::Wrapper<TextTmpl>;
-  friend class Type::Wrapper<TextTmpl const>;
+  friend Type::Wrapper<TextTmpl>;
+  friend Type::Wrapper<TextTmpl const>;
 
   TextTmpl (typename ImplP::TextImpl i);
   TextTmpl (TextTmpl const& other);
@@ -209,8 +209,8 @@ public:
   typename ImplP::NodeRange children (Type::StringView name);
   typename ImplP::NodeConstRange children (Type::StringView name) const;
 
-  Type::Optional<Type::Wrapper<AttributeTmpl<ImplP>>> attribute (StringView name);
-  Type::Optional<Type::Wrapper<AttributeTmpl<ImplP> const>> attribute (StringView name) const;
+  Type::Optional<Type::Wrapper<AttributeTmpl<ImplP>>> attribute (Type::StringView name);
+  Type::Optional<Type::Wrapper<AttributeTmpl<ImplP> const>> attribute (Type::StringView name) const;
   typename ImplP::AttributeRange attributes ();
   typename ImplP::AttributeConstRange attributes () const;
 
@@ -229,8 +229,8 @@ public:
   void remove (Type::Wrapper<TextTmpl<ImplP>> const& text);
 
 private:
-  friend class Type::Wrapper<NodeTmpl>;
-  friend class Type::Wrapper<NodeTmpl const>;
+  friend Type::Wrapper<NodeTmpl>;
+  friend Type::Wrapper<NodeTmpl const>;
 
   NodeTmpl (typename ImplP::NodeImpl i);
   NodeTmpl (NodeTmpl const& other);
@@ -291,7 +291,7 @@ inline bool
 operator!= (BasicNodeTmpl<ImplP> const& lhs,
             NodeTmpl<ImplP> const& rhs)
 {
-  return !(lhs == rhs)
+  return !(lhs == rhs);
 }
 
 template <typename ImplP>
@@ -310,10 +310,10 @@ public:
   Type::Wrapper<Node> add_root (Type::StringView name);
 
 private:
-  friend class Type::Wrapper<DocumentTmpl>;
-  friend class Type::Wrapper<DocumentTmpl const>;
+  friend Type::Wrapper<DocumentTmpl>;
+  friend Type::Wrapper<DocumentTmpl const>;
 
-  DocumentTmpl (typename ImplP::DocumentImpl i)
+  DocumentTmpl (typename ImplP::DocumentImpl i);
   DocumentTmpl (DocumentTmpl const& other);
   DocumentTmpl (DocumentTmpl&& other) noexcept;
 
@@ -413,7 +413,7 @@ private:
   virtual bool postprocess_node (typename Helpers::CreatorTmpl<ImplP, TypeV>::NodeType& node, int depth) const = 0;
   virtual bool postprocess_doc (typename Helpers::CreatorTmpl<ImplP, TypeV>::DocumentType& doc, int depth) const = 0;
 
-  friend typename ImplP::WalkerImpl<TypeV>;
+  friend typename ImplP::template WalkerImpl<TypeV>;
 };
 
 } // namespace Xml
