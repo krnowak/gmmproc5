@@ -17,21 +17,12 @@
 
 #endif
 
-#include "xml-impl-helpers.hh"
-
 #undef GMMPROC_XML_INCLUDING_IMPL
 
-#include <gmmproc/utils/wrapper.h>
+#include "xmlfwd.hh"
+#include "walkerfwd.hh"
 
-#include <boost/variant.hpp>
-
-#include <experimental/optional>
-#include <experimental/string_view>
-
-#include <functional>
-#include <iosfwd>
 #include <stdexcept>
-#include <utility>
 
 namespace Gmmproc
 {
@@ -39,78 +30,11 @@ namespace Gmmproc
 namespace Xml
 {
 
-namespace Type
-{
-
-template <typename TypeP>
-using Wrapper = Utils::Wrapper<TypeP>;
-
-template <typename TypeP>
-using Optional = std::experimental::optional<TypeP>;
-
-using OptionalInPlace = std::experimental::in_place_t;
-
-using StringView = std::experimental::string_view;
-
-template <typename... TypesP>
-using Variant = boost::variant<TypesP...>;
-
-template <typename TypeP>
-using Ref = std::reference_wrapper<TypeP>;
-
-} // namespace Type
-
-template <typename ImplP>
-class BasicNodeTmpl;
-template <typename ImplP>
-class AttributeTmpl;
-template <typename ImplP>
-class TextTmpl;
-template <typename ImplP>
-class NodeTmpl;
-template <typename ImplP>
-class DocumentTmpl;
-template <typename ImplP>
-class BundleTmpl;
-template <typename ImplP>
-using NodeOrTextTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP>>, Type::Wrapper<TextTmpl<ImplP>>>;
-template <typename ImplP>
-using NodeOrTextConstTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<TextTmpl<ImplP> const>>;
-template <typename ImplP>
-using NodeOrDocTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP>>, Type::Wrapper<DocumentTmpl<ImplP>>>;
-template <typename ImplP>
-using NodeOrDocConstTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<DocumentTmpl<ImplP> const>>;
-template <typename ImplP, Helpers::WrapperType TypeV>
-class WalkerTmpl;
-
-class XmlImpl;
-
-using BasicNode = BasicNodeTmpl<XmlImpl>;
-using Attribute = AttributeTmpl<XmlImpl>;
-using Text = TextTmpl<XmlImpl>;
-using Node = NodeTmpl<XmlImpl>;
-using Document = DocumentTmpl<XmlImpl>;
-using Bundle = BundleTmpl<XmlImpl>;
-using NodeOrText = NodeOrTextTmpl<XmlImpl>;
-using NodeOrTextConst = NodeOrTextConstTmpl<XmlImpl>;
-using NodeOrDoc = NodeOrDocTmpl<XmlImpl>;
-using NodeOrDocConst = NodeOrDocConstTmpl<XmlImpl>;
-template <Helpers::WrapperType TypeV>
-using Walker = WalkerTmpl<XmlImpl, TypeV>;
-using ConstWalker = Walker<Helpers::WrapperType::Const>;
-using MutableWalker = Walker<Helpers::WrapperType::Mutable>;
-
 class ParseError : public std::runtime_error
 {
 public:
   using std::runtime_error::runtime_error;
 };
-
-enum class TextType
-  {
-    Parsed, // PCDATA
-    Raw // CDATA
-  };
 
 template <typename ImplP>
 class BasicNodeTmpl
@@ -131,6 +55,8 @@ public:
 
   void remove (Type::Wrapper<NodeTmpl<ImplP>> const& node);
 
+  bool equal (BasicNodeTmpl const& rhs) const;
+
 private:
   friend class Type::Wrapper<BasicNodeTmpl>;
   friend class Type::Wrapper<BasicNodeTmpl const>;
@@ -148,6 +74,22 @@ private:
 
   typename ImplP::BasicNodeImpl impl;
 };
+
+template <typename ImplP>
+inline bool
+operator== (BasicNodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return lhs.equal (rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator!= (BasicNodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
 
 template <typename ImplP>
 class AttributeTmpl
@@ -168,6 +110,8 @@ public:
   Type::Wrapper<NodeTmpl<ImplP>> parent ();
   Type::Wrapper<NodeTmpl<ImplP> const> parent () const;
 
+  bool equal (AttributeTmpl const& other) const;
+
 private:
   friend class Type::Wrapper<AttributeTmpl>;
   friend class Type::Wrapper<AttributeTmpl const>;
@@ -187,6 +131,22 @@ private:
 };
 
 template <typename ImplP>
+inline bool
+operator== (AttributeTmpl<ImplP> const& lhs,
+            AttributeTmpl<ImplP> const& rhs)
+{
+  return lhs.equal (rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator!= (AttributeTmpl<ImplP> const& lhs,
+            AttributeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
 class TextTmpl
 {
 public:
@@ -203,6 +163,8 @@ public:
   Type::Wrapper<NodeTmpl<ImplP> const> parent () const;
 
   TextType type () const;
+
+  bool equal (TextTmpl const& other) const;
 
 private:
   friend class Type::Wrapper<TextTmpl>;
@@ -221,6 +183,22 @@ private:
 
   typename ImplP::TextImpl impl;
 };
+
+template <typename ImplP>
+inline bool
+operator== (TextTmpl<ImplP> const& lhs,
+            TextTmpl<ImplP> const& rhs)
+{
+  return lhs.equal (rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator!= (TextTmpl<ImplP> const& lhs,
+            TextTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
 
 template <typename ImplP>
 class NodeTmpl
@@ -287,6 +265,54 @@ private:
 };
 
 template <typename ImplP>
+inline bool
+operator== (NodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
+{
+  return lhs.as_basic_node () == rhs.as_basic_node ();
+}
+
+template <typename ImplP>
+inline bool
+operator!= (NodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator== (NodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return lhs.as_basic_node () == rhs;
+}
+
+template <typename ImplP>
+inline bool
+operator!= (NodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator== (BasicNodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
+{
+  return rhs == lhs;
+}
+
+template <typename ImplP>
+inline bool
+operator!= (BasicNodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs)
+}
+
+template <typename ImplP>
 class DocumentTmpl
 {
 public:
@@ -318,6 +344,54 @@ private:
 
   typename ImplP::DocumentImpl impl;
 };
+
+template <typename ImplP>
+inline bool
+operator== (DocumentTmpl<ImplP> const& lhs,
+            DocumentTmpl<ImplP> const& rhs)
+{
+  return lhs.as_basic_node () == rhs.as_basic_node ();
+}
+
+template <typename ImplP>
+inline bool
+operator!= (DocumentTmpl<ImplP> const& lhs,
+            DocumentTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator== (DocumentTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return lhs.as_basic_node () == rhs;
+}
+
+template <typename ImplP>
+inline bool
+operator!= (DocumentTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator== (BasicNodeTmpl<ImplP> const& lhs,
+            DocumentTmpl<ImplP> const& rhs)
+{
+  return rhs == lhs;
+}
+
+template <typename Impl>
+inline bool
+operator!= (BasicNodeTmpl<Impl> const& lhs,
+            DocumentTmpl<Impl> const& rhs)
+{
+  return !(lhs == rhs);
+}
 
 template <typename ImplP>
 class BundleTmpl

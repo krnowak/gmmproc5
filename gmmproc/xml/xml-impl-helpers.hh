@@ -7,17 +7,7 @@
 
 #endif
 
-#include <gmmproc/utils/wrapper.h>
-
-#include <boost/variant.hpp>
-
-#include <experimental/optional>
-#include <experimental/string_view>
-
-#include <functional>
-#include <iosfwd>
-#include <stdexcept>
-#include <utility>
+#include "xmlfwd.hh"
 
 namespace Gmmproc
 {
@@ -28,7 +18,6 @@ namespace Xml
 namespace Helpers
 {
 
-
 // wrapper type
 
 enum class WrapperType
@@ -37,10 +26,10 @@ enum class WrapperType
     Const
   };
 
-typename <typename ImplP, WrapperType TypeV>
+template <typename ImplP, WrapperType TypeV>
 class CreatorTmpl;
 
-typename <typename ImplP>
+template <typename ImplP>
 class CreatorTmpl<ImplP, WrapperType::Mutable>
 {
 public:
@@ -52,33 +41,38 @@ public:
   using NodeOrTextType = Type::Variant<Type::Wrapper<NodeTmpl<ImplP>>, Type::Wrapper<TextTmpl<ImplP>>>;
   using NodeOrDocType = Type::Variant<Type::Wrapper<NodeTmpl<ImplP>>, Type::Wrapper<DocumentTmpl<ImplP>>>;
 
-  static BasicNodeType create_basic_node (typename ImplP::BasicNodeImpl i)
+  static BasicNodeType
+  create_basic_node (typename ImplP::BasicNodeImpl i)
   {
     return BasicNodeTmpl<ImplP>::create (std::move (i));
   }
 
-  static AttributeType create_attribute (typename ImplP::AttributeImpl i)
+  static AttributeType
+  create_attribute (typename ImplP::AttributeImpl i)
   {
     return AttributeTmpl<ImplP>::create (std::move (i));
   }
 
-  static TextType create_text (typename ImplP::TextImpl i)
+  static TextType
+  create_text (typename ImplP::TextImpl i)
   {
     return TextTmpl<ImplP>::create (std::move (i));
   }
 
-  static NodeType create_node (typename ImplP::NodeImpl i)
+  static NodeType
+  create_node (typename ImplP::NodeImpl i)
   {
     return NodeTmpl<ImplP>::create (std::move (i));
   }
 
-  static DocumentType create_document (typename ImplP::DocumentImpl i)
+  static DocumentType
+  create_document (typename ImplP::DocumentImpl i)
   {
     return DocumentTmpl<ImplP>::create (std::move (i));
   }
 };
 
-typename <typename ImplP>
+template <typename ImplP>
 class CreatorTmpl<ImplP, WrapperType::Const>
 {
 public:
@@ -90,27 +84,32 @@ public:
   using NodeOrText = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<TextTmpl<ImplP> const>>;
   using NodeOrDoc = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<DocumentTmpl<ImplP> const>>;
 
-  static BasicNodeType create_basic_node (typename ImplP::BasicNodeImpl i)
+  static BasicNodeType
+  create_basic_node (typename ImplP::BasicNodeImpl i)
   {
     return BasicNodeTmpl<ImplP>::create_const (std::move (i));
   }
 
-  static AttributeType create_attribute (typename ImplP::AttributeImpl i)
+  static AttributeType
+  create_attribute (typename ImplP::AttributeImpl i)
   {
     return AttributeTmpl<ImplP>::create_const (std::move (i));
   }
 
-  static TextType create_text (typename ImplP::TextImpl i)
+  static TextType
+  create_text (typename ImplP::TextImpl i)
   {
     return TextTmpl<ImplP>::create_const (std::move (i));
   }
 
-  static NodeType create_node (typename ImplP::NodeImpl i)
+  static NodeType
+  create_node (typename ImplP::NodeImpl i)
   {
     return NodeTmpl<ImplP>::create_const (std::move (i));
   }
 
-  static DocumentType create_document (typename ImplP::DocumentImpl i)
+  static DocumentType
+  create_document (typename ImplP::DocumentImpl i)
   {
     return DocumentTmpl<ImplP>::create_const (std::move (i));
   }

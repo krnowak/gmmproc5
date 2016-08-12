@@ -76,6 +76,8 @@ public:
 
   void swap (BasicNodeImpl& other) noexcept;
 
+  bool equal (BasicNodeImpl const& other) const;
+
   pugi::xml_node get_node () const;
 
   pugi::xml_document* doc_ptr;
@@ -97,6 +99,8 @@ public:
 
   void swap (AttributeImpl& other) noexcept;
 
+  bool equal (AttributeImpl const& other) const;
+
   pugi::xml_document* doc_ptr;
   SwappableXmlNode parent;
   SwappableXmlAttribute attribute;
@@ -114,7 +118,9 @@ public:
   TextImpl (TextImpl const& other);
   TextImpl (TextImpl&& other) noexcept;
 
-  void swap (TextImpl &other) noexcept;
+  void swap (TextImpl& other) noexcept;
+
+  bool equal (TextImpl const& other) const;
 
   pugi::xml_document* doc_ptr;
   SwappableXmlNode node;
@@ -429,10 +435,13 @@ BasicNodeImpl::BasicNodeImpl (BasicNodeImpl&& other) noexcept
 inline void
 BasicNodeImpl::swap (BasicNodeImpl& other) noexcept
 {
-  using std::swap;
+  std::tie (doc_ptr, doc_or_node).swap (std::tie (other.doc_ptr, other.doc_or_node));
+}
 
-  swap (doc_ptr, other.doc_ptr);
-  swap (doc_or_node, other.doc_or_node);
+inline bool
+BasicNodeImpl::equal (BasicNodeImpl const& other) const
+{
+  return std::tie (doc_ptr, doc_or_node) == std::tie (other.doc_ptr, other.doc_or_node);
 }
 
 inline pugi::xml_node
@@ -462,96 +471,113 @@ AttributeImpl::AttributeImpl (AttributeImpl const& other)
     attribute {other.attribute}
 {}
 
+inline
 AttributeImpl::AttributeImpl (AttributeImpl&& other) noexcept
   : doc_ptr {std::move (other.doc_ptr)},
     parent {std::move (other.parent)},
     attribute {std::move (other.attribute)}
 {}
 
-void AttributeImpl::swap (AttributeImpl& other) noexcept
+inline void
+AttributeImpl::swap (AttributeImpl& other) noexcept
 {
-  using std::swap;
+  std::tie (doc_ptr, parent, attribute).swap (std::tie (other.doc_ptr, other.parent, other.attribute));
+}
 
-  swap (doc_ptr, other.doc_ptr);
-  swap (parent, other.parent);
-  swap (attribute, other.attribute);
+inline bool
+AttributeImpl::equal (AttributeImpl const& other) const
+{
+  return std::tie (doc_ptr, parent, attribute) == (std::tie (other.doc_ptr, other.parent, other.attribute));
 }
 
 // text impl
 
+inline
 TextImpl::TextImpl (pugi::xml_document* d,
                     SwappableXmlNode n)
   : doc_ptr {d},
     node {std::move (n)}
 {}
 
+inline
 TextImpl::~TextImpl () noexcept = default;
 
+inline
 TextImpl::TextImpl (TextImpl const& other)
   : doc_ptr {other.doc_ptr},
     node {other.node}
 {}
 
+inline
 TextImpl::TextImpl (TextImpl&& other) noexcept
   : doc_ptr {std::move (other.doc_ptr)},
     node {std::move (other.node)}
 {}
 
-void
+inline void
 TextImpl::swap (TextImpl &other) noexcept
 {
-  using std::swap;
+  std::tie (doc_ptr, node).swap (std::tie (other.doc_ptr, other.node));
+}
 
-  swap (doc_ptr, other.doc_ptr);
-  node.swap (other.node);
+inline bool
+TextImpl::equal (TextImpl const& other) const
+{
+  std::tie (doc_ptr, node) == std::tie (other.doc_ptr, other.node);
 }
 
 // node impl
 
+inline
 NodeImpl::NodeImpl (pugi::xml_document* d,
                     SwappableXmlNode n)
   : doc_ptr {d},
     node {std::move (n)}
 {}
 
+inline
 NodeImpl::~NodeImpl () noexcept = default;
 
+inline
 NodeImpl::NodeImpl (NodeImpl const& other)
   : doc_ptr {other.doc_ptr},
     node {other.node}
 {}
 
+inline
 NodeImpl::NodeImpl (NodeImpl&& other) noexcept
   : doc_ptr {std::move (other.doc_ptr)},
     node {std::move (other.node)}
 {}
 
-void
+inline void
 NodeImpl::swap (NodeImpl &other) noexcept
 {
-  using std::swap;
-
-  swap (doc_ptr, other.doc_ptr);
-  node.swap (other.node);
+  std::tie (doc_ptr, node).swap (std::tie (other.doc_ptr, other.node));
 }
 
 // document impl
 
+inline
 DocumentImpl::DocumentImpl (pugi::xml_document* d)
   : doc_ptr {d}
 {}
 
+inline
 DocumentImpl::~DocumentImpl () = default;
 
+inline
 DocumentImpl::DocumentImpl (DocumentImpl const& other)
   : doc_ptr {other.doc_ptr}
 {}
 
+inline
 DocumentImpl::DocumentImpl (DocumentImpl&& other) noexcept
   : doc_ptr {std::move (other.doc_ptr)}
 {}
 
-void DocumentImpl::swap (DocumentImpl &other) noexcept
+inline void
+DocumentImpl::swap (DocumentImpl &other) noexcept
 {
   using std::swap;
 
@@ -560,17 +586,20 @@ void DocumentImpl::swap (DocumentImpl &other) noexcept
 
 // bundle impl
 
+inline
 BundleImpl::BundleImpl ()
   : doc {std::make_unique<pugi::xml_document> ()}
 {}
 
+inline
 BundleImpl::~BundleImpl () = default;
 
+inline
 BundleImpl::BundleImpl (BundleImpl&& other) noexcept
   : doc {std::move (other.doc)}
 {}
 
-BundleImpl&
+inline BundleImpl&
 BundleImpl::operator= (BundleImpl&& other) noexcept
 {
   BundleImpl tmp {std::move (other)};
@@ -579,7 +608,7 @@ BundleImpl::operator= (BundleImpl&& other) noexcept
   return *this;
 }
 
-void
+inline void
 BundleImpl::swap (BundleImpl &other) noexcept
 {
   doc.swap (other.doc);
@@ -786,7 +815,8 @@ template <typename ConverterP>
 class AttributeRangeDetailsTmpl
 {
 public:
-  static auto pugi_range (pugi::xml_node const& node)
+  static auto
+  pugi_range (pugi::xml_node const& node)
   {
     return node.attributes ();
   }
@@ -1191,6 +1221,13 @@ BasicNode::remove (Type::Wrapper<Node> const& node)
 }
 
 template <>
+inline void
+BasicNode::equal (BasicNode const& other)
+{
+  return impl.equal (other.impl);
+}
+
+template <>
 inline
 BasicNode::BasicNodeTmpl (XmlImpl::BasicNodeImpl i)
   : impl {std::move (i)}
@@ -1313,6 +1350,13 @@ Attribute::parent () const
 }
 
 template <>
+inline bool
+Attribute::equal (AttributeTmpl const& other) const
+{
+  return impl.equal (other.impl);
+}
+
+template <>
 inline
 Attribute::AttributeTmpl (XmlImpl::AttributeImpl i)
   : impl {std::move (i)}
@@ -1425,6 +1469,13 @@ inline TextType
 Text::type () const
 {
   return pugi_node_type_to_text_type (impl.node.type ());
+}
+
+template <>
+inline bool
+Text::equal (Text const& other) const
+{
+  return impl.equal (other.impl);
 }
 
 template <>
@@ -1801,8 +1852,7 @@ Document::create (XmlImpl::DocumentImpl i)
 }
 
 template <>
-/* static */
-Type::Wrapper<DocumentTmpl const>
+/* static */ inline Type::Wrapper<DocumentTmpl const>
 Document::create_const (XmlImpl::DocumentImpl i)
 {
   return Type::Wrapper<Document const> {std::move (i)};

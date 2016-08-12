@@ -1,7 +1,6 @@
 #include $(top_srcdir)/gmmproc/xml/structured/structured.am
 
-gmmproc_xml_tests_node_sources = gmmproc/xml/tests/node.cc
-gmmproc_xml_tests_walker_sources = gmmproc/xml/tests/walker.cc
+gmmproc_xml_tests_sources = gmmproc/xml/tests/testmain.cc
 
 if GMMPROC_XML_PUGI
 
@@ -9,21 +8,15 @@ gmmproc_xml_pugi_cppflags = -DGMMPROC_XML_USE_PUGI
 gmmproc_xml_pugi_ldadd = -lpugixml
 
 gmmproc_xml_pugi_tests = \
-  gmmproc/xml/tests/pugi-node \
-  gmmproc/xml/tests/pugi-walker
+  gmmproc/xml/tests/pugi-test
 
 check_PROGRAMS += $(gmmproc_xml_pugi_tests)
 TESTS += $(gmmproc_xml_pugi_tests)
 
-gmmproc_xml_tests_pugi_node_SOURCES = $(gmmproc_xml_tests_node_sources)
-gmmproc_xml_tests_pugi_node_CPPFLAGS = $(gmmproc_xml_pugi_cppflags)
-gmmproc_xml_tests_pugi_node_LDADD = $(gmmproc_xml_pugi_ldadd)
-gmmproc_xml_tests_pugi_node_CXXFLAGS = $(common_cxxflags)
-
-gmmproc_xml_tests_pugi_walker_SOURCES = $(gmmproc_xml_tests_walker_sources)
-gmmproc_xml_tests_pugi_walker_CPPFLAGS = $(gmmproc_xml_pugi_cppflags)
-gmmproc_xml_tests_pugi_walker_LDADD = $(gmmproc_xml_pugi_ldadd)
-gmmproc_xml_tests_pugi_walker_CXXFLAGS = $(common_cxxflags)
+gmmproc_xml_tests_pugi_test_SOURCES = $(gmmproc_xml_tests_sources)
+gmmproc_xml_tests_pugi_test_CPPFLAGS = $(gmmproc_xml_pugi_cppflags)
+gmmproc_xml_tests_pugi_test_LDADD = $(gmmproc_xml_pugi_ldadd)
+gmmproc_xml_tests_pugi_test_CXXFLAGS = $(common_cxxflags)
 
 endif
 
@@ -33,21 +26,15 @@ gmmproc_xml_libxml_cppflags = $(LIBXML_CFLAGS) -DGMMPROC_XML_USE_LIBXML
 gmmproc_xml_libxml_ldadd = $(LIBXML_LIBS)
 
 gmmproc_xml_libxml_tests = \
-  gmmproc/xml/tests/libxml-node \
-  gmmproc/xml/tests/libxml-walker
+  gmmproc/xml/tests/libxml-test
 
 #check_PROGRAMS += $(gmmproc_xml_libxml_tests)
 #TESTS += $(gmmproc_xml_libxml_tests)
 
-#gmmproc_xml_tests_libxml_node_SOURCES = $(gmmproc_xml_tests_node_sources)
-#gmmproc_xml_tests_libxml_node_CPPFLAGS = $(gmmproc_xml_libxml_cppflags)
-#gmmproc_xml_tests_libxml_node_LDADD = $(gmmproc_xml_libxml_ldadd)
-#gmmproc_xml_tests_libxml_node_CXXFLAGS = $(common_cxxflags)
-
-#gmmproc_xml_tests_libxml_walker_SOURCES = $(gmmproc_xml_tests_walker_sources)
-#gmmproc_xml_tests_libxml_walker_CPPFLAGS = $(gmmproc_xml_libxml_cppflags)
-#gmmproc_xml_tests_libxml_walker_LDADD = $(gmmproc_xml_libxml_ldadd)
-#gmmproc_xml_tests_libxml_walker_CXXFLAGS = $(common_cxxflags)
+#gmmproc_xml_tests_libxml_test_SOURCES = $(gmmproc_xml_tests_sources)
+#gmmproc_xml_tests_libxml_test_CPPFLAGS = $(gmmproc_xml_libxml_cppflags)
+#gmmproc_xml_tests_libxml_test_LDADD = $(gmmproc_xml_libxml_ldadd)
+#gmmproc_xml_tests_libxml_test_CXXFLAGS = $(common_cxxflags)
 
 endif
 

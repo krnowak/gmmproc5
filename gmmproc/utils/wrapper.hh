@@ -69,6 +69,26 @@ public:
     return std::addressof (wrapped);
   }
 
+  inline TypeP& operator* ()
+  {
+    return wrapped;
+  }
+
+  inline TypeP const& operator* () const
+  {
+    return wrapped;
+  }
+
+  bool equal (Wrapper const& other) const
+  {
+    return wrapped == other.wrapped;
+  }
+
+  bool equal (Wrapper<TypeP const> const& other) const
+  {
+    return other == *this;
+  }
+
 private:
   friend class Wrapper<TypeP const>;
 
@@ -113,9 +133,48 @@ public:
     return std::addressof (wrapped);
   }
 
+  inline TypeP const& operator* () const
+  {
+    return wrapped;
+  }
+
+  bool equal (Wrapper const& other) const
+  {
+    return wrapped == other.wrapped;
+  }
+
+  bool equal (Wrapper<TypeP> const& other) const
+  {
+    return wrapped == other.wrapped;
+  }
+
 private:
   TypeP const wrapped;
 };
+
+template <typename TypeP>
+inline bool
+operator== (Wrapper<TypeP> const& lhs,
+            Wrapper<TypeP> const& rhs)
+{
+  return lhs.equal (rhs);
+}
+
+template <typename TypeP>
+inline bool
+operator== (Wrapper<TypeP const> const& lhs,
+            Wrapper<TypeP> const& rhs)
+{
+  return lhs.equal (rhs);
+}
+
+template <typename TypeP>
+inline bool
+operator== (Wrapper<TypeP> const& lhs,
+            Wrapper<TypeP const> const& rhs)
+{
+  return lhs.equal (rhs);
+}
 
 } // namespace Utils
 
