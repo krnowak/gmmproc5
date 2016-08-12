@@ -5,11 +5,11 @@
 
 #if defined(GMMPROC_XML_USE_PUGI)
 
-#include "xml-pugi2-intro.hh"
+#include "xml-pugi2-prolog.hh"
 
 #elif defined(GMMPROC_XML_USE_LIBXML)
 
-#include "xml-libxml2-intro.hh"
+#include "xml-libxml2-prolog.hh"
 
 #else
 
@@ -442,11 +442,11 @@ private:
 
 #if defined(GMMPROC_XML_USE_PUGI)
 
-#include "xml-pugi2.hh"
+#include "xml-pugi2-epilog.hh"
 
 #elif defined(GMMPROC_XML_USE_LIBXML)
 
-#include "xml-libxml2.hh"
+#include "xml-libxml2-epilog.hh"
 
 #else
 
