@@ -1,24 +1,6 @@
 #ifndef GMMPROC_XML_XML_HH
 #define GMMPROC_XML_XML_HH
 
-#define GMMPROC_XML_INCLUDING_IMPL
-
-#if defined(GMMPROC_XML_USE_PUGI)
-
-#include "xml-pugi2-prolog.hh"
-
-#elif defined(GMMPROC_XML_USE_LIBXML)
-
-#include "xml-libxml2-prolog.hh"
-
-#else
-
-#error "No xml implementation"
-
-#endif
-
-#undef GMMPROC_XML_INCLUDING_IMPL
-
 #include "xmlfwd.hh"
 #include "walkerfwd.hh"
 
