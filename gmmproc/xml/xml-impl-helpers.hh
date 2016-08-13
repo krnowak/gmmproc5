@@ -81,8 +81,8 @@ public:
   using TextType = Type::Wrapper<TextTmpl<ImplP> const>;
   using NodeType = Type::Wrapper<NodeTmpl<ImplP> const>;
   using DocumentType = Type::Wrapper<DocumentTmpl<ImplP> const>;
-  using NodeOrText = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<TextTmpl<ImplP> const>>;
-  using NodeOrDoc = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<DocumentTmpl<ImplP> const>>;
+  using NodeOrTextType = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<TextTmpl<ImplP> const>>;
+  using NodeOrDocType = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<DocumentTmpl<ImplP> const>>;
 
   static BasicNodeType
   create_basic_node (typename ImplP::BasicNodeImpl i)

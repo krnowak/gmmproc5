@@ -40,6 +40,8 @@ namespace Type
 template <typename TypeP>
 using Wrapper = Utils::Wrapper<TypeP>;
 
+using WrapperInPlace = Utils::WrapperInPlace;
+
 template <typename TypeP>
 using Optional = std::experimental::optional<TypeP>;
 

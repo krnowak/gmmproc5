@@ -32,8 +32,10 @@ public:
   Type::Optional<Type::Wrapper<NodeTmpl<ImplP> const>> child (Type::StringView name) const;
   typename ImplP::NodeRange children ();
   typename ImplP::NodeConstRange children () const;
+  /*
   typename ImplP::NodeRange children (Type::StringView name);
   typename ImplP::NodeConstRange children (Type::StringView name) const;
+  */
 
   void remove (Type::Wrapper<NodeTmpl<ImplP>> const& node);
 
@@ -49,10 +51,10 @@ private:
 
   ~BasicNodeTmpl () noexcept;
 
+  void swap (BasicNodeTmpl& other) noexcept;
+
   BasicNodeTmpl& operator= (BasicNodeTmpl const& other);
   BasicNodeTmpl& operator= (BasicNodeTmpl&& other) noexcept;
-
-  void swap (BasicNodeTmpl& other) noexcept;
 
   typename ImplP::BasicNodeImpl impl;
 };
@@ -98,16 +100,18 @@ private:
   friend Type::Wrapper<AttributeTmpl>;
   friend Type::Wrapper<AttributeTmpl const>;
 
+  friend NodeTmpl<ImplP>;
+
   AttributeTmpl (typename ImplP::AttributeImpl i);
   AttributeTmpl (AttributeTmpl const& other);
   AttributeTmpl (AttributeTmpl&& other) noexcept;
 
   ~AttributeTmpl () noexcept;
 
+  void swap (AttributeTmpl& other) noexcept;
+
   AttributeTmpl& operator= (AttributeTmpl const& other);
   AttributeTmpl& operator= (AttributeTmpl&& other) noexcept;
-
-  void swap (AttributeTmpl& other) noexcept;
 
   typename ImplP::AttributeImpl impl;
 };
@@ -152,16 +156,18 @@ private:
   friend Type::Wrapper<TextTmpl>;
   friend Type::Wrapper<TextTmpl const>;
 
+  friend NodeTmpl<ImplP>;
+
   TextTmpl (typename ImplP::TextImpl i);
   TextTmpl (TextTmpl const& other);
   TextTmpl (TextTmpl&& other) noexcept;
 
   ~TextTmpl () noexcept;
 
+  void swap (TextTmpl& other) noexcept;
+
   TextTmpl& operator= (TextTmpl const& other);
   TextTmpl& operator= (TextTmpl&& other) noexcept;
-
-  void swap (TextTmpl& other) noexcept;
 
   typename ImplP::TextImpl impl;
 };
@@ -206,8 +212,10 @@ public:
   Type::Optional<Type::Wrapper<NodeTmpl const>> child (Type::StringView name) const;
   typename ImplP::NodeRange children ();
   typename ImplP::NodeConstRange children () const;
+  /*
   typename ImplP::NodeRange children (Type::StringView name);
   typename ImplP::NodeConstRange children (Type::StringView name) const;
+  */
 
   Type::Optional<Type::Wrapper<AttributeTmpl<ImplP>>> attribute (Type::StringView name);
   Type::Optional<Type::Wrapper<AttributeTmpl<ImplP> const>> attribute (Type::StringView name) const;
@@ -232,16 +240,18 @@ private:
   friend Type::Wrapper<NodeTmpl>;
   friend Type::Wrapper<NodeTmpl const>;
 
+  friend BasicNodeTmpl<ImplP>;
+
   NodeTmpl (typename ImplP::NodeImpl i);
   NodeTmpl (NodeTmpl const& other);
   NodeTmpl (NodeTmpl&& other) noexcept;
 
   ~NodeTmpl () noexcept;
 
+  void swap (NodeTmpl& other) noexcept;
+
   NodeTmpl& operator= (NodeTmpl const& other);
   NodeTmpl& operator= (NodeTmpl&& other) noexcept;
-
-  void swap (NodeTmpl& other) noexcept;
 
   typename ImplP::NodeImpl impl;
 };
@@ -319,10 +329,10 @@ private:
 
   ~DocumentTmpl() noexcept;
 
+  void swap (DocumentTmpl& other) noexcept;
+
   DocumentTmpl& operator= (DocumentTmpl const& other);
   DocumentTmpl& operator= (DocumentTmpl&& other) noexcept;
-
-  void swap (DocumentTmpl& other) noexcept;
 
   typename ImplP::DocumentImpl impl;
 };
@@ -387,10 +397,10 @@ public:
   BundleTmpl (BundleTmpl const& other) = delete;
   BundleTmpl (BundleTmpl&& other) noexcept;
 
+  void swap (BundleTmpl& other) noexcept;
+
   BundleTmpl& operator= (BundleTmpl const& other) = delete;
   BundleTmpl& operator= (BundleTmpl&& other) noexcept;
-
-  void swap (BundleTmpl& other) noexcept;
 
   Type::Wrapper<Document> document ();
   Type::Wrapper<Document const> document () const;
