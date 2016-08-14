@@ -6,6 +6,15 @@
 
 #include <stdexcept>
 
+// TODO: Add a debugging feature in bundle to track all document instances?
+// TODO: get rid if ::child accessor
+// TODO: replace add_foo(name_or_else) with lower-level add_foo_at (iterator, name_or_else)
+// TODO: maybe add some convenience functions in a separate namespace (XmlExtras)
+// TODO: libxml backend
+// TODO: more tests
+// TODO: likely the virtual methods of the walker should not be const
+// TODO: split tests into multiple source files, not headers
+
 namespace Gmmproc
 {
 

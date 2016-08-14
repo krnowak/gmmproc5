@@ -79,16 +79,6 @@ public:
     return wrapped;
   }
 
-  bool equal (Wrapper const& other) const
-  {
-    return wrapped == other.wrapped;
-  }
-
-  bool equal (Wrapper<TypeP const> const& other) const
-  {
-    return other == *this;
-  }
-
 private:
   friend class Wrapper<TypeP const>;
 
@@ -138,42 +128,56 @@ public:
     return wrapped;
   }
 
-  bool equal (Wrapper const& other) const
-  {
-    return wrapped == other.wrapped;
-  }
-
-  bool equal (Wrapper<TypeP> const& other) const
-  {
-    return wrapped == other.wrapped;
-  }
-
 private:
   TypeP const wrapped;
 };
 
-template <typename TypeP>
+template <typename LhsP, typename RhsP>
 inline bool
-operator== (Wrapper<TypeP> const& lhs,
-            Wrapper<TypeP> const& rhs)
+operator== (Wrapper<LhsP> const& lhs,
+            Wrapper<RhsP> const& rhs)
 {
-  return lhs.equal (rhs);
+  return *lhs == *rhs;
 }
 
-template <typename TypeP>
+template <typename LhsP, typename RhsP>
 inline bool
-operator== (Wrapper<TypeP const> const& lhs,
-            Wrapper<TypeP> const& rhs)
+operator!= (Wrapper<LhsP> const& lhs,
+            Wrapper<RhsP> const& rhs)
 {
-  return lhs.equal (rhs);
+  return !(lhs == rhs);
 }
 
-template <typename TypeP>
+template <typename LhsP, typename RhsP>
 inline bool
-operator== (Wrapper<TypeP> const& lhs,
-            Wrapper<TypeP const> const& rhs)
+operator== (Wrapper<LhsP> const& lhs,
+            RhsP const& rhs)
 {
-  return lhs.equal (rhs);
+  return *lhs == rhs;
+}
+
+template <typename LhsP, typename RhsP>
+inline bool
+operator!= (Wrapper<LhsP> const& lhs,
+            RhsP const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename LhsP, typename RhsP>
+inline bool
+operator== (LhsP const& lhs,
+            Wrapper<RhsP> const& rhs)
+{
+  return lhs == *rhs;
+}
+
+template <typename LhsP, typename RhsP>
+inline bool
+operator!= (LhsP const& lhs,
+            Wrapper<RhsP> const& rhs)
+{
+  return !(lhs == rhs);
 }
 
 } // namespace Utils
