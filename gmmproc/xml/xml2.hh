@@ -45,6 +45,9 @@ private:
   friend Type::Wrapper<BasicNodeTmpl>;
   friend Type::Wrapper<BasicNodeTmpl const>;
 
+  friend typename ImplP::template WalkerImpl<Helpers::WrapperType::Const>;
+  friend typename ImplP::template WalkerImpl<Helpers::WrapperType::Mutable>;
+
   BasicNodeTmpl (typename ImplP::BasicNodeImpl i);
   BasicNodeTmpl (BasicNodeTmpl const& other);
   BasicNodeTmpl (BasicNodeTmpl&& other) noexcept;
@@ -413,15 +416,18 @@ template <typename ImplP, Helpers::WrapperType TypeV>
 class WalkerTmpl
 {
 public:
+  static constexpr Helpers::WrapperType type = TypeV;
+  using Creator = Helpers::CreatorTmpl<ImplP, TypeV>;
+
   WalkerTmpl ();
-  void walk (typename Helpers::CreatorTmpl<ImplP, TypeV>::NodeOrDocType node_or_doc) const;
+  void walk (typename Creator::NodeOrDocType node_or_doc) const;
 
 private:
-  virtual bool doc (typename Helpers::CreatorTmpl<ImplP, TypeV>::DocumentType& doc, int depth) const = 0;
-  virtual bool node (typename Helpers::CreatorTmpl<ImplP, TypeV>::NodeType& node, int depth) const = 0;
-  virtual bool text (typename Helpers::CreatorTmpl<ImplP, TypeV>::TextType& text, int depth) const = 0;
-  virtual bool postprocess_node (typename Helpers::CreatorTmpl<ImplP, TypeV>::NodeType& node, int depth) const = 0;
-  virtual bool postprocess_doc (typename Helpers::CreatorTmpl<ImplP, TypeV>::DocumentType& doc, int depth) const = 0;
+  virtual bool doc (typename Creator::DocumentType& doc, int depth) const = 0;
+  virtual bool node (typename Creator::NodeType& node, int depth) const = 0;
+  virtual bool text (typename Creator::TextType& text, int depth) const = 0;
+  virtual bool postprocess_node (typename Creator::NodeType& node, int depth) const = 0;
+  virtual bool postprocess_doc (typename Creator::DocumentType& doc, int depth) const = 0;
 
   friend typename ImplP::template WalkerImpl<TypeV>;
 };

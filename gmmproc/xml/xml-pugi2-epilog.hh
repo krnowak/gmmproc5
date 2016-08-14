@@ -164,7 +164,7 @@ public:
   typename Helpers::Creator<TypeV>::NodeType operator () (pugi::xml_node const& n) const;
 
 private:
-  pugi::xml_document* doc;
+  pugi::xml_document* doc_ptr;
 };
 
 class NodePredicate
@@ -236,11 +236,15 @@ template <Helpers::WrapperType TypeV>
 class WalkerContext
 {
 public:
-  WalkerContext (Walker<TypeV> const* w, typename Helpers::Creator<TypeV>::NodeOrDocType nod);
+  static void do_walk (Walker<TypeV> const* w,
+                       typename Helpers::Creator<TypeV>::NodeOrDocType nod);
+
+private:
+  WalkerContext (Walker<TypeV> const* w,
+                 typename Helpers::Creator<TypeV>::NodeOrDocType nod);
 
   void walk ();
 
-private:
   class PugiWalker;
   class NodeOrDocForDocVisitor;
   class NodeOrDocForNodeVisitor;
@@ -249,7 +253,7 @@ private:
   static pugi::xml_node get_node_from_variant (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc);
 
   Walker<TypeV> const* walker;
-  pugi::xml_document* doc;
+  pugi::xml_document* doc_ptr;
   pugi::xml_node node;
 };
 
@@ -267,8 +271,8 @@ private:
   bool run_postprocessing ();
 
   WalkerContext<TypeV> const* ctx;
-  pugi::xml_document* doc;
-  std::stack<std::pair<Node, int>> nodes;
+  pugi::xml_document* doc_ptr;
+  std::stack<std::pair<typename Helpers::Creator<TypeV>::NodeType, int>> nodes;
   bool visited_doc;
   int doc_depth;
 };
@@ -594,7 +598,7 @@ DocumentImpl::DocumentImpl (pugi::xml_document* d)
 {}
 
 inline
-DocumentImpl::~DocumentImpl () = default;
+DocumentImpl::~DocumentImpl () noexcept = default;
 
 inline
 DocumentImpl::DocumentImpl (DocumentImpl const& other)
@@ -622,7 +626,7 @@ BundleImpl::BundleImpl ()
 {}
 
 inline
-BundleImpl::~BundleImpl () = default;
+BundleImpl::~BundleImpl () noexcept = default;
 
 inline
 BundleImpl::BundleImpl (BundleImpl&& other) noexcept
@@ -784,20 +788,20 @@ public:
 template <Helpers::WrapperType TypeV>
 inline
 NodeTransform<TypeV>::NodeTransform ()
-  : doc {}
+  : doc_ptr {}
 {}
 
 template <Helpers::WrapperType TypeV>
 inline
 NodeTransform<TypeV>::NodeTransform (pugi::xml_document* d)
-  : doc {d}
+  : doc_ptr {d}
 {}
 
 template <Helpers::WrapperType TypeV>
 inline typename Helpers::Creator<TypeV>::NodeType
 NodeTransform<TypeV>::operator() (pugi::xml_node const& n) const
 {
-  return Helpers::Creator<TypeV>::create_node (NodeImpl {doc, n});
+  return Helpers::Creator<TypeV>::create_node (NodeImpl {doc_ptr, n});
 }
 
 inline bool
@@ -1000,11 +1004,21 @@ pugi_node_type_to_text_type (pugi::xml_node_type node_type)
 }
 
 template <Helpers::WrapperType TypeV>
+/* static */ inline void
+WalkerContext<TypeV>::do_walk (Walker<TypeV> const* w,
+                               typename Helpers::Creator<TypeV>::NodeOrDocType nod)
+{
+  WalkerContext context {w, std::move (nod)};
+
+  context.walk ();
+}
+
+template <Helpers::WrapperType TypeV>
 inline
 WalkerContext<TypeV>::WalkerContext (Walker<TypeV> const* w,
                                      typename Helpers::Creator<TypeV>::NodeOrDocType nod)
   : walker {w},
-    doc {get_doc_from_variant (nod)},
+    doc_ptr {get_doc_from_variant (nod)},
     node {get_node_from_variant (nod)}
 {}
 
@@ -1012,7 +1026,9 @@ template <Helpers::WrapperType TypeV>
 inline void
 WalkerContext<TypeV>::walk ()
 {
-  node.traverse (PugiWalker {this});
+  PugiWalker walker {this, doc_ptr};
+
+  node.traverse (walker);
 }
 
 template <Helpers::WrapperType TypeV>
@@ -1033,7 +1049,7 @@ template <Helpers::WrapperType TypeV>
 WalkerContext<TypeV>::PugiWalker::PugiWalker (WalkerContext<TypeV> const* c,
                                               pugi::xml_document* d)
   : ctx {c},
-    doc {d},
+    doc_ptr {d},
     nodes {},
     visited_doc {false},
     doc_depth {0}
@@ -1055,14 +1071,14 @@ WalkerContext<TypeV>::PugiWalker::for_each (pugi::xml_node& node)
   case pugi::node_pcdata:
   case pugi::node_cdata:
     {
-      auto t = Helpers::Creator<TypeV>::create_text (TextImpl {this->doc, node});
+      auto t = Helpers::Creator<TypeV>::create_text (TextImpl {doc_ptr, node});
 
       return ctx->walker->text (t, d);
     }
 
   case pugi::node_element:
     {
-      auto n = Helpers::Creator<TypeV>::create_node (NodeImpl {doc, node});
+      auto n = Helpers::Creator<TypeV>::create_node (NodeImpl {doc_ptr, node});
 
       nodes.push (std::make_pair (n, d));
       return ctx->walker->node (n, d);
@@ -1070,7 +1086,7 @@ WalkerContext<TypeV>::PugiWalker::for_each (pugi::xml_node& node)
 
   case pugi::node_document:
     {
-      auto dd = Helpers::Creator<TypeV>::create_doc (DocumentImpl {doc});
+      auto dd = Helpers::Creator<TypeV>::create_document (DocumentImpl {doc_ptr});
 
       this->visited_doc = true;
       this->doc_depth = d;
@@ -1092,7 +1108,7 @@ WalkerContext<TypeV>::PugiWalker::end (pugi::xml_node&)
   }
   if (visited_doc)
   {
-    auto d = Helpers::Creator<TypeV>::create_doc (DocumentImpl {doc});
+    auto d = Helpers::Creator<TypeV>::create_document (DocumentImpl {doc_ptr});
     return ctx->walker->postprocess_doc (d, doc_depth);
   }
   return true;
@@ -1891,7 +1907,7 @@ Document::DocumentTmpl (Document&& other) noexcept
 
 template <>
 inline
-Document::~Document () noexcept
+Document::~DocumentTmpl () noexcept
 {}
 
 template <>
@@ -1982,18 +1998,28 @@ Bundle::document () const
 
 // walker
 
-template <Helpers::WrapperType TypeV>
+template <>
 inline
-Walker<TypeV>::WalkerTmpl ()
+ConstWalker::WalkerTmpl ()
 {}
 
-template <Helpers::WrapperType TypeV>
+template <>
 inline void
-Walker<TypeV>::walk (typename Helpers::Creator<TypeV>::NodeOrDocType node_or_doc) const
+ConstWalker::walk (typename ConstWalker::Creator::NodeOrDocType node_or_doc) const
 {
-  typename XmlImpl::WalkerImpl<TypeV> context {this, std::move (node_or_doc)};
+  XmlImpl::WalkerImpl<ConstWalker::type>::do_walk (this, std::move (node_or_doc));
+}
 
-  context.walk ();
+template <>
+inline
+MutableWalker::WalkerTmpl ()
+{}
+
+template <>
+inline void
+MutableWalker::walk (typename MutableWalker::Creator::NodeOrDocType node_or_doc) const
+{
+  XmlImpl::WalkerImpl<MutableWalker::type>::do_walk (this, std::move (node_or_doc));
 }
 
 } // namespace Xml

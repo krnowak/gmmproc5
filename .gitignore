@@ -48,5 +48,5 @@
 
 /gmmproc/test/test
 
-/gmmproc/xml/base/tests/pugi-node
-/gmmproc/xml/base/tests/pugi-walker
+/gmmproc/xml/tests/pugi-test
+/gmmproc/xml/tests/libxml-test
