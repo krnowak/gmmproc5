@@ -1,9 +1,12 @@
-#ifndef GMMPROC_XML_TESTS_WALKER_HH
-#define GMMPROC_XML_TESTS_WALKER_HH
+#include "misc.hh"
 
 #include <gmmproc/xml/xml2.hh>
 
-namespace WalkerTest
+#include <catch/catch.hpp>
+
+#include <string>
+
+namespace
 {
 
 struct Info
@@ -38,38 +41,38 @@ operator!= (Info const& n1, Info const& n2)
 class TestWalker : public Gmmproc::Xml::ConstWalker
 {
 public:
-  std::vector<Info>* infos;
+  std::vector<Info> infos;
 
 private:
   bool doc (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Document const>&,
-            int depth) const override
+            int depth) override
   {
     using namespace std::string_literals;
-    infos->emplace_back ("d"s, depth);
+    infos.emplace_back ("d"s, depth);
     return true;
   }
 
   bool node (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Node const>& node,
-             int depth) const override
+             int depth) override
   {
     using namespace std::string_literals;
-    infos->emplace_back ("n: "s + node->name ().to_string (), depth);
+    infos.emplace_back ("n: "s + node->name ().to_string (), depth);
     return true;
   }
 
   bool text (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Text const>& text,
-             int depth) const override
+             int depth) override
   {
     using namespace std::string_literals;
-    infos->emplace_back ("t: "s + text->text ().to_string (), depth);
+    infos.emplace_back ("t: "s + text->text ().to_string (), depth);
     return true;
   }
 
   bool postprocess_node (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Node const>& node,
-                         int depth) const override
+                         int depth) override
   {
     using namespace std::string_literals;
-    infos->emplace_back ("-n: "s + node->name ().to_string (), depth);
+    infos.emplace_back ("-n: "s + node->name ().to_string (), depth);
     return true;
   }
 
@@ -77,7 +80,7 @@ private:
                         int depth) const override
   {
     using namespace std::string_literals;
-    infos->emplace_back ("-d"s, depth);
+    infos.emplace_back ("-d"s, depth);
     return true;
   }
 };
@@ -107,19 +110,17 @@ get_test_bundle ()
   return bundle;
 }
 
-}
+} // anonymous namespace
 
 TEST_CASE ("walker", "[walker]") {
   auto bundle = WalkerTest::get_test_bundle ();
   auto doc = bundle.document ();
   auto walker = WalkerTest::TestWalker {};
   auto expected = std::vector<WalkerTest::Info> {{"d", 0}, {"n: a", 1}, {"t: 1", 2}, {"n: b", 2}, {"t: 2", 3}, {"n: c", 3}, {"-n: c", 3}, {"n: d", 3}, {"-n: d", 3}, {"-n: b", 2}, {"n: e", 2}, {"t: 3", 3}, {"n: f", 3}, {"-n: f", 3}, {"n: g", 3}, {"-n: g", 3}, {"-n: e", 2}, {"-n: a", 1}, {"-d", 0}};
-  auto got = std::vector<WalkerTest::Info> {};
 
-  walker.infos = &got;
   walker.walk (doc);
 
-  CHECK (expected == got);
+  CHECK (expected == walker.infos);
 }
 
 #endif // GMMPROC_XML_TESTS_WALKER_HH

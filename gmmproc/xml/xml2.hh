@@ -9,10 +9,10 @@
 // TODO: maybe add some convenience functions in a separate namespace (XmlExtras)
 // TODO: libxml backend
 // TODO: more tests
-// TODO: split tests into multiple source files, not headers
 // TODO: fix the bogus "argh" exceptions
 // TODO: throw exceptions on errors
 
+// TODO: split tests into multiple source files, not headers
 // TODO: likely the virtual methods of the walker should not be const
 // TODO: foorange -> foorange<utils::viewtype::mutable>
 // TODO: fooconstrange -> foorange<utils::viewtype::const>
