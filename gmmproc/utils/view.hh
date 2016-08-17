@@ -166,9 +166,6 @@ private:
   TypeP const wrapped;
 };
 
-template <typename TypeP>
-using ViewFoo
-
 template <typename LhsP, typename RhsP>
 inline bool
 operator== (View<LhsP> const& lhs,

@@ -236,11 +236,11 @@ template <Utils::ViewType TypeV>
 class WalkerContext
 {
 public:
-  static void do_walk (Walker<TypeV>* w,
+  static void do_walk (WalkerChoice<TypeV>* w,
                        NodeOrDocChoice<TypeV> nod);
 
 private:
-  WalkerContext (Walker<TypeV>* w,
+  WalkerContext (WalkerChoice<TypeV>* w,
                  NodeOrDocChoice<TypeV> nod);
 
   void walk ();
@@ -252,7 +252,7 @@ private:
   static pugi::xml_document* get_doc_from_variant (NodeOrDocChoice<TypeV> node_or_doc);
   static pugi::xml_node get_node_from_variant (NodeOrDocChoice<TypeV> node_or_doc);
 
-  Walker<TypeV>* walker;
+  WalkerChoice<TypeV>* walker;
   pugi::xml_document* doc_ptr;
   pugi::xml_node node;
 };
@@ -315,10 +315,10 @@ template <Utils::ViewType TypeV>
 using AttributeIteratorForImpl = TransformIterator<AttributeTransform<TypeV>, pugi::xml_attribute_iterator>;
 
 template <Utils::ViewType TypeV>
-using TextIterator = NodeTransformFilterIterator<TextTransform<TypeV>, TextPredicate>;
+using TextIteratorForImpl = NodeTransformFilterIterator<TextTransform<TypeV>, TextPredicate>;
 
 template <Utils::ViewType TypeV>
-using NodeOrTextIterator = NodeTransformFilterIterator<NodeOrTextTransform<TypeV>, NodeOrTextPredicate>;
+using NodeOrTextIteratorForImpl = NodeTransformFilterIterator<NodeOrTextTransform<TypeV>, NodeOrTextPredicate>;
 
 } // namespace PugiXmlDetails
 
@@ -373,6 +373,7 @@ Attribute::create (XmlImpl::AttributeImpl i)
 }
 
 template <>
+template <Utils::ViewType TypeV>
 /* static */ inline TextViewChoice<TypeV>
 Text::create (XmlImpl::TextImpl i)
 {
@@ -380,6 +381,7 @@ Text::create (XmlImpl::TextImpl i)
 }
 
 template <>
+template <Utils::ViewType TypeV>
 /* static */ inline NodeViewChoice<TypeV>
 Node::create (XmlImpl::NodeImpl i)
 {
@@ -387,6 +389,7 @@ Node::create (XmlImpl::NodeImpl i)
 }
 
 template <>
+template <Utils::ViewType TypeV>
 /* static */ inline DocumentViewChoice<TypeV>
 Document::create (XmlImpl::DocumentImpl i)
 {
@@ -666,7 +669,7 @@ insert_child_at_raw (pugi::xml_document* doc_ptr,
       }
 
       return parent.insert_child_before (name.to_string ().c_str (), *pos);
-    };
+    }();
 
   return Node::create<Utils::ViewType::Mutable> (NodeImpl {doc_ptr, node});
 }
@@ -699,10 +702,25 @@ insert_attribute_at_raw (pugi::xml_document* doc_ptr,
         return parent.insert_attribute_after (name.to_string ().c_str (), *pos);
       }
 
-      return parent.insert_child_before (name.to_string ().c_str (), *pos);
-    }
+      return parent.insert_attribute_before (name.to_string ().c_str (), *pos);
+    }();
 
   return Attribute::create<Utils::ViewType::Mutable> (AttributeImpl {doc_ptr, parent, attribute});
+}
+
+pugi::xml_node_type
+text_type_to_pugi_node_type (TextType text_type)
+{
+  switch (text_type)
+  {
+  case TextType::Parsed:
+    return pugi::node_pcdata;
+
+  case TextType::Raw:
+    return pugi::node_cdata;
+  }
+
+  throw std::runtime_error {"argh"};
 }
 
 template <typename AttributeIteratorP>
@@ -734,7 +752,7 @@ insert_text_at_raw (pugi::xml_document* doc_ptr,
       }
 
       return parent.insert_child_before (text_type_to_pugi_node_type (text_type), *pos);
-    }
+    }();
 
   return Text::create<Utils::ViewType::Mutable> (TextImpl {doc_ptr, text});
 }
@@ -1011,21 +1029,6 @@ to_range (pugi::xml_document* doc_ptr,
   return boost::make_iterator_range (b, e);
 }
 
-pugi::xml_node_type
-text_type_to_pugi_node_type (TextType text_type)
-{
-  switch (text_type)
-  {
-  case TextType::Parsed:
-    return pugi::node_pcdata;
-
-  case TextType::Raw:
-    return pugi::node_cdata;
-  }
-
-  throw std::runtime_error {"argh"};
-}
-
 TextType
 pugi_node_type_to_text_type (pugi::xml_node_type node_type)
 {
@@ -1052,7 +1055,7 @@ pugi_node_type_to_text_type (pugi::xml_node_type node_type)
 
 template <Utils::ViewType TypeV>
 /* static */ inline void
-WalkerContext<TypeV>::do_walk (Walker<TypeV> const* w,
+WalkerContext<TypeV>::do_walk (WalkerChoice<TypeV>* w,
                                NodeOrDocChoice<TypeV> nod)
 {
   WalkerContext context {w, std::move (nod)};
@@ -1062,7 +1065,7 @@ WalkerContext<TypeV>::do_walk (Walker<TypeV> const* w,
 
 template <Utils::ViewType TypeV>
 inline
-WalkerContext<TypeV>::WalkerContext (Walker<TypeV> const* w,
+WalkerContext<TypeV>::WalkerContext (WalkerChoice<TypeV>* w,
                                      NodeOrDocChoice<TypeV> nod)
   : walker {w},
     doc_ptr {get_doc_from_variant (nod)},
@@ -1668,44 +1671,6 @@ Node::all () const
 
 template <>
 inline NodeView
-Node::add_child (Type::StringView name)
-{
-  return Node::create<Utils::ViewType::Mutable> (PugiXmlDetails::NodeImpl {impl.doc_ptr, PugiXmlDetails::add_child (impl.node, name)});
-}
-
-template <>
-inline AttributeView
-Node::add_attribute (Type::StringView name)
-{
-  auto pattr = impl.node.append_attribute (name.to_string ().c_str ());
-
-  if (!pattr)
-  {
-    std::ostringstream oss;
-
-    oss << "could not add an attribute named \"" << name << "\"";
-    throw std::runtime_error {oss.str ()};
-  }
-
-  return Attribute::create<Utils::ViewType::Mutable> (PugiXmlDetails::AttributeImpl {impl.doc_ptr, impl.node, std::move (pattr)});
-}
-
-template <>
-inline TextView
-Node::add_text (TextType text_type)
-{
-  auto pnode = impl.node.append_child (PugiXmlDetails::text_type_to_pugi_node_type (text_type));
-
-  if (!pnode)
-  {
-    throw std::runtime_error {"could not add a text child"};
-  }
-
-  return Text::create<Utils::ViewType::Mutable> (PugiXmlDetails::TextImpl {impl.doc_ptr, std::move (pnode)});
-}
-
-template <>
-inline NodeView
 Node::insert_child_at (XmlImpl::NodeIterator<Utils::ViewType::Mutable> pos,
                        Type::StringView name)
 {
@@ -1793,69 +1758,69 @@ Node::insert_attribute_at (XmlImpl::AttributeIterator<Utils::ViewType::Const> po
 }
 
 template <>
-inline NodeView
+inline TextView
 Node::insert_text_at (XmlImpl::NodeIterator<Utils::ViewType::Mutable> pos,
-                      Type::StringView name)
+                      TextType text_type)
 {
   return PugiXmlDetails::insert_text_at (impl.doc_ptr,
                                          impl.node,
                                          pos,
-                                         name);
+                                         text_type);
 }
 
 template <>
-inline NodeView
+inline TextView
 Node::insert_text_at (XmlImpl::NodeIterator<Utils::ViewType::Const> pos,
-                      Type::StringView name)
+                      TextType text_type)
 {
   return PugiXmlDetails::insert_text_at (impl.doc_ptr,
                                          impl.node,
                                          pos,
-                                         name);
+                                         text_type);
 }
 
 template <>
-inline NodeView
+inline TextView
 Node::insert_text_at (XmlImpl::TextIterator<Utils::ViewType::Mutable> pos,
-                      Type::StringView name)
+                      TextType text_type)
 {
   return PugiXmlDetails::insert_text_at (impl.doc_ptr,
                                          impl.node,
                                          pos,
-                                         name);
+                                         text_type);
 }
 
 template <>
-inline NodeView
+inline TextView
 Node::insert_text_at (XmlImpl::TextIterator<Utils::ViewType::Const> pos,
-                      Type::StringView name)
+                      TextType text_type)
 {
   return PugiXmlDetails::insert_text_at (impl.doc_ptr,
                                          impl.node,
                                          pos,
-                                         name);
+                                         text_type);
 }
 
 template <>
-inline NodeView
+inline TextView
 Node::insert_text_at (XmlImpl::NodeOrTextIterator<Utils::ViewType::Mutable> pos,
-                      Type::StringView name)
+                      TextType text_type)
 {
   return PugiXmlDetails::insert_text_at (impl.doc_ptr,
                                          impl.node,
                                          pos,
-                                         name);
+                                         text_type);
 }
 
 template <>
-inline NodeView
+inline TextView
 Node::insert_text_at (XmlImpl::NodeOrTextIterator<Utils::ViewType::Const> pos,
-                      Type::StringView name)
+                      TextType text_type)
 {
   return PugiXmlDetails::insert_text_at (impl.doc_ptr,
                                          impl.node,
                                          pos,
-                                         name);
+                                         text_type);
 }
 
 template <>

@@ -1,5 +1,3 @@
-#include "misc.hh"
-
 #include <gmmproc/xml/xml2.hh>
 
 #include <catch/catch.hpp>
@@ -25,7 +23,6 @@ std::ostream& operator<< (std::ostream& os, Info const& info)
   return os;
 }
 
-
 bool
 operator== (Info const& n1, Info const& n2)
 {
@@ -44,7 +41,7 @@ public:
   std::vector<Info> infos;
 
 private:
-  bool doc (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Document const>&,
+  bool doc (Gmmproc::Xml::DocumentConstView&,
             int depth) override
   {
     using namespace std::string_literals;
@@ -52,7 +49,7 @@ private:
     return true;
   }
 
-  bool node (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Node const>& node,
+  bool node (Gmmproc::Xml::NodeConstView& node,
              int depth) override
   {
     using namespace std::string_literals;
@@ -60,7 +57,7 @@ private:
     return true;
   }
 
-  bool text (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Text const>& text,
+  bool text (Gmmproc::Xml::TextConstView& text,
              int depth) override
   {
     using namespace std::string_literals;
@@ -68,7 +65,7 @@ private:
     return true;
   }
 
-  bool postprocess_node (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Node const>& node,
+  bool postprocess_node (Gmmproc::Xml::NodeConstView& node,
                          int depth) override
   {
     using namespace std::string_literals;
@@ -76,7 +73,7 @@ private:
     return true;
   }
 
-  bool postprocess_doc (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Document const>&,
+  bool postprocess_doc (Gmmproc::Xml::DocumentConstView&,
                         int depth) const override
   {
     using namespace std::string_literals;

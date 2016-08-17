@@ -37,8 +37,6 @@ namespace Xml
 namespace Type
 {
 
-using WrapperInPlace = Utils::WrapperInPlace;
-
 template <typename TypeP>
 using Optional = std::experimental::optional<TypeP>;
 
@@ -63,7 +61,6 @@ template <typename ImplP>
 class DocumentTmpl;
 template <typename ImplP>
 class BundleTmpl;
-template <typename ImplP>
 
 template <typename ImplP, Utils::ViewType TypeV>
 using BasicNodeTmplView = Utils::ViewChoice<BasicNodeTmpl<ImplP>, TypeV>;
@@ -79,7 +76,7 @@ using DocumentTmplView = Utils::ViewChoice<DocumentTmpl<ImplP>, TypeV>;
 template <typename ImplP, Utils::ViewType TypeV>
 using NodeOrTextTmpl = Type::Variant<NodeTmplView<ImplP, TypeV>, TextTmplView<ImplP, TypeV>>;
 template <typename ImplP, Utils::ViewType TypeV>
-using NodeOrDocTmpl = Type::Variant<NodeTmplView<ImplP, TypeV>, Type::DocumentTmplView<ImplP, TypeV>>;
+using NodeOrDocTmpl = Type::Variant<NodeTmplView<ImplP, TypeV>, DocumentTmplView<ImplP, TypeV>>;
 
 template <typename ImplP, Utils::ViewType TypeV>
 class WalkerTmpl;
@@ -108,7 +105,7 @@ using NodeOrTextChoice = NodeOrTextTmpl<XmlImpl, TypeV>;
 template <Utils::ViewType TypeV>
 using NodeOrDocChoice = NodeOrDocTmpl<XmlImpl, TypeV>;
 
-template <Helpers::WrapperType TypeV>
+template <Utils::ViewType TypeV>
 using WalkerChoice = WalkerTmpl<XmlImpl, TypeV>;
 
 using BasicNodeView = BasicNodeViewChoice<Utils::ViewType::Mutable>;
@@ -127,8 +124,8 @@ using DocumentConstView = DocumentViewChoice<Utils::ViewType::Const>;
 using NodeOrTextConst = NodeOrTextChoice<Utils::ViewType::Const>;
 using NodeOrDocConst = NodeOrDocChoice<Utils::ViewType::Const>;
 
-using Walker = WalkerChoice<Helpers::WrapperType::Mutable>;
-using ConstWalker = WalkerChoice<Helpers::WrapperType::Const>;
+using Walker = WalkerChoice<Utils::ViewType::Mutable>;
+using ConstWalker = WalkerChoice<Utils::ViewType::Const>;
 
 class ParseError;
 

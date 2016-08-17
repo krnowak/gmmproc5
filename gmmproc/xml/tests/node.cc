@@ -1,5 +1,3 @@
-#include "misc.hh"
-
 #include <gmmproc/xml/xml2.hh>
 
 #include <catch/catch.hpp>
@@ -101,14 +99,14 @@ TEST_CASE ("basic functions work", "[base]") {
     {
     public:
       std::string
-      operator() (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Text>& text) const
+      operator() (Gmmproc::Xml::TextView& text) const
       {
         using namespace std::string_literals;
         return "text: "s + text->text ().to_string ();
       }
 
       std::string
-      operator() (Gmmproc::Xml::Type::Wrapper<Gmmproc::Xml::Node>& node) const
+      operator() (Gmmproc::Xml::NodeView& node) const
       {
         using namespace std::string_literals;
         return "node: "s + node->name ().to_string ();
