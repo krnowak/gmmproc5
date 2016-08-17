@@ -19,7 +19,7 @@
 
 #undef GMMPROC_XML_INCLUDING_IMPL
 
-#include <gmmproc/utils/wrapper.hh>
+#include <gmmproc/utils/view.hh>
 
 #include <boost/variant.hpp>
 
@@ -36,9 +36,6 @@ namespace Xml
 
 namespace Type
 {
-
-template <typename TypeP>
-using Wrapper = Utils::Wrapper<TypeP>;
 
 using WrapperInPlace = Utils::WrapperInPlace;
 
@@ -67,13 +64,25 @@ class DocumentTmpl;
 template <typename ImplP>
 class BundleTmpl;
 template <typename ImplP>
-using NodeOrTextTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP>>, Type::Wrapper<TextTmpl<ImplP>>>;
-template <typename ImplP>
-using NodeOrTextConstTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<TextTmpl<ImplP> const>>;
-template <typename ImplP>
-using NodeOrDocTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP>>, Type::Wrapper<DocumentTmpl<ImplP>>>;
-template <typename ImplP>
-using NodeOrDocConstTmpl = Type::Variant<Type::Wrapper<NodeTmpl<ImplP> const>, Type::Wrapper<DocumentTmpl<ImplP> const>>;
+
+template <typename ImplP, Utils::ViewType TypeV>
+using BasicNodeTmplView = Utils::ViewChoice<BasicNodeTmpl<ImplP>, TypeV>;
+template <typename ImplP, Utils::ViewType TypeV>
+using AttributeTmplView = Utils::ViewChoice<AttributeTmpl<ImplP>, TypeV>;
+template <typename ImplP, Utils::ViewType TypeV>
+using TextTmplView = Utils::ViewChoice<TextTmpl<ImplP>, TypeV>;
+template <typename ImplP, Utils::ViewType TypeV>
+using NodeTmplView = Utils::ViewChoice<NodeTmpl<ImplP>, TypeV>;
+template <typename ImplP, Utils::ViewType TypeV>
+using DocumentTmplView = Utils::ViewChoice<DocumentTmpl<ImplP>, TypeV>;
+
+template <typename ImplP, Utils::ViewType TypeV>
+using NodeOrTextTmpl = Type::Variant<NodeTmplView<ImplP, TypeV>, TextTmplView<ImplP, TypeV>>;
+template <typename ImplP, Utils::ViewType TypeV>
+using NodeOrDocTmpl = Type::Variant<NodeTmplView<ImplP, TypeV>, Type::DocumentTmplView<ImplP, TypeV>>;
+
+template <typename ImplP, Utils::ViewType TypeV>
+class WalkerTmpl;
 
 class XmlImpl;
 
@@ -83,10 +92,43 @@ using Text = TextTmpl<XmlImpl>;
 using Node = NodeTmpl<XmlImpl>;
 using Document = DocumentTmpl<XmlImpl>;
 using Bundle = BundleTmpl<XmlImpl>;
-using NodeOrText = NodeOrTextTmpl<XmlImpl>;
-using NodeOrTextConst = NodeOrTextConstTmpl<XmlImpl>;
-using NodeOrDoc = NodeOrDocTmpl<XmlImpl>;
-using NodeOrDocConst = NodeOrDocConstTmpl<XmlImpl>;
+
+template <Utils::ViewType TypeV>
+using BasicNodeViewChoice = BasicNodeTmplView<XmlImpl, TypeV>;
+template <Utils::ViewType TypeV>
+using AttributeViewChoice = AttributeTmplView<XmlImpl, TypeV>;
+template <Utils::ViewType TypeV>
+using TextViewChoice = TextTmplView<XmlImpl, TypeV>;
+template <Utils::ViewType TypeV>
+using NodeViewChoice = NodeTmplView<XmlImpl, TypeV>;
+template <Utils::ViewType TypeV>
+using DocumentViewChoice = DocumentTmplView<XmlImpl, TypeV>;
+template <Utils::ViewType TypeV>
+using NodeOrTextChoice = NodeOrTextTmpl<XmlImpl, TypeV>;
+template <Utils::ViewType TypeV>
+using NodeOrDocChoice = NodeOrDocTmpl<XmlImpl, TypeV>;
+
+template <Helpers::WrapperType TypeV>
+using WalkerChoice = WalkerTmpl<XmlImpl, TypeV>;
+
+using BasicNodeView = BasicNodeViewChoice<Utils::ViewType::Mutable>;
+using AttributeView = AttributeViewChoice<Utils::ViewType::Mutable>;
+using TextView = TextViewChoice<Utils::ViewType::Mutable>;
+using NodeView = NodeViewChoice<Utils::ViewType::Mutable>;
+using DocumentView = DocumentViewChoice<Utils::ViewType::Mutable>;
+using NodeOrDoc = NodeOrDocChoice<Utils::ViewType::Mutable>;
+using NodeOrText = NodeOrTextChoice<Utils::ViewType::Mutable>;
+
+using BasicNodeConstView = BasicNodeViewChoice<Utils::ViewType::Const>;
+using AttributeConstView = AttributeViewChoice<Utils::ViewType::Const>;
+using TextConstView = TextViewChoice<Utils::ViewType::Const>;
+using NodeConstView = NodeViewChoice<Utils::ViewType::Const>;
+using DocumentConstView = DocumentViewChoice<Utils::ViewType::Const>;
+using NodeOrTextConst = NodeOrTextChoice<Utils::ViewType::Const>;
+using NodeOrDocConst = NodeOrDocChoice<Utils::ViewType::Const>;
+
+using Walker = WalkerChoice<Helpers::WrapperType::Mutable>;
+using ConstWalker = WalkerChoice<Helpers::WrapperType::Const>;
 
 class ParseError;
 

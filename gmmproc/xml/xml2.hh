@@ -2,18 +2,27 @@
 #define GMMPROC_XML_XML_HH
 
 #include "xmlfwd.hh"
-#include "walkerfwd.hh"
 
 #include <stdexcept>
 
 // TODO: Add a debugging feature in bundle to track all document instances?
-// TODO: get rid if ::child accessor
-// TODO: replace add_foo(name_or_else) with lower-level add_foo_at (iterator, name_or_else)
 // TODO: maybe add some convenience functions in a separate namespace (XmlExtras)
 // TODO: libxml backend
 // TODO: more tests
-// TODO: likely the virtual methods of the walker should not be const
 // TODO: split tests into multiple source files, not headers
+// TODO: fix the bogus "argh" exceptions
+// TODO: throw exceptions on errors
+
+// TODO: likely the virtual methods of the walker should not be const
+// TODO: foorange -> foorange<utils::viewtype::mutable>
+// TODO: fooconstrange -> foorange<utils::viewtype::const>
+// TODO: rename create to create_mutable, add templated create (killed nontemplate methods)
+// TODO: typedefs for wrappers
+// TODO: move wrapper type to utils, have an template alias based on wrapper type enum
+// TODO: rename Wrapper to View?
+// TODO: replace add_foo(name_or_else) with lower-level add_foo_at (iterator, name_or_else)
+// TODO: get rid of ::child accessor
+// TODO: get rid of ::attribute accessor
 
 namespace Gmmproc
 {
@@ -31,31 +40,25 @@ template <typename ImplP>
 class BasicNodeTmpl
 {
 public:
-  static Type::Wrapper<BasicNodeTmpl> create (typename ImplP::BasicNodeImpl i);
-  static Type::Wrapper<BasicNodeTmpl const> create_const (typename ImplP::BasicNodeImpl i);
+  template <Utils::ViewType TypeV>
+  static BasicNodeTmplView<ImplP, TypeV> create (typename ImplP::BasicNodeImpl i);
 
-  Type::Wrapper<DocumentTmpl<ImplP>> document ();
-  Type::Wrapper<DocumentTmpl<ImplP> const> document () const;
+  DocumentTmplView<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentTmplView<ImplP, Utils::ViewType::Const> document () const;
 
-  Type::Optional<Type::Wrapper<NodeTmpl<ImplP>>> child (Type::StringView name);
-  Type::Optional<Type::Wrapper<NodeTmpl<ImplP> const>> child (Type::StringView name) const;
-  typename ImplP::NodeRange children ();
-  typename ImplP::NodeConstRange children () const;
-  /*
-  typename ImplP::NodeRange children (Type::StringView name);
-  typename ImplP::NodeConstRange children (Type::StringView name) const;
-  */
+  typename ImplP::NodeRange<Utils::ViewType::Mutable> children ();
+  typename ImplP::NodeRange<Utils::ViewType::Const> children () const;
 
-  void remove (Type::Wrapper<NodeTmpl<ImplP>> const& node);
+  void remove (NodeViewTmpl<ImplP, Utils::ViewType::Mutable> const& node);
 
   bool equal (BasicNodeTmpl const& rhs) const;
 
 private:
-  friend Type::Wrapper<BasicNodeTmpl>;
-  friend Type::Wrapper<BasicNodeTmpl const>;
+  template <Utils::ViewType TypeV>
+  friend BasicNodeViewTmpl<ImplP, TypeV>;
 
-  friend typename ImplP::template WalkerImpl<Helpers::WrapperType::Const>;
-  friend typename ImplP::template WalkerImpl<Helpers::WrapperType::Mutable>;
+  template <Utils::ViewType TypeV>
+  friend typename ImplP::template WalkerImpl<TypeV>;
 
   BasicNodeTmpl (typename ImplP::BasicNodeImpl i);
   BasicNodeTmpl (BasicNodeTmpl const& other);
@@ -91,11 +94,11 @@ template <typename ImplP>
 class AttributeTmpl
 {
 public:
-  static Type::Wrapper<AttributeTmpl> create (typename ImplP::AttributeImpl i);
-  static Type::Wrapper<AttributeTmpl const> create_const (typename ImplP::AttributeImpl i);
+  template <Utils::ViewType TypeV>
+  static AttributeViewTmpl<ImplP, TypeV> create (typename ImplP::AttributeImpl i);
 
-  Type::Wrapper<DocumentTmpl<ImplP>> document ();
-  Type::Wrapper<DocumentTmpl<ImplP> const> document () const;
+  DocumentViewTmpl<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentViewTmpl<ImplP, Utils::ViewType::Const> document () const;
 
   Type::StringView name () const;
   void set_name (Type::StringView name);
@@ -103,14 +106,14 @@ public:
   Type::StringView value () const;
   void set_value (Type::StringView value);
 
-  Type::Wrapper<NodeTmpl<ImplP>> parent ();
-  Type::Wrapper<NodeTmpl<ImplP> const> parent () const;
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> parent ();
+  NodeViewTmpl<ImplP, Utils::ViewType::Const> parent () const;
 
   bool equal (AttributeTmpl const& other) const;
 
 private:
-  friend Type::Wrapper<AttributeTmpl>;
-  friend Type::Wrapper<AttributeTmpl const>;
+  template <Utils::ViewType TypeV>
+  friend AttributeViewTmpl<ImplP, TypeV>;
 
   friend NodeTmpl<ImplP>;
 
@@ -148,25 +151,25 @@ template <typename ImplP>
 class TextTmpl
 {
 public:
-  static Type::Wrapper<TextTmpl> create (typename ImplP::TextImpl i);
-  static Type::Wrapper<TextTmpl const> create_const (typename ImplP::TextImpl i);
+  template <Utils::ViewType TypeV>
+  static TextViewTmpl<ImplP, TypeV> create (typename ImplP::TextImpl i);
 
-  Type::Wrapper<DocumentTmpl<ImplP>> document ();
-  Type::Wrapper<DocumentTmpl<ImplP> const> document () const;
+  DocumentViewTmpl<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentViewTmpl<ImplP, Utils::ViewType::Const> document () const;
 
   Type::StringView text () const;
   void set_text (Type::StringView text);
 
-  Type::Wrapper<NodeTmpl<ImplP>> parent ();
-  Type::Wrapper<NodeTmpl<ImplP> const> parent () const;
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> parent ();
+  NodeViewTmpl<ImplP, Utils::ViewType::Const> parent () const;
 
   TextType type () const;
 
   bool equal (TextTmpl const& other) const;
 
 private:
-  friend Type::Wrapper<TextTmpl>;
-  friend Type::Wrapper<TextTmpl const>;
+  template <Utils::ViewType TypeV>
+  friend TextViewTmpl<ImplP, TypeV>;
 
   friend NodeTmpl<ImplP>;
 
@@ -204,53 +207,58 @@ template <typename ImplP>
 class NodeTmpl
 {
 public:
-  static Type::Wrapper<NodeTmpl> create (typename ImplP::NodeImpl i);
-  static Type::Wrapper<NodeTmpl const> create_const (typename ImplP::NodeImpl i);
+  template <Utils::ViewType TypeV>
+  static NodeViewTmpl<ImplP, TypeV> create (typename ImplP::NodeImpl i);
 
-  Type::Wrapper<BasicNodeTmpl<ImplP>> as_basic_node ();
-  Type::Wrapper<BasicNodeTmpl<ImplP> const> as_basic_node () const;
+  BasicNodeViewTmpl<ImplP, Utils::ViewType::Mutable> as_basic_node ();
+  BasicNodeViewTmpl<ImplP, Utils::ViewType::Const> as_basic_node () const;
 
-  Type::Wrapper<DocumentTmpl<ImplP>> document ();
-  Type::Wrapper<DocumentTmpl<ImplP> const> document () const;
+  DocumentViewTmpl<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentViewTmpl<ImplP, Utils::ViewType::Const> document () const;
 
   Type::StringView name () const;
 
-  NodeOrDocTmpl<ImplP> parent ();
-  NodeOrDocConstTmpl<ImplP> parent () const;
-  Type::Wrapper<BasicNodeTmpl<ImplP>> basic_parent ();
-  Type::Wrapper<BasicNodeTmpl<ImplP> const> basic_parent () const;
+  NodeOrDocTmpl<ImplP, Utils::ViewType::Mutable> parent ();
+  NodeOrDocTmpl<ImplP, Utils::ViewType::Const> parent () const;
+  BasicNodeViewTmpl<ImplP, Utils::ViewType::Mutable> basic_parent ();
+  BasicNodeViewTmpl<ImplP, Utils::ViewType::Const> basic_parent () const;
 
-  Type::Optional<Type::Wrapper<NodeTmpl>> child (Type::StringView name);
-  Type::Optional<Type::Wrapper<NodeTmpl const>> child (Type::StringView name) const;
-  typename ImplP::NodeRange children ();
-  typename ImplP::NodeConstRange children () const;
-  /*
-  typename ImplP::NodeRange children (Type::StringView name);
-  typename ImplP::NodeConstRange children (Type::StringView name) const;
-  */
+  typename ImplP::NodeRange<Utils::ViewType::Mutable> children ();
+  typename ImplP::NodeRange<Utils::ViewType::Const> children () const;
 
-  Type::Optional<Type::Wrapper<AttributeTmpl<ImplP>>> attribute (Type::StringView name);
-  Type::Optional<Type::Wrapper<AttributeTmpl<ImplP> const>> attribute (Type::StringView name) const;
-  typename ImplP::AttributeRange attributes ();
-  typename ImplP::AttributeConstRange attributes () const;
+  typename ImplP::AttributeRange<Utils::ViewType::Mutable> attributes ();
+  typename ImplP::AttributeRange<Utils::ViewType::Const> attributes () const;
 
-  typename ImplP::TextRange texts ();
-  typename ImplP::TextConstRange texts () const;
+  typename ImplP::TextRange<Utils::ViewType::Mutable> texts ();
+  typename ImplP::TextRange<Utils::ViewType::Const> texts () const;
 
-  typename ImplP::NodeOrTextRange all ();
-  typename ImplP::NodeOrTextConstRange all () const;
+  typename ImplP::NodeOrTextRange<Utils::ViewType::Mutable> all ();
+  typename ImplP::NodeOrTextRange<Utils::ViewType::Const> all () const;
 
-  Type::Wrapper<NodeTmpl> add_child (Type::StringView name);
-  Type::Wrapper<AttributeTmpl<ImplP>> add_attribute (Type::StringView name);
-  Type::Wrapper<TextTmpl<ImplP>> add_text (TextType text_type = TextType::Parsed);
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::NodeIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::NodeIterator<Utils::ViewType::Const> pos, Type::StringView name);
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::TextIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::TextIterator<Utils::ViewType::Const> pos, Type::StringView name);
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::NodeOrTextIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::NodeOrTextIterator<Utils::ViewType::Const> pos, Type::StringView name);
 
-  void remove (Type::Wrapper<NodeTmpl> const& node);
-  void remove (Type::Wrapper<AttributeTmpl<ImplP>> const& attribute);
-  void remove (Type::Wrapper<TextTmpl<ImplP>> const& text);
+  AttributeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_attribute_at (typename ImplP::AttributeIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  AttributeViewTmpl<ImplP, Utils::ViewType::Mutable> insert_attribute_at (typename ImplP::AttributeIterator<Utils::ViewType::Const> pos, Type::StringView name);
+
+  TextTmpl<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::NodeIterator<Utils::ViewType::Mutable> pos, TextType text_type = TextType::Parsed);
+  TextTmpl<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::NodeIterator<Utils::ViewType::Const> pos, TextType text_type = TextType::Parsed);
+  TextTmpl<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::TextIterator<Utils::ViewType::Mutable> pos, TextType text_type = TextType::Parsed);
+  TextTmpl<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::TextIterator<Utils::ViewType::Const> pos, TextType text_type = TextType::Parsed);
+  TextTmpl<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::NodeOrTextIterator<Utils::ViewType::Mutable> pos, TextType text_type = TextType::Parsed);
+  TextTmpl<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::NodeOrTextIterator<Utils::ViewType::Const> pos, TextType text_type = TextType::Parsed);
+
+  void remove (NodeViewTmpl<ImplP, Utils::ViewType::Mutable> const& node);
+  void remove (AttributeViewTmpl<ImplP, Utils::ViewType::Mutable> const& attribute);
+  void remove (TextViewTmpl<ImplP, Utils::ViewType::Mutable> const& text);
 
 private:
-  friend Type::Wrapper<NodeTmpl>;
-  friend Type::Wrapper<NodeTmpl const>;
+  template <Utils::ViewType TypeV>
+  friend NodeViewTmpl<ImplP, TypeV>;
 
   friend BasicNodeTmpl<ImplP>;
 
@@ -320,20 +328,20 @@ template <typename ImplP>
 class DocumentTmpl
 {
 public:
-  static Type::Wrapper<DocumentTmpl> create (typename ImplP::DocumentImpl i);
-  static Type::Wrapper<DocumentTmpl const> create_const (typename ImplP::DocumentImpl i);
+  template <Utils::ViewType TypeV>
+  static DocumentViewTmpl<ImplP, TypeV> create (typename ImplP::DocumentImpl i);
 
-  Type::Wrapper<BasicNode> as_basic_node ();
-  Type::Wrapper<BasicNode const> as_basic_node () const;
+  BasicNode<ImplP, Utils::ViewType::Mutable> as_basic_node ();
+  BasicNode<ImplP, Utils::ViewType::Const> as_basic_node () const;
 
-  Type::Optional<Type::Wrapper<Node>> root_tag ();
-  Type::Optional<Type::Wrapper<Node const>> root_tag () const;
+  Type::Optional<NodeViewTmpl<ImplP, Utils::ViewType::Mutable>> root_tag ();
+  Type::Optional<NodeViewTmpl<ImplP, Utils::ViewType::Const>> root_tag () const;
 
-  Type::Wrapper<Node> add_root (Type::StringView name);
+  NodeViewTmpl<ImplP, Utils::ViewType::Mutable> add_root (Type::StringView name);
 
 private:
-  friend Type::Wrapper<DocumentTmpl>;
-  friend Type::Wrapper<DocumentTmpl const>;
+  template <Utils::ViewType TypeV>
+  friend DocumentViewTmpl<ImplP, TypeV>;
 
   DocumentTmpl (typename ImplP::DocumentImpl i);
   DocumentTmpl (DocumentTmpl const& other);
@@ -414,29 +422,26 @@ public:
   BundleTmpl& operator= (BundleTmpl const& other) = delete;
   BundleTmpl& operator= (BundleTmpl&& other) noexcept;
 
-  Type::Wrapper<Document> document ();
-  Type::Wrapper<Document const> document () const;
+  DocumentViewTmpl<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentViewTmpl<ImplP, Utils::ViewType::Const> document () const;
 
 private:
   typename ImplP::BundleImpl impl;
 };
 
-template <typename ImplP, Helpers::WrapperType TypeV>
+template <typename ImplP, Utils::ViewType TypeV>
 class WalkerTmpl
 {
 public:
-  static constexpr Helpers::WrapperType type = TypeV;
-  using Creator = Helpers::CreatorTmpl<ImplP, TypeV>;
-
   WalkerTmpl ();
-  void walk (typename Creator::NodeOrDocType node_or_doc) const;
+  void walk (NodeOrDocTmpl<ImplP, TypeV> node_or_doc);
 
 private:
-  virtual bool doc (typename Creator::DocumentType& doc, int depth) const = 0;
-  virtual bool node (typename Creator::NodeType& node, int depth) const = 0;
-  virtual bool text (typename Creator::TextType& text, int depth) const = 0;
-  virtual bool postprocess_node (typename Creator::NodeType& node, int depth) const = 0;
-  virtual bool postprocess_doc (typename Creator::DocumentType& doc, int depth) const = 0;
+  virtual bool doc (DocumentViewTmpl<ImplP, TypeV>& doc, int depth) = 0;
+  virtual bool node (NodeViewTmpl<ImplP, TypeV>& node, int depth) = 0;
+  virtual bool text (TextViewTmpl<ImplP, TypeV>& text, int depth) = 0;
+  virtual bool postprocess_node (NodeViewTmpl<ImplP, TypeV>& node, int depth) = 0;
+  virtual bool postprocess_doc (DocumentViewTmpl<ImplP, TypeV>& doc, int depth) = 0;
 
   friend typename ImplP::template WalkerImpl<TypeV>;
 };
