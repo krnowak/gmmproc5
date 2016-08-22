@@ -14,6 +14,7 @@
 // TODO: split pugi impl to cc file?
 // TODO: add a constexpr variable or something that tells which backend is used
 // TODO: add context to the flying-by exceptions where applicable
+// TODO: coverage
 
 // TODO: move misc headers into some details subdirectory, keep {xml,xmlfwd,extra}.hh only
 // TODO: rename the headers (get rid of the 2 in the name)
