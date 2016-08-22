@@ -5,11 +5,11 @@
 
 #if defined(GMMPROC_XML_USE_PUGI)
 
-#include "xml-pugi2-prolog.hh"
+#include "impls/xml-pugi-prolog.hh"
 
 #elif defined(GMMPROC_XML_USE_LIBXML)
 
-#include "xml-libxml2-prolog.hh"
+#include "impls/xml-libxml-prolog.hh"
 
 #else
 

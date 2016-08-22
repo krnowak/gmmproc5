@@ -7,7 +7,7 @@
 
 #endif
 
-#include "xml.hh"
+#include "../xml.hh"
 
 #include <pugixml.hpp>
 

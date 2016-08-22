@@ -1,15 +1,34 @@
 #ifndef GMMPROC_XML_XML_HH
 #define GMMPROC_XML_XML_HH
 
-#include <boost/variant.hpp>
+#include "xmlfwd.hh"
 
-#include <experimental/optional>
-#include <experimental/string_view>
+#include <gmmproc/utils/exceptions.hh>
 
-#include <functional>
-#include <iosfwd>
-#include <stdexcept>
-#include <utility>
+// TODO: Add a debugging feature in bundle to track all document instances?
+// TODO: maybe add some convenience functions in a separate namespace (Xml::Extra)
+// TODO: libxml backend
+// TODO: rapidxml backend
+// TODO: more tests
+// TODO: throw exceptions on errors
+// TODO: split pugi impl to cc file?
+// TODO: add a constexpr variable or something that tells which backend is used
+// TODO: add context to the flying-by exceptions where applicable
+
+// TODO: move misc headers into some details subdirectory, keep {xml,xmlfwd,extra}.hh only
+// TODO: rename the headers (get rid of the 2 in the name)
+// TODO: fix the bogus "argh" exceptions
+// TODO: split tests into multiple source files, not headers
+// TODO: likely the virtual methods of the walker should not be const
+// TODO: foorange -> foorange<utils::viewtype::mutable>
+// TODO: fooconstrange -> foorange<utils::viewtype::const>
+// TODO: rename create to create_mutable, add templated create (killed nontemplate methods)
+// TODO: typedefs for wrappers
+// TODO: move wrapper type to utils, have an template alias based on wrapper type enum
+// TODO: rename Wrapper to View?
+// TODO: replace add_foo(name_or_else) with lower-level add_foo_at (iterator, name_or_else)
+// TODO: get rid of ::child accessor
+// TODO: get rid of ::attribute accessor
 
 namespace Gmmproc
 {
@@ -17,229 +36,375 @@ namespace Gmmproc
 namespace Xml
 {
 
-namespace Type
-{
-
-template <typename TypeP>
-class Wrapper
+class XmlRuntimeError : public Utils::RuntimeError
 {
 public:
-  template <typename... TypesP>
-  Wrapper (TypesP&& v...)
-    : wrapped {v...}
-  {}
-
-  Wrapper (Wrapper<std::remove_const_t<TypeP>> const& other)
-    : wrapped {other.wrapped}
-  {}
-
-  ~Wrapper() = default;
-
-  Wrapper (Wrapper const& other) = default;
-  Wrapper (Wrapper&& other) = default;
-
-  Wrapper& operator= (Wrapper const& other) = default;
-  Wrapper& operator= (Wrapper&& other) = default;
-
-  void swap (Wrapper& other);
-
-private:
-  friend class Wrapper<const TypeP>;
-  friend class Wrapper<std::remove_const_t<TypeP>>;
-
-  TypeP wrapped;
+  using Utils::RuntimeError::RuntimeError;
 };
 
-template <typename TypeP>
-using Optional = std::experimental::optional<TypeP>;
+class ParseError : public XmlRuntimeError
+{
+public:
+  using XmlRuntimeError::XmlRuntimeError;
+};
 
-using OptionalInPlace = std::experimental::in_place_t;
-
-using StringView = std::experimental::string_view;
-
-template <typename... TypesP>
-using Variant = boost::variant<TypesP...>;
-
-template <typename TypeP>
-using Ref = std::reference_wrapper<TypeP>;
-
-} // namespace Type
-
-template <typename Impl>
-class BasicNodeTmpl;
-template <typename Impl>
-class NodeTmpl;
-template <typename Impl>
-class TextTmpl;
-template <typename Impl>
-class AttributeTmpl;
-template <typename Impl>
-class DocumentTmpl;
 template <typename ImplP>
-class BundleTmpl;
-template <typename Impl>
-class WalkerTmpl;
-
-class XmlImpl;
-
-using BasicNode = BasicNodeTmpl<XmlImpl>;
-using Node = NodeTmpl<XmlImpl>;
-using Text = TextTmpl<XmlImpl>;
-using Attribute = AttributeTmpl<XmlImpl>;
-using Document = DocumentTmpl<XmlImpl>;
-using Walker = WalkerTmpl<XmlImpl>;
-using NodeOrText = Type::Variant<Node, Text>;
-using NodeOrDoc = Type::Variant<Node, Type::Ref<Document>>;
-
-class ParseError : public std::runtime_error
-{
-public:
-  using std::runtime_error::runtime_error;
-};
-
-enum class TextType
-  {
-    Parsed, // PCDATA
-    Raw // CDATA
-  };
-
-template <typename Impl>
 class BasicNodeTmpl
 {
 public:
-  BasicNodeTmpl (typename Impl::BasicNodeImpl i)
-    : impl {std::move (i)}
-  {}
+  template <Utils::ViewType TypeV>
+  static BasicNodeTmplView<ImplP, TypeV> create (typename ImplP::BasicNodeImpl i);
 
-  ~BasicNodeTmpl();
+  DocumentTmplView<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentTmplView<ImplP, Utils::ViewType::Const> document () const;
 
-  BasicNodeTmpl (BasicNodeTmpl<Impl> const& basic_node) = delete;
-  BasicNodeTmpl (BasicNodeTmpl<Impl>&& basic_node) = delete;
+  typename ImplP::template NodeRange<Utils::ViewType::Mutable> children ();
+  typename ImplP::template NodeRange<Utils::ViewType::Const> children () const;
 
-  BasicNodeTmpl<Impl>& operator= (BasicNodeTmpl const& basic_node) = delete;
-  BasicNodeTmpl<Impl>& operator= (BasicNodeTmpl&& basic_node) = delete;
-
-  DocumentTmpl<Impl> const& document () const;
-  DocumentTmpl<Impl>& document ();
-
-  Type::Optional<NodeTmpl<Impl>> child (Type::StringView name) const;
-  typename Impl::NodeRange children () const;
-  typename Impl::NodeRange children (Type::StringView name) const;
-
-  void remove (NodeTmpl<Impl> const& child);
+  void remove (NodeTmplView<ImplP, Utils::ViewType::Mutable> const& node);
 
   bool equal (BasicNodeTmpl const& rhs) const;
 
 private:
-  friend class NodeTmpl<Impl>;
-  friend class DocumentTmpl<Impl>;
+  friend BasicNodeTmplView<ImplP, Utils::ViewType::Mutable>;
+  friend BasicNodeTmplView<ImplP, Utils::ViewType::Const>;
 
-  void swap (BasicNodeTmpl& base);
+  friend typename ImplP::template WalkerImpl<Utils::ViewType::Mutable>;
+  friend typename ImplP::template WalkerImpl<Utils::ViewType::Const>;
 
-  typename Impl::BasicNodeImpl impl;
+  BasicNodeTmpl (typename ImplP::BasicNodeImpl i);
+  BasicNodeTmpl (BasicNodeTmpl const& other);
+  BasicNodeTmpl (BasicNodeTmpl&& other) noexcept;
+
+  ~BasicNodeTmpl () noexcept;
+
+  void swap (BasicNodeTmpl& other) noexcept;
+
+  BasicNodeTmpl& operator= (BasicNodeTmpl const& other);
+  BasicNodeTmpl& operator= (BasicNodeTmpl&& other) noexcept;
+
+  typename ImplP::BasicNodeImpl impl;
 };
 
-template <typename Impl>
+template <typename ImplP>
 inline bool
-operator== (BasicNodeTmpl<Impl> const& lhs,
-            BasicNodeTmpl<Impl> const& rhs)
+operator== (BasicNodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
 {
   return lhs.equal (rhs);
 }
 
-template <typename Impl>
+template <typename ImplP>
 inline bool
-operator!= (BasicNodeTmpl<Impl> const& lhs,
-            BasicNodeTmpl<Impl> const& rhs)
+operator!= (BasicNodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
 {
+  return !(lhs == rhs);
+}
 
+template <typename ImplP>
+class AttributeTmpl
+{
 public:
-  NodeTmpl (BasicNodeTmpl<Impl> b)
-    : base {std::move (b)}
-  {}
+  template <Utils::ViewType TypeV>
+  static AttributeTmplView<ImplP, TypeV> create (typename ImplP::AttributeImpl i);
 
-  ~NodeTmpl ();
+  DocumentTmplView<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentTmplView<ImplP, Utils::ViewType::Const> document () const;
 
-  NodeTmpl (NodeTmpl const& node);
-  NodeTmpl (NodeTmpl&& node);
+  Type::StringView name () const;
+  void set_name (Type::StringView name);
 
-  NodeTmpl& operator= (NodeTmpl const& node);
-  NodeTmpl& operator= (NodeTmpl&& node);
+  Type::StringView value () const;
+  void set_value (Type::StringView value);
 
-  void swap (NodeTmpl& node);
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> parent ();
+  NodeTmplView<ImplP, Utils::ViewType::Const> parent () const;
 
-  BasicNodeTmpl<Impl> const& as_basic_node () const;
-  BasicNodeTmpl<Impl>& as_basic_node ();
+  bool equal (AttributeTmpl const& other) const;
 
-  DocumentTmpl<Impl> const& document () const;
-  DocumentTmpl<Impl>& document ();
+private:
+  friend AttributeTmplView<ImplP, Utils::ViewType::Mutable>;
+  friend AttributeTmplView<ImplP, Utils::ViewType::Const>;
+
+  friend NodeTmpl<ImplP>;
+
+  AttributeTmpl (typename ImplP::AttributeImpl i);
+  AttributeTmpl (AttributeTmpl const& other);
+  AttributeTmpl (AttributeTmpl&& other) noexcept;
+
+  ~AttributeTmpl () noexcept;
+
+  void swap (AttributeTmpl& other) noexcept;
+
+  AttributeTmpl& operator= (AttributeTmpl const& other);
+  AttributeTmpl& operator= (AttributeTmpl&& other) noexcept;
+
+  typename ImplP::AttributeImpl impl;
+};
+
+template <typename ImplP>
+inline bool
+operator== (AttributeTmpl<ImplP> const& lhs,
+            AttributeTmpl<ImplP> const& rhs)
+{
+  return lhs.equal (rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator!= (AttributeTmpl<ImplP> const& lhs,
+            AttributeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+class TextTmpl
+{
+public:
+  template <Utils::ViewType TypeV>
+  static TextTmplView<ImplP, TypeV> create (typename ImplP::TextImpl i);
+
+  DocumentTmplView<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentTmplView<ImplP, Utils::ViewType::Const> document () const;
+
+  Type::StringView text () const;
+  void set_text (Type::StringView text);
+
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> parent ();
+  NodeTmplView<ImplP, Utils::ViewType::Const> parent () const;
+
+  TextType type () const;
+
+  bool equal (TextTmpl const& other) const;
+
+private:
+  friend TextTmplView<ImplP, Utils::ViewType::Mutable>;
+  friend TextTmplView<ImplP, Utils::ViewType::Const>;
+
+  friend NodeTmpl<ImplP>;
+
+  TextTmpl (typename ImplP::TextImpl i);
+  TextTmpl (TextTmpl const& other);
+  TextTmpl (TextTmpl&& other) noexcept;
+
+  ~TextTmpl () noexcept;
+
+  void swap (TextTmpl& other) noexcept;
+
+  TextTmpl& operator= (TextTmpl const& other);
+  TextTmpl& operator= (TextTmpl&& other) noexcept;
+
+  typename ImplP::TextImpl impl;
+};
+
+template <typename ImplP>
+inline bool
+operator== (TextTmpl<ImplP> const& lhs,
+            TextTmpl<ImplP> const& rhs)
+{
+  return lhs.equal (rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator!= (TextTmpl<ImplP> const& lhs,
+            TextTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+class NodeTmpl
+{
+public:
+  template <Utils::ViewType TypeV>
+  static NodeTmplView<ImplP, TypeV> create (typename ImplP::NodeImpl i);
+
+  BasicNodeTmplView<ImplP, Utils::ViewType::Mutable> as_basic_node ();
+  BasicNodeTmplView<ImplP, Utils::ViewType::Const> as_basic_node () const;
+
+  DocumentTmplView<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentTmplView<ImplP, Utils::ViewType::Const> document () const;
 
   Type::StringView name () const;
 
-  NodeOrDoc parent () const;
-  BasicNodeTmpl<Impl> basic_parent() const;
+  NodeOrDocTmpl<ImplP, Utils::ViewType::Mutable> parent ();
+  NodeOrDocTmpl<ImplP, Utils::ViewType::Const> parent () const;
+  BasicNodeTmplView<ImplP, Utils::ViewType::Mutable> basic_parent ();
+  BasicNodeTmplView<ImplP, Utils::ViewType::Const> basic_parent () const;
 
-  Type::Optional<NodeTmpl<Impl>> child (Type::StringView name) const;
-  typename Impl::NodeRange children () const;
-  typename Impl::NodeRange children (Type::StringView name) const;
+  typename ImplP::template NodeRange<Utils::ViewType::Mutable> children ();
+  typename ImplP::template NodeRange<Utils::ViewType::Const> children () const;
 
-  Type::Optional<AttributeTmpl<Impl>> attribute (Type::StringView name) const;
-  typename Impl::AttributeRange attributes () const;
+  typename ImplP::template AttributeRange<Utils::ViewType::Mutable> attributes ();
+  typename ImplP::template AttributeRange<Utils::ViewType::Const> attributes () const;
 
-  typename Impl::TextRange texts () const;
+  typename ImplP::template TextRange<Utils::ViewType::Mutable> texts ();
+  typename ImplP::template TextRange<Utils::ViewType::Const> texts () const;
 
-  typename Impl::NodeOrTextRange all () const;
+  typename ImplP::template NodeOrTextRange<Utils::ViewType::Mutable> all ();
+  typename ImplP::template NodeOrTextRange<Utils::ViewType::Const> all () const;
 
-  NodeTmpl<Impl> add_child (Type::StringView name);
-  AttributeTmpl<Impl> add_attribute (Type::StringView name,
-                                     Type::StringView value);
-  TextTmpl<Impl> add_text (Type::StringView text,
-                           TextType text_type = TextType::Parsed);
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::template NodeIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::template NodeIterator<Utils::ViewType::Const> pos, Type::StringView name);
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::template TextIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::template TextIterator<Utils::ViewType::Const> pos, Type::StringView name);
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::template NodeOrTextIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> insert_child_at (typename ImplP::template NodeOrTextIterator<Utils::ViewType::Const> pos, Type::StringView name);
 
-  void remove (NodeTmpl<Impl> const& child);
-  void remove (AttributeTmpl<Impl> const &attribute);
-  void remove (TextTmpl<Impl> const& text);
+  AttributeTmplView<ImplP, Utils::ViewType::Mutable> insert_attribute_at (typename ImplP::template AttributeIterator<Utils::ViewType::Mutable> pos, Type::StringView name);
+  AttributeTmplView<ImplP, Utils::ViewType::Mutable> insert_attribute_at (typename ImplP::template AttributeIterator<Utils::ViewType::Const> pos, Type::StringView name);
+
+  TextTmplView<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::template NodeIterator<Utils::ViewType::Mutable> pos, TextType text_type = TextType::Parsed);
+  TextTmplView<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::template NodeIterator<Utils::ViewType::Const> pos, TextType text_type = TextType::Parsed);
+  TextTmplView<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::template TextIterator<Utils::ViewType::Mutable> pos, TextType text_type = TextType::Parsed);
+  TextTmplView<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::template TextIterator<Utils::ViewType::Const> pos, TextType text_type = TextType::Parsed);
+  TextTmplView<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::template NodeOrTextIterator<Utils::ViewType::Mutable> pos, TextType text_type = TextType::Parsed);
+  TextTmplView<ImplP, Utils::ViewType::Mutable> insert_text_at (typename ImplP::template NodeOrTextIterator<Utils::ViewType::Const> pos, TextType text_type = TextType::Parsed);
+
+  void remove (NodeTmplView<ImplP, Utils::ViewType::Mutable> const& node);
+  void remove (AttributeTmplView<ImplP, Utils::ViewType::Mutable> const& attribute);
+  void remove (TextTmplView<ImplP, Utils::ViewType::Mutable> const& text);
 
 private:
-  BasicNodeTmpl<Impl> base;
+  friend NodeTmplView<ImplP, Utils::ViewType::Mutable>;
+  friend NodeTmplView<ImplP, Utils::ViewType::Const>;
+
+  friend BasicNodeTmpl<ImplP>;
+
+  NodeTmpl (typename ImplP::NodeImpl i);
+  NodeTmpl (NodeTmpl const& other);
+  NodeTmpl (NodeTmpl&& other) noexcept;
+
+  ~NodeTmpl () noexcept;
+
+  void swap (NodeTmpl& other) noexcept;
+
+  NodeTmpl& operator= (NodeTmpl const& other);
+  NodeTmpl& operator= (NodeTmpl&& other) noexcept;
+
+  typename ImplP::NodeImpl impl;
 };
 
-template <typename Impl>
+template <typename ImplP>
 inline bool
-operator== (NodeTmpl<Impl> const& lhs,
-            NodeTmpl<Impl> const& rhs)
+operator== (NodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
 {
   return lhs.as_basic_node () == rhs.as_basic_node ();
 }
 
-template <typename Impl>
+template <typename ImplP>
 inline bool
-operator!= (NodeTmpl<Impl> const& lhs,
-            NodeTmpl<Impl> const& rhs)
+operator!= (NodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
 {
-  return lhs.as_basic_node () != rhs.as_basic_node ();
+  return !(lhs == rhs);
 }
 
-template <typename Impl>
+template <typename ImplP>
 inline bool
-operator== (NodeTmpl<Impl> const& lhs,
-            BasicNodeTmpl<Impl> const& rhs)
+operator== (NodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
 {
   return lhs.as_basic_node () == rhs;
 }
 
-template <typename Impl>
+template <typename ImplP>
 inline bool
-operator!= (NodeTmpl<Impl> const& lhs,
-            BasicNodeTmpl<Impl> const& rhs)
+operator!= (NodeTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
 {
-  return lhs.as_basic_node () != rhs;
+  return !(lhs == rhs);
 }
 
-template <typename Impl>
+template <typename ImplP>
 inline bool
-operator== (BasicNodeTmpl<Impl> const& lhs,
-            NodeTmpl<Impl> const& rhs)
+operator== (BasicNodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
+{
+  return rhs == lhs;
+}
+
+template <typename ImplP>
+inline bool
+operator!= (BasicNodeTmpl<ImplP> const& lhs,
+            NodeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+class DocumentTmpl
+{
+public:
+  template <Utils::ViewType TypeV>
+  static DocumentTmplView<ImplP, TypeV> create (typename ImplP::DocumentImpl i);
+
+  BasicNodeTmplView<ImplP, Utils::ViewType::Mutable> as_basic_node ();
+  BasicNodeTmplView<ImplP, Utils::ViewType::Const> as_basic_node () const;
+
+  Type::Optional<NodeTmplView<ImplP, Utils::ViewType::Mutable>> root_tag ();
+  Type::Optional<NodeTmplView<ImplP, Utils::ViewType::Const>> root_tag () const;
+
+  NodeTmplView<ImplP, Utils::ViewType::Mutable> add_root (Type::StringView name);
+
+private:
+  friend DocumentTmplView<ImplP, Utils::ViewType::Mutable>;
+  friend DocumentTmplView<ImplP, Utils::ViewType::Const>;
+
+  DocumentTmpl (typename ImplP::DocumentImpl i);
+  DocumentTmpl (DocumentTmpl const& other);
+  DocumentTmpl (DocumentTmpl&& other) noexcept;
+
+  ~DocumentTmpl() noexcept;
+
+  void swap (DocumentTmpl& other) noexcept;
+
+  DocumentTmpl& operator= (DocumentTmpl const& other);
+  DocumentTmpl& operator= (DocumentTmpl&& other) noexcept;
+
+  typename ImplP::DocumentImpl impl;
+};
+
+template <typename ImplP>
+inline bool
+operator== (DocumentTmpl<ImplP> const& lhs,
+            DocumentTmpl<ImplP> const& rhs)
+{
+  return lhs.as_basic_node () == rhs.as_basic_node ();
+}
+
+template <typename ImplP>
+inline bool
+operator!= (DocumentTmpl<ImplP> const& lhs,
+            DocumentTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator== (DocumentTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return lhs.as_basic_node () == rhs;
+}
+
+template <typename ImplP>
+inline bool
+operator!= (DocumentTmpl<ImplP> const& lhs,
+            BasicNodeTmpl<ImplP> const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+template <typename ImplP>
+inline bool
+operator== (BasicNodeTmpl<ImplP> const& lhs,
+            DocumentTmpl<ImplP> const& rhs)
 {
   return rhs == lhs;
 }
@@ -247,216 +412,51 @@ operator== (BasicNodeTmpl<Impl> const& lhs,
 template <typename Impl>
 inline bool
 operator!= (BasicNodeTmpl<Impl> const& lhs,
-            NodeTmpl<Impl> const& rhs)
-{
-  return rhs != lhs;
-}
-
-template <typename Impl>
-class TextTmpl
-{
-public:
-  TextTmpl (typename Impl::TextImpl i)
-    : impl {std::move (i)}
-  {}
-
-  ~TextTmpl ();
-
-  TextTmpl (TextTmpl const& text);
-  TextTmpl (TextTmpl&& text);
-
-  TextTmpl& operator= (TextTmpl const& text);
-  TextTmpl& operator= (TextTmpl&& text);
-
-  void swap (TextTmpl<Impl>& node);
-
-  DocumentTmpl<Impl> const& document () const;
-  DocumentTmpl<Impl>& document ();
-
-  Type::StringView text () const;
-  NodeTmpl<Impl> parent () const;
-  TextType type () const;
-
-  bool equal (TextTmpl const& rhs) const;
-
-private:
-  friend class NodeTmpl<Impl>;
-  typename Impl::TextImpl impl;
-};
-
-template <typename Impl>
-inline bool
-operator== (TextTmpl<Impl> const& lhs,
-            TextTmpl<Impl> const& rhs)
-{
-  return lhs.equal (rhs);
-}
-
-template <typename Impl>
-inline bool
-operator!= (TextTmpl<Impl> const& lhs,
-            TextTmpl<Impl> const& rhs)
+            DocumentTmpl<Impl> const& rhs)
 {
   return !(lhs == rhs);
 }
 
-template <typename Impl>
-class AttributeTmpl
+template <typename ImplP>
+class BundleTmpl
 {
 public:
-  AttributeTmpl (typename Impl::AttributeImpl i)
-    : impl {std::move (i)}
-  {}
+  BundleTmpl ();
+  BundleTmpl (Type::StringView filename);
 
-  ~AttributeTmpl ();
+  ~BundleTmpl() noexcept;
 
-  AttributeTmpl (AttributeTmpl const& attribute);
-  AttributeTmpl (AttributeTmpl&& attribute);
+  BundleTmpl (BundleTmpl const& other) = delete;
+  BundleTmpl (BundleTmpl&& other) noexcept;
 
-  AttributeTmpl& operator= (AttributeTmpl const& attribute);
-  AttributeTmpl& operator= (AttributeTmpl&& attribute);
+  void swap (BundleTmpl& other) noexcept;
 
-  void swap (AttributeTmpl<Impl>& node);
+  BundleTmpl& operator= (BundleTmpl const& other) = delete;
+  BundleTmpl& operator= (BundleTmpl&& other) noexcept;
 
-  DocumentTmpl<Impl> const& document () const;
-  DocumentTmpl<Impl>& document ();
-
-  Type::StringView name () const;
-  Type::StringView value () const;
-  NodeTmpl<Impl> parent () const;
-
-  bool equal (AttributeTmpl const& rhs) const;
+  DocumentTmplView<ImplP, Utils::ViewType::Mutable> document ();
+  DocumentTmplView<ImplP, Utils::ViewType::Const> document () const;
 
 private:
-  friend class NodeTmpl<Impl>;
-  typename Impl::AttributeImpl impl;
+  typename ImplP::BundleImpl impl;
 };
 
-template <typename Impl>
-inline bool
-operator== (AttributeTmpl<Impl> const& lhs,
-            AttributeTmpl<Impl> const& rhs)
-{
-  return lhs.equal (rhs);
-}
-
-template <typename Impl>
-inline bool
-operator!= (AttributeTmpl<Impl> const& lhs,
-            AttributeTmpl<Impl> const& rhs)
-{
-  return !(lhs == rhs);
-}
-
-template <typename Impl>
+template <typename ImplP, Utils::ViewType TypeV>
 class WalkerTmpl
 {
 public:
   WalkerTmpl ();
-  void walk (DocumentTmpl<Impl>& doc);
+  void walk (NodeOrDocTmpl<ImplP, TypeV> node_or_doc);
 
 private:
-  virtual bool node (NodeTmpl<Impl>& node, int depth) = 0;
-  virtual bool text (TextTmpl<Impl>& text, int depth) = 0;
-  virtual bool postprocess_node (NodeTmpl<Impl>& node, int depth) = 0;
+  virtual bool doc (DocumentTmplView<ImplP, TypeV>& doc, int depth) = 0;
+  virtual bool node (NodeTmplView<ImplP, TypeV>& node, int depth) = 0;
+  virtual bool text (TextTmplView<ImplP, TypeV>& text, int depth) = 0;
+  virtual bool postprocess_node (NodeTmplView<ImplP, TypeV>& node, int depth) = 0;
+  virtual bool postprocess_doc (DocumentTmplView<ImplP, TypeV>& doc, int depth) = 0;
 
-  friend typename Impl::WalkerImpl;
-  typename Impl::WalkerImpl impl;
+  friend typename ImplP::template WalkerImpl<TypeV>;
 };
-
-template <typename Impl>
-class DocumentViewTmpl
-{
-public:
-  DocumentViewTmpl (DocumentViewTmpl<Impl>&& doc) = default;
-  DocumentViewTmpl (DocumentViewTmpl<Impl> const& doc) = default;
-
-  DocumentViewTmpl& operator= (DocumentViewTmpl<Impl>&& doc) = default;
-  DocumentViewTmpl& operator= (DocumentViewTmpl<Impl> const& doc) = default;
-
-  BasicNodeTmpl<Impl> const& as_basic_node () const;
-  BasicNodeTmpl<Impl>& as_basic_node ();
-
-  Type::Optional<NodeTmpl<Impl>> root_tag () const;
-
-  NodeTmpl<Impl> add_root (Type::StringView name);
-  void save (std::ostream& os);
-};
-
-template <typename Impl>
-class DocumentTmpl
-{
-public:
-  DocumentTmpl ();
-  DocumentTmpl (Type::StringView filename);
-  DocumentTmpl (DocumentTmpl&& doc);
-  DocumentTmpl (DocumentTmpl const& doc) = delete;
-
-  DocumentTmpl& operator= (Document&& doc);
-  DocumentTmpl& operator= (Document const& doc) = delete;
-
-  BasicNodeTmpl<Impl>
-  as_basic_node () const;
-
-  Type::Optional<NodeTmpl<Impl>> root_tag () const;
-
-  NodeTmpl<Impl> add_root (Type::StringView name);
-  void save (std::ostream& os);
-
-private:
-  friend class NodeTmpl<Impl>;
-  friend class WalkerTmpl<Impl>;
-
-  typename Impl::DocumentImpl impl;
-};
-
-template <typename Impl>
-inline bool
-operator== (DocumentTmpl<Impl> const& lhs,
-            DocumentTmpl<Impl> const& rhs)
-{
-  return lhs.as_basic_node () == rhs.as_basic_node ();
-}
-
-template <typename Impl>
-inline bool
-operator!= (DocumentTmpl<Impl> const& lhs,
-            DocumentTmpl<Impl> const& rhs)
-{
-  return lhs.as_basic_node () != rhs.as_basic_node ();
-}
-
-template <typename Impl>
-inline bool
-operator== (DocumentTmpl<Impl> const& lhs,
-            BasicNodeTmpl<Impl> const& rhs)
-{
-  return lhs.as_basic_node () == rhs;
-}
-
-template <typename Impl>
-inline bool
-operator!= (DocumentTmpl<Impl> const& lhs,
-            BasicNodeTmpl<Impl> const& rhs)
-{
-  return lhs.as_basic_node () != rhs;
-}
-
-template <typename Impl>
-inline bool
-operator== (BasicNodeTmpl<Impl> const& lhs,
-            DocumentTmpl<Impl> const& rhs)
-{
-  return rhs == lhs;
-}
-
-template <typename Impl>
-inline bool
-operator!= (BasicNodeTmpl<Impl> const& lhs,
-            DocumentTmpl<Impl> const& rhs)
-{
-  return rhs != lhs;
-}
 
 } // namespace Xml
 
@@ -466,11 +466,11 @@ operator!= (BasicNodeTmpl<Impl> const& lhs,
 
 #if defined(GMMPROC_XML_USE_PUGI)
 
-#include "xml-pugi.hh"
+#include "impls/xml-pugi-epilog.hh"
 
 #elif defined(GMMPROC_XML_USE_LIBXML)
 
-#include "xml-libxml.hh"
+#include "impls/xml-libxml-epilog.hh"
 
 #else
 
