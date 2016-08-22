@@ -1,4 +1,5 @@
 #include <gmmproc/xml/xml2.hh>
+#include <gmmproc/xml/extra.hh>
 
 #include <catch/catch.hpp>
 
@@ -6,36 +7,6 @@
 
 namespace
 {
-
-Gmmproc::Xml::TextView
-add_text (Gmmproc::Xml::NodeView& view,
-          Gmmproc::Xml::Type::StringView text)
-{
-  auto text_view = view->insert_text_at (view->all ().end ());
-
-  text_view->set_text (text);
-
-  return text_view;
-}
-
-Gmmproc::Xml::NodeView
-add_child (Gmmproc::Xml::NodeView& view,
-           Gmmproc::Xml::Type::StringView name)
-{
-  return view->insert_child_at (view->all ().end (), name);
-}
-
-Gmmproc::Xml::AttributeView
-add_attribute (Gmmproc::Xml::NodeView& view,
-               Gmmproc::Xml::Type::StringView name,
-               Gmmproc::Xml::Type::StringView value)
-{
-  auto attribute = view->insert_attribute_at (view->attributes ().end (), name);
-
-  attribute->set_value (value);
-
-  return attribute;
-}
 
 Gmmproc::Xml::Bundle
 get_bundle ()
@@ -47,17 +18,17 @@ get_bundle ()
   //    __a__
   //   |  |  |
   //   b  c  d
-  add_text (a_node, "text1");
-  add_child (a_node, "b");
-  add_text (a_node, "text2");
-  add_child (a_node, "c");
-  add_text (a_node, "text3");
-  add_child (a_node, "d");
-  add_text (a_node, "text4");
+  Gmmproc::Xml::Extra::add_text (a_node, "text1");
+  Gmmproc::Xml::Extra::add_child (a_node, "b");
+  Gmmproc::Xml::Extra::add_text (a_node, "text2");
+  Gmmproc::Xml::Extra::add_child (a_node, "c");
+  Gmmproc::Xml::Extra::add_text (a_node, "text3");
+  Gmmproc::Xml::Extra::add_child (a_node, "d");
+  Gmmproc::Xml::Extra::add_text (a_node, "text4");
 
-  add_attribute (a_node, "attr1", "value1");
-  add_attribute (a_node, "attr2", "value2");
-  add_attribute (a_node, "attr3", "value3");
+  Gmmproc::Xml::Extra::add_attribute (a_node, "attr1", "value1");
+  Gmmproc::Xml::Extra::add_attribute (a_node, "attr2", "value2");
+  Gmmproc::Xml::Extra::add_attribute (a_node, "attr3", "value3");
 
   return bundle;
 }

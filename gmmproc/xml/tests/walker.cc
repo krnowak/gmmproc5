@@ -1,4 +1,5 @@
 #include <gmmproc/xml/xml2.hh>
+#include <gmmproc/xml/extra.hh>
 
 #include <catch/catch.hpp>
 
@@ -76,24 +77,6 @@ private:
   }
 };
 
-Gmmproc::Xml::TextView
-add_text (Gmmproc::Xml::NodeView& view,
-          Gmmproc::Xml::Type::StringView text)
-{
-  auto text_view = view->insert_text_at (view->all ().end ());
-
-  text_view->set_text (text);
-
-  return text_view;
-}
-
-Gmmproc::Xml::NodeView
-add_child (Gmmproc::Xml::NodeView& view,
-           Gmmproc::Xml::Type::StringView name)
-{
-  return view->insert_child_at (view->all ().end (), name);
-}
-
 Gmmproc::Xml::Bundle
 get_test_bundle ()
 {
@@ -106,15 +89,15 @@ get_test_bundle ()
   //     | | | | | |
   //     2 c d 3 f g
   auto a_node = doc->add_root ("a");
-  add_text (a_node, "1");
-  auto b_node = add_child (a_node, "b");
-  add_text (b_node, "2");
-  add_child (b_node, "c");
-  add_child (b_node, "d");
-  auto e_node = add_child (a_node, "e");
-  add_text (e_node, "3");
-  add_child (e_node, "f");
-  add_child (e_node, "g");
+  Gmmproc::Xml::Extra::add_text (a_node, "1");
+  auto b_node = Gmmproc::Xml::Extra::add_child (a_node, "b");
+  Gmmproc::Xml::Extra::add_text (b_node, "2");
+  Gmmproc::Xml::Extra::add_child (b_node, "c");
+  Gmmproc::Xml::Extra::add_child (b_node, "d");
+  auto e_node = Gmmproc::Xml::Extra::add_child (a_node, "e");
+  Gmmproc::Xml::Extra::add_text (e_node, "3");
+  Gmmproc::Xml::Extra::add_child (e_node, "f");
+  Gmmproc::Xml::Extra::add_child (e_node, "g");
 
   return bundle;
 }

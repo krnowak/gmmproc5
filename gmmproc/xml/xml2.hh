@@ -6,7 +6,7 @@
 #include <gmmproc/utils/exceptions.hh>
 
 // TODO: Add a debugging feature in bundle to track all document instances?
-// TODO: maybe add some convenience functions in a separate namespace (XmlExtras)
+// TODO: maybe add some convenience functions in a separate namespace (Xml::Extra)
 // TODO: libxml backend
 // TODO: rapidxml backend
 // TODO: more tests
@@ -14,6 +14,8 @@
 // TODO: split pugi impl to cc file?
 // TODO: add a constexpr variable or something that tells which backend is used
 // TODO: add context to the flying-by exceptions where applicable
+// TODO: move misc headers into some details subdirectory, keep {xml,xmlfwd,extra}.hh only
+// TODO: rename the headers (get rid of the 2 in the name)
 
 // TODO: fix the bogus "argh" exceptions
 // TODO: split tests into multiple source files, not headers
