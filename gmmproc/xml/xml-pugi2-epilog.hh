@@ -633,7 +633,7 @@ BundleImpl::swap (BundleImpl &other) noexcept
 
 // misc
 
-pugi::xml_node
+inline pugi::xml_node
 add_child (pugi::xml_node& node,
            Type::StringView name)
 {
@@ -650,7 +650,7 @@ add_child (pugi::xml_node& node,
   return pnode;
 }
 
-NodeView
+inline NodeView
 insert_child_at_raw (pugi::xml_document* doc_ptr,
                      pugi::xml_node& parent,
                      pugi::xml_node_iterator pos,
@@ -675,7 +675,7 @@ insert_child_at_raw (pugi::xml_document* doc_ptr,
 }
 
 template <typename NodeIteratorP>
-NodeView
+inline NodeView
 insert_child_at (pugi::xml_document* doc_ptr,
                  pugi::xml_node& parent,
                  NodeIteratorP pos,
@@ -684,7 +684,7 @@ insert_child_at (pugi::xml_document* doc_ptr,
   return insert_child_at_raw (doc_ptr, parent, pos.base ().base (), name);
 }
 
-AttributeView
+inline AttributeView
 insert_attribute_at_raw (pugi::xml_document* doc_ptr,
                          pugi::xml_node& parent,
                          pugi::xml_attribute_iterator pos,
@@ -708,7 +708,7 @@ insert_attribute_at_raw (pugi::xml_document* doc_ptr,
   return Attribute::create<Utils::ViewType::Mutable> (AttributeImpl {doc_ptr, parent, attribute});
 }
 
-pugi::xml_node_type
+inline pugi::xml_node_type
 text_type_to_pugi_node_type (TextType text_type)
 {
   switch (text_type)
@@ -724,7 +724,7 @@ text_type_to_pugi_node_type (TextType text_type)
 }
 
 template <typename AttributeIteratorP>
-AttributeView
+inline AttributeView
 insert_attribute_at (pugi::xml_document* doc_ptr,
                      pugi::xml_node& parent,
                      AttributeIteratorP pos,
@@ -733,7 +733,7 @@ insert_attribute_at (pugi::xml_document* doc_ptr,
   return insert_attribute_at_raw (doc_ptr, parent, pos.base (), name);
 }
 
-TextView
+inline TextView
 insert_text_at_raw (pugi::xml_document* doc_ptr,
                     pugi::xml_node& parent,
                     pugi::xml_node_iterator pos,
@@ -758,7 +758,7 @@ insert_text_at_raw (pugi::xml_document* doc_ptr,
 }
 
 template <typename TextIteratorP>
-TextView
+inline TextView
 insert_text_at (pugi::xml_document* doc_ptr,
                 pugi::xml_node& parent,
                 TextIteratorP pos,
@@ -1029,7 +1029,7 @@ to_range (pugi::xml_document* doc_ptr,
   return boost::make_iterator_range (b, e);
 }
 
-TextType
+inline TextType
 pugi_node_type_to_text_type (pugi::xml_node_type node_type)
 {
   switch (node_type)
@@ -2040,7 +2040,7 @@ Bundle::BundleTmpl (Bundle&& other) noexcept
 {}
 
 template <>
-void
+inline void
 Bundle::swap (Bundle& other) noexcept
 {
   impl.swap (other.impl);

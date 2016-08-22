@@ -7,6 +7,36 @@
 namespace
 {
 
+Gmmproc::Xml::TextView
+add_text (Gmmproc::Xml::NodeView& view,
+          Gmmproc::Xml::Type::StringView text)
+{
+  auto text_view = view->insert_text_at (view->all ().end ());
+
+  text_view->set_text (text);
+
+  return text_view;
+}
+
+Gmmproc::Xml::NodeView
+add_child (Gmmproc::Xml::NodeView& view,
+           Gmmproc::Xml::Type::StringView name)
+{
+  return view->insert_child_at (view->all ().end (), name);
+}
+
+Gmmproc::Xml::AttributeView
+add_attribute (Gmmproc::Xml::NodeView& view,
+               Gmmproc::Xml::Type::StringView name,
+               Gmmproc::Xml::Type::StringView value)
+{
+  auto attribute = view->insert_attribute_at (view->attributes ().end (), name);
+
+  attribute->set_value (value);
+
+  return attribute;
+}
+
 Gmmproc::Xml::Bundle
 get_bundle ()
 {
@@ -17,17 +47,18 @@ get_bundle ()
   //    __a__
   //   |  |  |
   //   b  c  d
-  a_node->add_text ()->set_text ("text1");
-  a_node->add_child ("b");
-  a_node->add_text ()->set_text ("text2");
-  a_node->add_child ("c");
-  a_node->add_text ()->set_text ("text3");
-  a_node->add_child ("d");
-  a_node->add_text ()->set_text ("text4");
+  add_text (a_node, "text1");
+  add_child (a_node, "b");
+  add_text (a_node, "text2");
+  add_child (a_node, "c");
+  add_text (a_node, "text3");
+  add_child (a_node, "d");
+  add_text (a_node, "text4");
 
-  a_node->add_attribute ("attr1")->set_value ("value1");
-  a_node->add_attribute ("attr2")->set_value ("value2");
-  a_node->add_attribute ("attr3")->set_value ("value3");
+  add_attribute (a_node, "attr1", "value1");
+  add_attribute (a_node, "attr2", "value2");
+  add_attribute (a_node, "attr3", "value3");
+
   return bundle;
 }
 

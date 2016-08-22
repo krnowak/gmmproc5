@@ -11,6 +11,7 @@
 // TODO: more tests
 // TODO: fix the bogus "argh" exceptions
 // TODO: throw exceptions on errors
+// TODO: split pugi impl to cc file?
 
 // TODO: split tests into multiple source files, not headers
 // TODO: likely the virtual methods of the walker should not be const
