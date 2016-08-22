@@ -643,8 +643,10 @@ add_child (pugi::xml_node& node,
   {
     std::ostringstream oss;
 
-    oss << "could not add a child named \"" << name << "\"";
-    throw std::runtime_error {oss.str ()};
+    oss << "could not add a child named \""
+        << name
+        << "\"";
+    throw XmlRuntimeError {oss.str ()};
   }
 
   return pnode;
@@ -720,7 +722,12 @@ text_type_to_pugi_node_type (TextType text_type)
     return pugi::node_cdata;
   }
 
-  throw std::runtime_error {"argh"};
+  std::ostringstream oss;
+
+  oss << "expected Gmmproc::Xml::TextType either Gmmproc::Xml::TextType::Parsed or Gmmproc::Xml::TextType::Raw, got some invalid value ("
+      << static_cast<std::underlying_type_t<TextType>> (text_type)
+      << ")";
+  throw Utils::Bug {oss.str ()};
 }
 
 template <typename AttributeIteratorP>
@@ -800,6 +807,33 @@ public:
   }
 };
 
+inline std::string
+pugi_node_type_name (pugi::xml_node_type type)
+{
+  switch (type)
+  {
+#define XML2_PUGI_CASE(t) case t: return std::string {#t}
+    XML2_PUGI_CASE (pugi::node_document);
+    XML2_PUGI_CASE (pugi::node_element);
+    XML2_PUGI_CASE (pugi::node_pcdata);
+    XML2_PUGI_CASE (pugi::node_cdata);
+    XML2_PUGI_CASE (pugi::node_null);
+    XML2_PUGI_CASE (pugi::node_comment);
+    XML2_PUGI_CASE (pugi::node_pi);
+    XML2_PUGI_CASE (pugi::node_declaration);
+    XML2_PUGI_CASE (pugi::node_doctype);
+#undef XML2_PUGI_CASE
+  }
+
+  std::ostringstream oss;
+
+  oss << "unknown ("
+      << static_cast<std::underlying_type_t<pugi::xml_node_type>> (type)
+      << ")";
+
+  return oss.str ();
+}
+
 template <typename ImplDetailsP>
 inline typename ImplDetailsP::ReturnType
 get_node_parent_tmpl (NodeImpl const& impl)
@@ -807,7 +841,7 @@ get_node_parent_tmpl (NodeImpl const& impl)
   auto p = impl.node.parent ();
   if (!p)
   {
-    throw std::runtime_error ("arf");
+    throw Utils::Bug {"node has unexpectedly no parent"};
   }
 
   switch (p.type ())
@@ -825,10 +859,20 @@ get_node_parent_tmpl (NodeImpl const& impl)
   case pugi::node_pi:
   case pugi::node_declaration:
   case pugi::node_doctype:
-    break;
+    {
+      std::ostringstream oss;
+
+      oss << "expected a node of type either pugi::node_document or pugi::node_element, got "
+          << pugi_node_type_name (p.type ());
+      throw Utils::Bug {oss.str ()};
+    }
   }
 
-  throw std::runtime_error ("blah");
+  std::ostringstream oss;
+
+  oss << "expected either pugi::node_document or pugi::node_element, got unknown or unhandled node type "
+      << pugi_node_type_name (p.type ());
+  throw Utils::Bug {oss.str ()};
 }
 
 class PugiGetChildrenRange
@@ -1000,7 +1044,11 @@ NodeOrTextTransform<TypeV>::operator() (pugi::xml_node const& n) const
     return NodeOrTextChoice<TypeV> {TextTransform<TypeV> {doc_ptr} (n)};
   }
 
-  throw std::runtime_error ("Argh");
+  std::ostringstream oss;
+
+  oss << "expected a node of type either pugi::node_element or pugi::node_text, got "
+      << pugi_node_type_name (n.type ());
+  throw Utils::Bug {oss.str ()};
 }
 
 inline bool
@@ -1050,7 +1098,11 @@ pugi_node_type_to_text_type (pugi::xml_node_type node_type)
     break;
   }
 
-  throw std::runtime_error {"argh"};
+  std::ostringstream oss;
+
+  oss << "expected a node of type either pugi::node_pcdata or pugi::node_cdata, got "
+      << pugi_node_type_name (node_type);
+  throw Utils::Bug {oss.str ()};
 }
 
 template <Utils::ViewType TypeV>
@@ -1946,8 +1998,10 @@ Document::add_root (Type::StringView name)
     {
       std::ostringstream oss;
 
-      oss << "document already has a root \"" << (*tag)->name () << "\"";
-      throw std::runtime_error (oss.str ());
+      oss << "document already has a root named \""
+          << (*tag)->name ()
+          << "\"";
+      throw XmlRuntimeError (oss.str ());
     }
   }
 
@@ -2026,10 +2080,10 @@ Bundle::BundleTmpl (Type::StringView filename)
 
   if (!result)
   {
-    std::ostringstream oss;
+    ParseError ex {result.description ()};
 
-    oss << "Failed to parse '" << filename << "': " << result.description ();
-    throw ParseError {oss.str ()};
+    ex.set_extra_data (result);
+    throw ex;
   }
 }
 

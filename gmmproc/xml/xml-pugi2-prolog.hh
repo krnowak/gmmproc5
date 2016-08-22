@@ -1,5 +1,6 @@
 #ifndef GMMPROC_XML_XML_PUGI_INTRO_HH
 #define GMMPROC_XML_XML_PUGI_INTRO_HH
+
 #ifndef GMMPROC_XML_INCLUDING_IMPL
 
 #error "This file should not be included directly"
