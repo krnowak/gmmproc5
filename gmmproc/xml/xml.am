@@ -24,9 +24,19 @@ check_PROGRAMS += $(gmmproc_xml_pugi_tests)
 TESTS += $(gmmproc_xml_pugi_tests)
 
 gmmproc_xml_tests_pugi_test_SOURCES = $(gmmproc_xml_tests_sources)
-gmmproc_xml_tests_pugi_test_CPPFLAGS = $(gmmproc_xml_pugi_cppflags)
-gmmproc_xml_tests_pugi_test_LDADD = $(gmmproc_xml_pugi_ldadd)
-gmmproc_xml_tests_pugi_test_CXXFLAGS = $(common_cxxflags)
+gmmproc_xml_tests_pugi_test_CPPFLAGS = \
+  $(gmmproc_xml_pugi_cppflags) \
+  $(CODE_COVERAGE_CPPFLAGS) \
+  $(NULL)
+gmmproc_xml_tests_pugi_test_LDADD = \
+  $(gmmproc_xml_pugi_ldadd) \
+  $(CODE_COVERAGE_LIBS) \
+  $(NULL)
+
+gmmproc_xml_tests_pugi_test_CXXFLAGS = \
+  $(common_cxxflags) \
+  $(CODE_COVERAGE_CXXFLAGS) \
+  $(NULL)
 
 endif
 

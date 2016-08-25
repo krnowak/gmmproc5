@@ -11,7 +11,7 @@ AM_SILENT_RULES([yes])
 
 AC_ARG_WITH(xml-library,
             [AS_HELP_STRING([--with-xml-library],
-                            [which XML library to use (one of: pugi, libxml), default: auto - detects available XML libraries in following order of preference - pugi, libxml])],
+                            [which XML library to use (one of: pugi, libxml), default: auto - detects available XML libraries in the following order of preference - pugi, libxml])],
             [xml_library="${withval}"],
             [xml_library=auto])
 

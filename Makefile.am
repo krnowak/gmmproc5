@@ -30,3 +30,6 @@ update-m4:
 	for f in ax_code_coverage.m4 ax_cxx_compile_stdcxx.m4 ax_cxx_compile_stdcxx_14.m4; do \
 	  wget -O "m4/$${f}" "http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/$${f}"; \
 	done;
+
+CODE_COVERAGE_IGNORE_PATTERN = "/usr/*"
+@CODE_COVERAGE_RULES@

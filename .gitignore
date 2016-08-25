@@ -1,12 +1,16 @@
+*.[ao]
+*.gcda
+*.gcno
+*.l[ao]
+*.log
+*.trs
+*~
 .deps
 .dirstamp
 .libs
-*.l[ao]
-*.[ao]
-*~
-*.log
-*.trs
 
+/Makefile
+/Makefile.in
 /aclocal.m4
 /autom4te.cache
 /config.h
@@ -14,9 +18,9 @@
 /config.log
 /config.status
 /configure
+/gmmproc5-*-coverage
+/gmmproc5-*-coverage.info
 /libtool
-/Makefile
-/Makefile.in
 /stamp-h1
 
 /build/ar-lib
@@ -48,5 +52,5 @@
 
 /gmmproc/test/test
 
-/gmmproc/xml/tests/pugi-test
 /gmmproc/xml/tests/libxml-test
+/gmmproc/xml/tests/pugi-test
