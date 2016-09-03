@@ -18,23 +18,6 @@
 // TODO: add context to the flying-by exceptions where applicable
 // TODO: different directories for impls -> impls/<IMPL>/{prolog,epilog}.hh
 
-// TODO: maybe add some convenience functions in a separate namespace (Xml::Extra)
-// TODO: coverage
-// TODO: move misc headers into some details subdirectory, keep {xml,xmlfwd,extra}.hh only
-// TODO: rename the headers (get rid of the 2 in the name)
-// TODO: fix the bogus "argh" exceptions
-// TODO: split tests into multiple source files, not headers
-// TODO: likely the virtual methods of the walker should not be const
-// TODO: foorange -> foorange<utils::viewtype::mutable>
-// TODO: fooconstrange -> foorange<utils::viewtype::const>
-// TODO: rename create to create_mutable, add templated create (killed nontemplate methods)
-// TODO: typedefs for wrappers
-// TODO: move wrapper type to utils, have an template alias based on wrapper type enum
-// TODO: rename Wrapper to View?
-// TODO: replace add_foo(name_or_else) with lower-level add_foo_at (iterator, name_or_else)
-// TODO: get rid of ::child accessor
-// TODO: get rid of ::attribute accessor
-
 namespace Gmmproc
 {
 
