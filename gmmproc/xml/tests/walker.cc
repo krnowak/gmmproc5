@@ -34,6 +34,7 @@ class TestWalker : public Gmmproc::Xml::ConstWalker
 {
 public:
   std::vector<Info> infos;
+  bool stop_at_postprocess_node = false;
 
 private:
   bool doc (Gmmproc::Xml::DocumentConstView&,
@@ -65,7 +66,7 @@ private:
   {
     using namespace std::string_literals;
     infos.emplace_back ("-n: "s + node->name ().to_string (), depth);
-    return true;
+    return !stop_at_postprocess_node;
   }
 
   bool postprocess_doc (Gmmproc::Xml::DocumentConstView&,
@@ -108,9 +109,51 @@ TEST_CASE ("walker", "[walker]") {
   auto bundle = get_test_bundle ();
   auto doc = bundle.document ();
   auto walker = TestWalker {};
-  auto expected = std::vector<Info> {{"d", 0}, {"n: a", 1}, {"t: 1", 2}, {"n: b", 2}, {"t: 2", 3}, {"n: c", 3}, {"-n: c", 3}, {"n: d", 3}, {"-n: d", 3}, {"-n: b", 2}, {"n: e", 2}, {"t: 3", 3}, {"n: f", 3}, {"-n: f", 3}, {"n: g", 3}, {"-n: g", 3}, {"-n: e", 2}, {"-n: a", 1}, {"-d", 0}};
 
-  walker.walk (doc);
+  SECTION ("walking from the doc")
+  {
+    auto expected = std::vector<Info> {{"d", 0}, {"n: a", 1}, {"t: 1", 2}, {"n: b", 2}, {"t: 2", 3}, {"n: c", 3}, {"-n: c", 3}, {"n: d", 3}, {"-n: d", 3}, {"-n: b", 2}, {"n: e", 2}, {"t: 3", 3}, {"n: f", 3}, {"-n: f", 3}, {"n: g", 3}, {"-n: g", 3}, {"-n: e", 2}, {"-n: a", 1}, {"-d", 0}};
 
-  CHECK (expected == walker.infos);
+    walker.walk (doc);
+
+    CHECK (expected == walker.infos);
+  }
+
+  SECTION ("walking from the node")
+  {
+    auto expected = std::vector<Info> {{"n: b", 0}, {"t: 2", 1}, {"n: c", 1}, {"-n: c", 1}, {"n: d", 1}, {"-n: d", 1}, {"-n: b", 0}};
+
+    CHECK (doc->root_tag ());
+
+    auto root_tag = *doc->root_tag ();
+    walker.walk (*root_tag->children ().begin ());
+
+    CHECK (expected == walker.infos);
+  }
+
+  SECTION ("stop at postprocess node")
+  {
+    auto expected = std::vector<Info> {{"n: b", 0}, {"t: 2", 1}, {"n: c", 1}, {"-n: c", 1}};
+
+    CHECK (doc->root_tag ());
+
+    auto root_tag = *doc->root_tag ();
+    walker.stop_at_postprocess_node = true;
+    walker.walk (*root_tag->children ().begin ());
+
+    CHECK (expected == walker.infos);
+  }
+
+  SECTION ("stop at postprocess node at the end")
+  {
+    auto expected = std::vector<Info> {{"n: c", 0}, {"-n: c", 0}};
+
+    CHECK (doc->root_tag ());
+
+    auto root_tag = *doc->root_tag ();
+    walker.stop_at_postprocess_node = true;
+    walker.walk (*((*root_tag->children ().begin ())->children ().begin ()));
+
+    CHECK (expected == walker.infos);
+  }
 }

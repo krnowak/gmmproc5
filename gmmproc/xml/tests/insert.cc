@@ -1,5 +1,4 @@
 #include <gmmproc/xml/xml.hh>
-#include <gmmproc/xml/extra.hh>
 
 #include <catch/catch.hpp>
 
