@@ -299,8 +299,25 @@ public:
   operator() (NodeOrDocP const& node_or_doc) const;
 };
 
+// TODO: This is a hack, our transform iterators are not really
+// bidirectional iterators, they have bidirectional traversal, but the
+// type of the return value from iterator dereference is not a
+// reference to a node view, but rather a new node view instance. We
+// could work it around with a vector or a list of node views shared
+// among the iterators, but probably it is not really necessary and
+// the performance would be likely hurt.
+template <typename BoostIteratorP>
+class StdBiDirIterator : public BoostIteratorP
+{
+public:
+  BOOST_CONCEPT_ASSERT ((boost_concepts::BidirectionalTraversalConcept<BoostIteratorP>));
+  using BoostIteratorP::BoostIteratorP;
+
+  using iterator_category = std::bidirectional_iterator_tag;
+};
+
 template <typename TransformP, typename IteratorP>
-using TransformIterator = boost::transform_iterator<TransformP, IteratorP>;
+using TransformIterator = StdBiDirIterator<boost::transform_iterator<TransformP, IteratorP>>;
 
 template <typename TransformP, typename PredicateP>
 using NodeTransformFilterIterator = TransformIterator<TransformP,

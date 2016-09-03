@@ -1,8 +1,9 @@
 #include $(top_srcdir)/gmmproc/xml/structured/structured.am
 
 gmmproc_xml_tests_sources = \
-  gmmproc/xml/tests/testmain.cc \
+  gmmproc/xml/tests/insert.cc \
   gmmproc/xml/tests/node.cc \
+  gmmproc/xml/tests/testmain.cc \
   gmmproc/xml/tests/walker.cc \
   $(NULL)
 
