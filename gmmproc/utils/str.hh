@@ -4,6 +4,8 @@
 #include <array>
 #include <type_traits>
 
+#include <experimental/string_view>
+
 namespace Gmmproc
 {
 
@@ -17,6 +19,12 @@ public:
   using Type = std::array<char, sizeof... (Chars) + 1>;
 
   static constexpr Type raw {Chars..., '\0'};
+
+  static constexpr std::experimental::string_view
+  as_view ()
+  {
+    return {raw.data (), sizeof... (Chars)};
+  }
 };
 
 template <char... Chars>

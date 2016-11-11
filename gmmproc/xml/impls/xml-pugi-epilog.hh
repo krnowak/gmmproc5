@@ -2090,10 +2090,10 @@ Bundle::~BundleTmpl () noexcept
 
 template <>
 inline
-Bundle::BundleTmpl (Type::StringView filename)
+Bundle::BundleTmpl (std::istream& stream)
   : Bundle {}
 {
-  auto result = impl.doc->load_file (filename.to_string ().c_str ());
+  auto result = impl.doc->load (stream);
 
   if (!result)
   {

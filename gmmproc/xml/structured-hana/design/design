@@ -1,0 +1,34 @@
+access key
+  trivial constexpr empty class
+index
+  integral constant
+part
+storage
+  template <typename N> decltype(auto) operator[] (index&&); // returns stuff at index
+storage tag
+  adl function - get_storage_type(storage_tag, hana::type<part>...) -> storage
+resolved storage tag
+  trivial class
+  type storage_tag
+  type parts - hana::tuple_t<part...>
+  type storage_type - hana::type<storage>
+getter base
+getter
+getter policy
+getter tag (?)
+  adl function get_getter(tag, resolved_storage_tag) -> hana::type<getter<resolved_storage_tag>>
+tuple and map (TAM)
+  holds a tuple of pairs and a map created with hana::to_map(tuple)
+getters
+  TAM<tuple<pair<hana::type<getter>, getter policy>...>>
+  TODO: TAM<tuple<pair<getter tag, getter policy>...>>
+access info
+  TAM<tuple<pair<access key, getters>...>>
+access key info
+  getters
+  index
+resolved access info
+  TAM<tuple<pair<access key, access key info>...>>
+node info
+  resolved storage tag
+  resolved access info

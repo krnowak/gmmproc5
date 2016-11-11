@@ -1,0 +1,11 @@
+
+Node:
+
+Node<Member...>
+
+Member:
+
+get_contained_types -> vector of types
+get_getters -> vector of getters
+get_access_keys -> vector of keys
+get_generators -> vector of generators

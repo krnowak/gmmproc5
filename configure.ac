@@ -20,7 +20,10 @@ AC_PROG_CXXCPP
 AM_PROG_AR
 PKG_PROG_PKG_CONFIG
 AC_LANG_PUSH([C++])
-AX_CXX_COMPILE_STDCXX_14([noext], [mandatory])
+AS_VAR_IF([CXX],[clang++],
+          [CXX="${CXX} -stdlib=libc++"])
+AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
+
 
 m4_foreach([XML_LIB], [[pugi], [libxml]],
            [xml_lib_found=no

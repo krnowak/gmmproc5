@@ -1,0 +1,19 @@
+auto
+get_complete_info (storage_tag, parts_tuple)
+{
+  contained_hana_types = make_tuple ();
+  for (part : parts)
+  {
+    auto contained_hana_type = get_contained_type (part);
+    contained_hana_types.append (access_type);
+  }
+
+  auto storage_hana_type = unpack
+    (contained_hana_types,
+    [storage_tag](auto... hana_part)
+    {
+      return get_storage_type (storage_tag, hana_part...);
+    });
+
+  return make_resolved_storage_tag (storage_tag, storage_hana_type, parts_tuple);
+}

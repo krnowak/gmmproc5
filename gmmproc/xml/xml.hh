@@ -5,6 +5,7 @@
 
 #include <gmmproc/utils/exceptions.hh>
 
+#include <iosfwd>
 #include <iterator>
 #include <type_traits>
 
@@ -410,7 +411,7 @@ class BundleTmpl
 {
 public:
   BundleTmpl ();
-  BundleTmpl (Type::StringView filename);
+  BundleTmpl (std::istream& stream);
 
   ~BundleTmpl() noexcept;
 

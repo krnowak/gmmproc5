@@ -1,0 +1,14 @@
+// A part that skips the child, so the storage will hold child's
+// children instead. This would likely work only on single or optional children.
+template <typename ChildP>
+class Skip
+{
+public:
+  class GetContainedType
+  {
+  public:
+    using Type = Mpl::ApplyT<typename ChildP::GetContainedType>;
+  };
+
+  class GetAccessInfo{};
+};

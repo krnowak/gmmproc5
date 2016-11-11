@@ -2,6 +2,6 @@
 #include $(top_srcdir)/gmmproc/dumper/dumper.am
 #include $(top_srcdir)/gmmproc/gir/gir.am
 #include $(top_srcdir)/gmmproc/main/main.am
-#include $(top_srcdir)/gmmproc/test/test.am
+include $(top_srcdir)/gmmproc/test/test.am
 include $(top_srcdir)/gmmproc/utils/utils.am
 include $(top_srcdir)/gmmproc/xml/xml.am
