@@ -612,6 +612,8 @@ namespace cxx17
   namespace test_constexpr_lambdas
   {
 
+    // TODO: test it with clang++ from git
+
     constexpr int foo = [](){return 42;}();
 
   }
@@ -854,6 +856,8 @@ namespace cxx17
   namespace test_template_argument_deduction_for_class_templates
   {
 
+    // TODO: test it with clang++ from git
+
     template <typename T1, typename T2>
     struct pair
     {
@@ -874,7 +878,6 @@ namespace cxx17
   }
 #endif // !defined(REALLY_CLANG)
 
-#if !defined(REALLY_GCC)
   namespace test_non_type_auto_template_parameters
   {
 
@@ -886,11 +889,12 @@ namespace cxx17
     B<'a'> b2;
 
   }
-#endif // !defined(REALLY_GCC)
 
-#if !defined(REALLY_GCC) && !defined(REALLY_CLANG)
+#if !defined(REALLY_CLANG)
   namespace test_structured_bindings
   {
+
+    // TODO: test it with clang++ from git
 
     int arr[2] = { 1, 2 };
     std::pair<int, int> pr = { 1, 2 };
@@ -923,18 +927,32 @@ namespace cxx17
     const auto [ x3, y3 ] = f3();
 
   }
-#endif // !defined(REALLY_GCC) && !defined(REALLY_CLANG)
+#endif // !defined(REALLY_CLANG)
 
-#if !defined(REALLY_GCC) && !defined(REALLY_CLANG)
+#if !defined(REALLY_CLANG)
   namespace test_exception_spec_type_system
   {
 
-    // TODO: write the tests
     // TODO: test it with clang++ from git
-    // TODO: test it with g++ from git
+
+    struct Good {};
+    struct Bad {};
+
+    void g1() noexcept;
+    void g2();
+
+    template<typename T>
+    Bad
+    f(T*, T*);
+
+    template<typename T1, typename T2>
+    Good
+    f(T1*, T2*);
+
+    static_assert (std::is_same_v<Good, decltype(f(g1, g2))>);
 
   }
-#endif // !defined(REALLY_GCC) && !defined(REALLY_CLANG)
+#endif // !defined(REALLY_CLANG)
 
   namespace test_inline_variables
   {
