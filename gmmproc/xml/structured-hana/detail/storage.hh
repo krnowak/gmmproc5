@@ -3,12 +3,19 @@
 
 #include <gmmproc/xml/structured/detail/utils.hh>
 
+#include <gmmproc/xml/structured/api.hh>
+
 #include <boost/hana/append.hpp>
+#include <boost/hana/concat.hpp>
 #include <boost/hana/first.hpp>
 #include <boost/hana/fold_left.hpp>
+#include <boost/hana/insert_range.hpp>
+#include <boost/hana/keys.hpp>
 #include <boost/hana/length.hpp>
 #include <boost/hana/pair.hpp>
 #include <boost/hana/second.hpp>
+#include <boost/hana/set.hpp>
+#include <boost/hana/traits.hpp>
 #include <boost/hana/tuple.hpp>
 #include <boost/hana/unpack.hpp>
 
@@ -17,28 +24,7 @@
 namespace Gmmproc::Xml::Structured::Detail
 {
 
-template <typename ResolvedStorageTagP, typename ResolvedAccessInfoP>
-class NodeInfo
-{
-public:
-  using ResolvedStorageTag = ResolvedStorageTagP;
-  using ResolvedAccessInfo = ResolvedAccessInfoP;
-
-  ResolvedStorageTag resolved_storage_tag;
-  ResolvedAccessInfo resolved_access_info;
-};
-
-template <typename StorageTagP, typename PartsP>
-constexpr auto
-resolve_node (StorageTagP tag, PartsP parts)
-{
-  auto resolved_storage_tag = NoADL::resolve_storage_tag (tag, parts);
-  auto resolved_access_info = NoADL::resolve_access_info (resolved_storage_tag);
-
-  return NodeInfo {resolved_storage_tag, resolved_access_info};
-}
-
-template <typename StorageTagP, typename StorageHanaTypeP, typename PartsP>
+template <typename StorageTagP, typename PartsP, typename StorageHanaTypeP>
 class ResolvedStorageTag
 {
 public:
@@ -46,34 +32,46 @@ public:
   using Parts = PartsP;
   using StorageHanaType = StorageHanaTypeP;
 
-  static_assert (std::is_trivial_v<StorageTag>);
-  //static_assert (std::conjunction_v<std::is_trivial_v<Parts>...>);
-  static_assert (std::is_trivial_v<StorageTag>);
-  static_assert (std::is_trivial_v<ResolvedStorageTag<StorageTag, Parts, StorageHanaType>>);
-
   StorageTag storage_tag;
   Parts parts;
-  StorageHanaType storage_type;
+  StorageHanaType storage_hana_type;
 };
+
+// explicitly specified deduction guide
+template <typename StorageTagP, typename PartsP, typename StorageHanaTypeP>
+ResolvedStorageTag(StorageTagP, PartsP, StorageHanaTypeP) -> ResolvedStorageTag<StorageTagP, PartsP, StorageHanaTypeP>;
+
+template <typename ChildP>
+constexpr auto
+get_contained_type_from_child (ChildP child)
+{
+  using API::get_contained_type;
+
+  return get_contained_type (child.tag, child);
+}
 
 template <typename StorageTagP, typename PartsP>
 constexpr auto
-resolve_storage_tag (StorageTagP tag, PartsP parts)
+resolve_storage_tag (StorageTagP storage_tag, PartsP part_hana_types)
 {
   auto contained_hana_types = hana::unpack
-    (parts,
-     [](auto... part)
+    (part_hana_types,
+     [](auto... part_hana_type)
      {
-       return hana::make_tuple (get_contained_type (part)...);
+       return hana::make_tuple
+         (NoADL::get_contained_type_from_child
+           (hana::traits::declval (part_hana_type))...);
      });
-  auto storage_type = hana::unpack
+  auto storage_hana_type = hana::unpack
     (contained_hana_types,
      [storage_tag](auto... contained_hana_type)
      {
+       using API::get_storage_type;
+
        return get_storage_type (storage_tag, contained_hana_type...);
      });
 
-  return ResolvedStorageTag {tag, storage_type, parts};
+  return ResolvedStorageTag {storage_tag, part_hana_types, storage_hana_type};
 }
 
 template <typename GettersP, typename IndexP>
@@ -87,37 +85,93 @@ public:
   Index index;
 };
 
-template <typename ResolvedStorageTagP>
-constexpr auto
-resolve_access_info (ResolvedStorageTagP resolved_storage_tag)
+// explicitly specified deduction guide
+template <typename GettersP, typename IndexP>
+AccessKeyInfo(GettersP, IndexP) -> AccessKeyInfo<GettersP, IndexP>;
+
+template <typename StorageHanaTypeP, typename ResolvedAccessInfoP>
+class NodeInfo
 {
-  return NoADL::make_tuple_and_map
-    (hana::fold_left
-     (resolved_storage_tag.parts,
-      hana::make_tuple (),
-      [resolved_storage_tag](auto&& parts_info_tuple, auto&& part)
-      {
-        auto access_info = get_access_info (part, resolved_storage_tag);
+public:
+  using StorageHanaType = StorageHanaTypeP;
+  using ResolvedAccessInfo = ResolvedAccessInfoP;
 
-        return hana::fold_left
-          (access_info.tuple,
-           parts_info_tuple,
-           [](auto&& parts_info_tuple, auto&& access_info_pair)
-           {
-             auto access_key = hana::first (access_info_pair);
-             auto getters = hana::second (access_info_pair);
-             auto index = hana::length (parts_info_tuple);
+  StorageHanaType storage_hana_type;
+  ResolvedAccessInfo resolved_access_info;
+};
 
-             return hana::append (parts_info_tuple,
-                                  hana::make_pair (access_key,
-                                                   AccessKeyInfo {getters, index}));
-           });
-      }));
+// explicitly specified deduction guide
+template <typename StorageHanaTypeP, typename ResolvedAccessInfoP>
+NodeInfo(StorageHanaTypeP, ResolvedAccessInfoP) -> NodeInfo<StorageHanaTypeP, ResolvedAccessInfoP>;
+
+template <typename UniqueGetterTagsP, typename NodeInfoP>
+class GettersInfo
+{
+public:
+  using UniqueGetterTags = UniqueGetterTagsP;
+  using NodeInfo = NodeInfoP;
+
+  UniqueGetterTags unique_getter_tags;
+  NodeInfo node_info;
+};
+
+// explicitly specified deduction guide
+template <typename UniqueGetterTagsP, typename NodeInfoP>
+GettersInfo(UniqueGetterTagsP, NodeInfoP) -> GettersInfo<UniqueGetterTagsP, NodeInfoP>;
+
+template <typename PartP>
+constexpr auto
+get_access_info_from_part (PartP part)
+{
+  using API::get_access_info;
+
+  return get_access_info (part.tag, part);
 }
 
-template <typename StorageTagP, typename PartP...>
-using ResolveStorageTagT = decltype(NoADL::resolve_storage_tag (StorageTagP {},
-                                                                hana::tuple_t<PartP...>));
+template <typename ResolvedStorageTagP>
+constexpr auto
+resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
+{
+  auto tags_tuple_and_resolved_access_info_tuple = hana::fold_left
+    (resolved_storage_tag.parts,
+     hana::make_pair (hana::make_tuple (), hana::make_tuple ()),
+     [](auto tags_tuple_and_resolved_access_info_tuple, auto part)
+     {
+       auto access_info {get_access_info_from_part (hana::traits::declval (part))};
+
+       return hana::fold_left
+         (access_info.tuple,
+          tags_tuple_and_resolved_access_info_tuple,
+          [](auto tags_tuple_and_resolved_access_info_tuple, auto access_info_pair)
+          {
+            auto tags_tuple = hana::first (tags_tuple_and_resolved_access_info_tuple);
+            auto getters = hana::second (access_info_pair);
+            auto keys_tuple {hana::to_tuple (hana::keys (getters.map))};
+            auto new_tags_tuple = hana::concat (tags_tuple, keys_tuple);
+
+            auto resolved_access_info_tuple = hana::second (tags_tuple_and_resolved_access_info_tuple);
+            auto access_key = hana::first (access_info_pair);
+            auto index = hana::length (resolved_access_info_tuple);
+            auto new_resolved_access_info_tuple = hana::append (resolved_access_info_tuple,
+                                                                hana::make_pair (access_key,
+                                                                                 AccessKeyInfo {getters, index}));
+
+            return hana::make_pair (new_tags_tuple,
+                                    new_resolved_access_info_tuple);
+          });
+     });
+
+  auto getter_tags_tuple = hana::first (tags_tuple_and_resolved_access_info_tuple);
+  auto unique_getter_tags = hana::to_set (getter_tags_tuple);
+  auto resolved_access_info_tuple = hana::second (tags_tuple_and_resolved_access_info_tuple);
+  auto resolved_access_info = NoADL::make_tuple_and_map (resolved_access_info_tuple);
+  auto node_info {NodeInfo {resolved_storage_tag.storage_hana_type, resolved_access_info}};
+
+  return GettersInfo {unique_getter_tags, node_info};
+}
+
+template <typename ResolvedStorageTagP>
+using NodeStorageTypeT = typename ResolvedStorageTagP::StorageType::type;
 
 } // namespace Gmmproc::Xml::Structured::Detail
 

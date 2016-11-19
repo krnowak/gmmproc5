@@ -6,22 +6,35 @@ part
 storage
   template <typename N> decltype(auto) operator[] (index&&); // returns stuff at index
 storage tag
-  adl function - get_storage_type(storage_tag, hana::type<part>...) -> storage
+  adl function - get_storage_type(storage_tag, hana::type<part>...) -> hana::type<storage>
 resolved storage tag
   trivial class
   type storage_tag
   type parts - hana::tuple_t<part...>
   type storage_type - hana::type<storage>
 getter base
-getter
-getter policy
-getter tag (?)
-  adl function get_getter(tag, resolved_storage_tag) -> hana::type<getter<resolved_storage_tag>>
+  parameterized by node info
+  needed data from node info:
+  - storage type
+  - for an access key:
+    - policy for a getter tag
+    - index of an access key in the storage
+getter implementations
+  subclasses getter base
+  single getter
+  vector getter
+  map getter
+  mapvector getter
+  …
+getter policy (for a specific getter, not a general thing)
+  must specify a get method that takes a tuple element as a first parameter and the optional followup parameters are implementation specific.
+getter tag
+  adl function - get_getter(tag, resolved_storage_tag) -> hana::type<getter<node info>>
 tuple and map (TAM)
   holds a tuple of pairs and a map created with hana::to_map(tuple)
+  the tuple is to have a defined order of the members, map for fast lookup
 getters
-  TAM<tuple<pair<hana::type<getter>, getter policy>...>>
-  TODO: TAM<tuple<pair<getter tag, getter policy>...>>
+  TAM<tuple<pair<getter tag, getter policy>...>>
 access info
   TAM<tuple<pair<access key, getters>...>>
 access key info
@@ -30,5 +43,8 @@ access key info
 resolved access info
   TAM<tuple<pair<access key, access key info>...>>
 node info
-  resolved storage tag
+  storage type
+  resolved access info
+getters info
+  unique getter tags (tuple<getter tag>)
   resolved access info

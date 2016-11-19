@@ -1,38 +1,78 @@
-#include <iostream>
+#include <gmmproc/xml/structured/structured.hh>
 
-namespace test_fallthrough_nodiscard_maybe_unused_attributes
+#include <boost/hana/string.hpp>
+#include <boost/hana/type.hpp>
+
+#include <sstream>
+
+namespace Xml = Gmmproc::Xml;
+
+namespace Foo
 {
 
-int f1()
+namespace Xmls = Xml::Structured;
+
+class A {};
+class B {};
+
+// access keys
+constexpr A a;
+constexpr B b;
+
+namespace Names
 {
-  return 42;
-}
 
-[[nodiscard]] int f2()
+// names
+constexpr auto a = BOOST_HANA_STRING ("a");
+constexpr auto b = BOOST_HANA_STRING ("b");
+
+} // namespace Names
+
+namespace Tags
 {
-  [[maybe_unused]] auto unused = f1();
 
-  switch (f1())
-  {
-  case 17:
-    f1();
-    [[fallthrough]];
-  case 42:
-    f1();
-  }
-  return f1();
+// node tags
+class A {};
+class B {};
+
+} // namespace Tags
+
+using BNode = Xmls::Node<>;
+using ANode = Xmls::Node<Xmls::Basic::Child<B, Xmls::Basic::Single, Tags::B>>;
+//using ANode = Xmls::Node<Xmls::Child<Tags::B, Xmls::Basic::Tag, Xmls::Basic::Single>>;
+using Doc = Xmls::Document<A, Tags::A>;
+
+namespace Tags
+{
+
+constexpr auto
+get_node_info (A)
+{
+  return Xmls::Registry::Registered {Names::a, boost::hana::type_c<ANode>};
 }
 
+constexpr auto
+get_node_info (B)
+{
+  return Xmls::Registry::Registered {Names::b, boost::hana::type_c<BNode>};
 }
+
+} // namespace Tags
+
+} // namespace Foo
 
 int
 main ()
 {
-  std::cout << __cplusplus << "\n";
-#ifdef __GNUC__
-  std::cout << "__GNUC__\n";
-#endif
-#ifdef __clang__
-  std::cout << "__clang__\n";
-#endif
+
+  std::stringstream ss;
+
+  ss << "<a><b/></a>";
+
+  Xml::Bundle bundle {ss};
+  auto doc = bundle.document ();
+  Foo::Doc cxx_doc {doc};
+  auto a_node = cxx_doc.get (Foo::a);
+  auto b_node = a_node.get (Foo::b);
+
 }

@@ -1,3 +1,50 @@
+template <typename NodeTagP, typename ChildTagP, typename ChildParams>
+class Child
+{
+public:
+  using NodeTag = NodeTagP;
+  using ChildTag = ChildTagP;
+  using ChildParams = ChildParamsP;
+  
+  NodeTag node_tag;
+  ChildTag tag;
+  ChildParams params;
+};
+
+...
+some_func(StorageTag storage_tag, PartsP parts)
+{
+  auto stuff = hana::unpack
+    (parts,
+     [](auto... part)
+     {
+       using API::get_contained_type;
+
+       return hana::make_tuple (get_contained_type (part.tag, hana::traits::declval (params))...);
+     });
+}
+
+// maybe node should take only two parameters - a storage tag and a type
+// grouping children.
+
+node<
+  storage tag,
+  group<
+    group_access_key,
+    child<
+      child_access_key,
+      single,
+      node_tag
+    >,
+    child<
+      child_access_key,
+      single,
+      node_tag
+    >,
+    …
+  >
+>
+
 // A part that skips the child, so the storage will hold child's
 // children instead. This would likely work only on single or optional children.
 template <typename ChildP>
@@ -12,3 +59,11 @@ public:
 
   class GetAccessInfo{};
 };
+
+node<
+  storage tag,
+  skip<
+    node_tag,
+    …
+  >
+>

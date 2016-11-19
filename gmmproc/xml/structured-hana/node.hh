@@ -2,6 +2,7 @@
 #define GMMPROC_XML_STRUCTURED_NODE_HH
 
 #include <gmmproc/xml/structured/detail/node.hh>
+#include <gmmproc/xml/structured/hana-storage.hh>
 #include <gmmproc/xml/structured/child.hh>
 
 #include <gmmproc/xml/xml.hh>
@@ -11,19 +12,23 @@ namespace Gmmproc::Xml::Structured
 
 template <typename StorageTagP, typename... PartP>
 using CustomNode = Detail::Node<NodeView,
-                                Detail::ResolveStorageTagT<StorageTagP, PartP...>>;
+                                StorageTagP,
+                                PartP...>;
 
 template <typename StorageTagP, typename PartP>
-using CustomDocument = Detail::Node<DocumentView,,
-                                    Detail::ResolveStorageTagT<StorageTagP, PartP>>;
+using CustomDocument = Detail::Node<DocumentView,
+                                    StorageTagP,
+                                    PartP>;
 
 template <typename... PartP>
-using Node = CustomNode<Detail::StorageTag,
+using Node = CustomNode<Hana::StorageTag,
                         PartP...>;
 
-template <typename NodeTagP>
-using Document = CustomDocument<Detail::StorageTag,
-                                Basic::Child<Basic::Single, NodeTagP>>;
+template <typename AccessKeyP, typename NodeTagP>
+using Document = CustomDocument<Hana::StorageTag,
+                                Basic::Child<AccessKeyP,
+                                             Basic::Single,
+                                             NodeTagP>>;
 
 } // namespace Gmmproc::Xml::Structured
 
