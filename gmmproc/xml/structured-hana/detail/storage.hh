@@ -50,6 +50,20 @@ get_contained_type_from_child (ChildP child)
   return get_contained_type (child.tag, child);
 }
 
+template <typename StorageImplP>
+class StorageContainer
+{
+protected:
+  StorageImplP storage;
+};
+
+template <typename StorageImplHanaTypeP>
+constexpr auto
+get_storage_container_type (StorageImplHanaTypeP)
+{
+  return hana::type_c<StorageContainer<typename StorageImplHanaTypeP::type>>;
+}
+
 template <typename StorageTagP, typename PartsP>
 constexpr auto
 resolve_storage_tag (StorageTagP storage_tag, PartsP part_hana_types)
@@ -70,8 +84,9 @@ resolve_storage_tag (StorageTagP storage_tag, PartsP part_hana_types)
 
        return get_storage_type (storage_tag, contained_hana_type...);
      });
+  auto storage_container_type = NoADL::get_storage_container_type (storage_hana_type);
 
-  return ResolvedStorageTag {storage_tag, part_hana_types, storage_hana_type};
+  return ResolvedStorageTag {storage_tag, part_hana_types, storage_container_type};
 }
 
 template <typename GettersP, typename IndexP>

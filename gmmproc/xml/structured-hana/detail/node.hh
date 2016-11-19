@@ -51,8 +51,9 @@ class Node : public NodeDetailsT<StorageTagP,
                                  hana::tuple<hana::type<PartP>...>>
 {
 public:
+  Node () = default;
+  Node (XmlViewTypeP& /* xml_view */) {}
   #if 0
-  Node (XmlViewTypeP& xml_view)
     : NodeStorageTypeT<ResolvedStorageTagP> {xml_view /*Mpl::ApplyT<typename PartP::GetGenerator>::get(xml_view->as_basic_node ())...*/}
   {}
   #endif

@@ -4,8 +4,8 @@
 #include <gmmproc/xml/structured/detail/storage.hh>
 
 #include <boost/hana/contains.hpp>
-#include <boost/hana/type.hpp>
 #include <boost/hana/keys.hpp>
+#include <boost/hana/type.hpp>
 
 namespace Gmmproc::Xml::Structured::Getters
 {
@@ -64,7 +64,8 @@ protected:
     constexpr auto index {access_key_info.index};
     constexpr auto policy {getters.map[getter_tag_type]};
 
-    return policy.get (this->storage[index], std::forward<PolicyArgP> (policy_args)...);
+    return policy.get (this->storage[index],
+                       std::forward<PolicyArgP> (policy_args)...);
   }
 };
 
@@ -76,7 +77,7 @@ class PassThroughPolicy
 public:
   template <typename ValueP, typename... PolicyArgP>
   decltype(auto)
-  get (ValueP&& value, PolicyArgP...)
+  get (ValueP&& value, PolicyArgP...) const
   {
     return std::forward<ValueP> (value);
   }

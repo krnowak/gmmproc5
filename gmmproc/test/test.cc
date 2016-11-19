@@ -39,7 +39,6 @@ class B {};
 
 using BNode = Xmls::Node<>;
 using ANode = Xmls::Node<Xmls::Basic::Child<B, Xmls::Basic::Single, Tags::B>>;
-//using ANode = Xmls::Node<Xmls::Child<Tags::B, Xmls::Basic::Tag, Xmls::Basic::Single>>;
 using Doc = Xmls::Document<A, Tags::A>;
 
 namespace Tags
@@ -64,7 +63,6 @@ get_node_info (B)
 int
 main ()
 {
-
   std::stringstream ss;
 
   ss << "<a><b/></a>";
@@ -72,7 +70,7 @@ main ()
   Xml::Bundle bundle {ss};
   auto doc = bundle.document ();
   Foo::Doc cxx_doc {doc};
-  auto a_node = cxx_doc.get (Foo::a);
-  auto b_node = a_node.get (Foo::b);
-
+  decltype(auto) a_node = cxx_doc.get (Foo::a);
+  decltype(auto) b_node = a_node.get (Foo::b);
+  (void)b_node;
 }
