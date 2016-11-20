@@ -3,6 +3,7 @@
 
 #include <gmmproc/xml/structured/detail/storage.hh>
 
+#include <boost/hana/at_key.hpp>
 #include <boost/hana/contains.hpp>
 #include <boost/hana/keys.hpp>
 #include <boost/hana/type.hpp>
@@ -54,7 +55,10 @@ protected:
                                           access_key_type),
                    "the access key must be a part of the node info");
 
-    constexpr auto access_key_info {resolved_access_info.map[access_key_type]};
+    constexpr auto aki_map {resolved_access_info.map};
+    constexpr auto access_key_info {boost::hana::at_key (aki_map, access_key_type)};
+    // TODO: Why doesn't it work?
+    //constexpr auto access_key_info {resolved_access_info.map[access_key_type]};
     constexpr auto getters {access_key_info.getters};
 
     static_assert (boost::hana::contains (boost::hana::keys (getters.map),
