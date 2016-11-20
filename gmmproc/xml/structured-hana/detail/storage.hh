@@ -53,6 +53,12 @@ get_contained_type_from_child (ChildP child)
 template <typename StorageImplP>
 class StorageContainer
 {
+public:
+  template <typename... TypeP>
+  StorageContainer (TypeP... args)
+    : storage {std::forward<TypeP> (args)...}
+  {}
+
 protected:
   StorageImplP storage;
 };

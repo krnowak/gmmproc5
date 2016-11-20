@@ -50,11 +50,19 @@ template <typename XmlViewTypeP, typename StorageTagP, typename... PartP>
 class Node : public NodeDetailsT<StorageTagP,
                                  hana::tuple<hana::type<PartP>...>>
 {
+private:
+  // TODO: get storage container type here
+  using StorageContainer = ;
+
 public:
   Node () = default;
   Node (XmlViewTypeP& /* xml_view */) {}
   #if 0
-    : NodeStorageTypeT<ResolvedStorageTagP> {xml_view /*Mpl::ApplyT<typename PartP::GetGenerator>::get(xml_view->as_basic_node ())...*/}
+  Node (XmlViewType& xml_view)
+    : StorageContainer {NoADL::member_from_node ()...}
+  {}
+
+    {xml_view /*Mpl::ApplyT<typename PartP::GetGenerator>::get(xml_view->as_basic_node ())...*/}
   {}
   #endif
   ~Node () = default;
