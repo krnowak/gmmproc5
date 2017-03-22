@@ -75,6 +75,25 @@ make_tuple_and_map (TupleP tuple)
   return NoADL::make_tuple_and_map (std::forward<TupleP> (tuple), std::move (map));
 }
 
+template <typename TupleAndMapsTupleP>
+constexpr auto
+merge_exclusive_tuple_and_maps (TupleAndMapsTupleP tam_tuple)
+{
+  return hana::fold_left
+    (tam_tuple,
+     NoADL::make_tuple_and_map (hana::make_tuple ()),
+     [](auto merge_tam, auto tam)
+     {
+       auto all_keys = hana::concat (hana::keys (merge_tam.map), hana::keys (tam.map));
+       auto all_keys_set = hana::to_set (all_keys);
+
+       static_assert (hana::length (all_keys) == hana::length (all_keys_set), "keys are unique");
+
+       auto merged_tuple = hana::concat (merge_tam.tuple, tam.tuple);
+       return make_tuple_and_map (merged_tuple, hana::to_map (merged_tuple));
+     });
+}
+
 } // namespace Gmmproc::Xml::Structured::Detail
 
 #endif // GMMPROC_XML_STRUCTURED_DETAIL_UTILS_HH

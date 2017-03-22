@@ -76,6 +76,17 @@ protected:
 class SingleGetterTag
 {};
 
+template <typename SubPolicyP,
+class GroupForwardingPolicy
+{
+  template <typename GroupImplP, typename... PolicyArgP>
+  decltype(auto)
+  get (GroupImpl&& group_impl, PolicyArgP...) const
+  {
+    
+  }
+};
+
 class PassThroughPolicy
 {
 public:

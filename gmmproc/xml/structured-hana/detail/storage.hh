@@ -4,6 +4,7 @@
 #include <gmmproc/xml/structured/detail/utils.hh>
 
 #include <gmmproc/xml/structured/api.hh>
+#include <gmmproc/xml/structured/apicall.hh>
 
 #include <boost/hana/append.hpp>
 #include <boost/hana/concat.hpp>
@@ -41,15 +42,6 @@ public:
 template <typename StorageTagP, typename PartsP, typename StorageHanaTypeP>
 ResolvedStorageTag(StorageTagP, PartsP, StorageHanaTypeP) -> ResolvedStorageTag<StorageTagP, PartsP, StorageHanaTypeP>;
 
-template <typename ChildP>
-constexpr auto
-get_contained_type_from_child (ChildP child)
-{
-  using API::get_contained_type;
-
-  return get_contained_type (child.tag, child);
-}
-
 template <typename StorageImplP>
 class StorageContainer
 {
@@ -79,7 +71,7 @@ resolve_storage_tag (StorageTagP storage_tag, PartsP part_hana_types)
      [](auto... part_hana_type)
      {
        return hana::make_tuple
-         (NoADL::get_contained_type_from_child
+       (APICall::get_type
            (hana::traits::declval (part_hana_type))...);
      });
   auto storage_hana_type = hana::unpack
@@ -140,15 +132,6 @@ public:
 template <typename UniqueGetterTagsP, typename NodeInfoP>
 GettersInfo(UniqueGetterTagsP, NodeInfoP) -> GettersInfo<UniqueGetterTagsP, NodeInfoP>;
 
-template <typename PartP>
-constexpr auto
-get_access_info_from_part (PartP part)
-{
-  using API::get_access_info;
-
-  return get_access_info (part.tag, part);
-}
-
 template <typename ResolvedStorageTagP>
 constexpr auto
 resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
@@ -158,7 +141,7 @@ resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
      hana::make_pair (hana::make_tuple (), hana::make_tuple ()),
      [](auto tags_tuple_and_resolved_access_info_tuple, auto part)
      {
-       auto access_info {get_access_info_from_part (hana::traits::declval (part))};
+       auto access_info {APICall::get_access_info (hana::traits::declval (part))};
 
        return hana::fold_left
          (access_info.tuple,

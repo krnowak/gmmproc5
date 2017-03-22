@@ -49,37 +49,25 @@ get_node_info (NodeTagP node_tag)
 
 // part API
 
-class GetContainedType {};
+class GetType {};
 
 template <typename ChildTagP, typename ChildP>
 constexpr auto
-get_contained_type (ChildTagP tag, ChildP child)
+get_type (ChildTagP tag,
+          ChildP child)
 {
-  return NotOverridden {GetContainedType {}, tag, child};
+  return NotOverridden {GetType {}, tag, child};
 }
 
 class GetAccessInfo {};
 
 template <typename ChildTagP, typename ChildP>
 constexpr auto
-get_access_info (ChildTagP tag, ChildP child)
+get_access_info (ChildTagP tag,
+                 ChildP child)
 {
   return NotOverridden {GetAccessInfo {}, tag, child};
 }
-
-/*
-
-class GetGenerator {};
-
-template <typename ChildP, typename StorageP>
-constexpr auto
-get_generator (ChildP child,
-               boost::hana::basic_type<StorageP> storage)
-{
-  return NotOverridden {GetGenerator {}, child, storage};
-}
-
-*/
 
 // storage API
 
@@ -87,7 +75,8 @@ class GetStorageType {};
 
 template <typename StorageTagP, typename... TypeP>
 constexpr auto
-get_storage_type (StorageTagP storage_tag, TypeP... type)
+get_storage_type (StorageTagP storage_tag,
+                  TypeP... type)
 {
   return NotOverridden {GetStorageType {}, storage_tag, type...};
 }
