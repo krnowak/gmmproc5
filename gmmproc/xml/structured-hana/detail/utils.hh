@@ -20,38 +20,45 @@ namespace NoADL = ::Gmmproc::Xml::Structured::Detail;
 namespace hana = ::boost::hana;
 
 // TODO: move it outside the Detail namespace
-template <typename TupleP, typename MapP>
+// TODO: or just get rid of it and do searches in tuples
+template <typename TupleP,
+          typename MapP>
 class TupleAndMap
 {
 public:
   using Tuple = TupleP;
   using Map = MapP;
 
-  /*
-  constexpr
-  TupleAndMap (Tuple t, Map m)
-    : tuple {std::move (t)},
-      map {std::move (m)}
-  {}
-  */
-
+  // This holds pairs of T1 and T2
   Tuple tuple;
+  // This is a map of hana::type<T1> to T2
   Map map;
 
-  //static_assert (hana::length (std::declval<TupleP> ()) == hana::length (std::declval<MapP> ()));
+  constexpr auto
+  keys() const {
+    return hana::fold_left (hana::keys (this->map),
+                            hana::make_tuple (),
+                            [] (auto keys, auto key_hana_type)
+                            {
+                              return hana::append (keys, hana::declval (key_hana_type));
+                            });
+  }
+
+  constexpr auto
+  values () const
+  {
+    return hana::values (this->map);
+  }
 };
 
-template <typename TupleP, typename MapP>
-constexpr auto
-make_tuple_and_map (TupleP tuple, MapP map)
-{
-  return TupleAndMap<TupleP, MapP> {std::forward<TupleP> (tuple),
-                                    std::forward<MapP> (map)};
-}
+// explicitly specified deduction guide
+template <typename TupleP,
+          typename MapP>
+TupleAndMap (TupleP, MapP) -> TupleAndMap<TupleP, MapP>;
 
 template <typename TupleP>
 constexpr auto
-tuple_for_map (TupleP tuple)
+tuple_for_tam (TupleP tuple)
 {
   return hana::fold_left
     (tuple,
@@ -71,26 +78,28 @@ template <typename TupleP>
 constexpr auto
 make_tuple_and_map (TupleP tuple)
 {
-  auto map = hana::to_map (NoADL::tuple_for_map (tuple));
-  return NoADL::make_tuple_and_map (std::forward<TupleP> (tuple), std::move (map));
+  auto map = hana::to_map (NoADL::tuple_for_tam (tuple));
+
+  return TupleAndMap {tuple, map};
 }
 
 template <typename TupleAndMapsTupleP>
 constexpr auto
-merge_exclusive_tuple_and_maps (TupleAndMapsTupleP tam_tuple)
+merge_disjoint_tuple_and_maps (TupleAndMapsTupleP tam_tuple)
 {
   return hana::fold_left
     (tam_tuple,
      NoADL::make_tuple_and_map (hana::make_tuple ()),
      [](auto merge_tam, auto tam)
      {
-       auto all_keys = hana::concat (hana::keys (merge_tam.map), hana::keys (tam.map));
-       auto all_keys_set = hana::to_set (all_keys);
+       auto all_keys {hana::concat (merge_tam.keys (), tam.keys ())};
 
-       static_assert (hana::length (all_keys) == hana::length (all_keys_set), "keys are unique");
+       static_assert (hana::length (all_keys) == hana::length (hana::to_set (all_keys)),
+                      "keys are unique");
 
-       auto merged_tuple = hana::concat (merge_tam.tuple, tam.tuple);
-       return make_tuple_and_map (merged_tuple, hana::to_map (merged_tuple));
+       auto merged_tuple {hana::concat (merge_tam.tuple,
+                                        tam.tuple)};
+       return NoADL::make_tuple_and_map (merged_tuple);
      });
 }
 

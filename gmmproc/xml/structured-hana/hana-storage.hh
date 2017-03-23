@@ -12,7 +12,8 @@ class StorageTag
 
 template <typename... HanaTypeP>
 constexpr auto
-get_storage_type (StorageTag, HanaTypeP...)
+get_storage_type (StorageTag,
+                  HanaTypeP...)
 {
   return boost::hana::type_c<boost::hana::tuple<typename HanaTypeP::type...>>;
 }

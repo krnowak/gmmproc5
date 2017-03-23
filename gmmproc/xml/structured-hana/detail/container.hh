@@ -10,12 +10,17 @@
 namespace Gmmproc::Xml::Structured::Detail
 {
 
-template <typename StorageTypeP, typename GettersSubclassP>
+// TODO: private virtual StorageTypeP does not make sense here - the
+// Container class does not do anything with it and the class that
+// subclasses the Container class can not access the storage tuple.
+template <typename StorageTypeP,
+          typename GettersSubclassP>
 class Container : private virtual StorageTypeP,
                   public GettersSubclassP
 {};
 
-template <typename StorageHanaTypeP, typename GettersSubclassHanaTypeP>
+template <typename StorageHanaTypeP,
+          typename GettersSubclassHanaTypeP>
 constexpr auto
 get_container_hana_type (StorageHanaTypeP,
                          GettersSubclassHanaTypeP)
@@ -28,12 +33,14 @@ get_container_hana_type (StorageHanaTypeP,
   >;
 }
 
-template <typename StorageTagP, typename PartsP>
+template <typename StorageTagP,
+          typename PartsP>
 constexpr auto
 get_container (StorageTagP storage_tag,
                PartsP parts)
 {
-  auto resolved_storage_tag {NoADL::resolve_storage_tag (storage_tag, parts)};
+  auto resolved_storage_tag {NoADL::resolve_storage_tag (storage_tag,
+                                                         parts)};
   auto getters_info {NoADL::resolve_getters_info (resolved_storage_tag)};
 
   auto storage_hana_type {resolved_storage_tag.storage_hana_type};
@@ -43,7 +50,8 @@ get_container (StorageTagP storage_tag,
                                          getters_subclass_hana_type);
 }
 
-template <typename StorageTagP, typename PartsP>
+template <typename StorageTagP,
+          typename PartsP>
 using ContainerT = typename decltype(NoADL::get_container (std::declval<StorageTagP> (),
                                                            std::declval<PartsP> ()))::type;
 

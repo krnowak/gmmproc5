@@ -17,7 +17,8 @@ public:
 
 // registry API
 
-template <typename NameP, typename NodeHanaTypeP>
+template <typename NameP,
+          typename NodeHanaTypeP>
 class Registered
 {
 public:
@@ -25,7 +26,8 @@ public:
   using NodeHanaType = NodeHanaTypeP;
 
   constexpr
-  Registered (Name n, NodeHanaType nht)
+  Registered (Name n,
+              NodeHanaType nht)
   : name {std::move (n)},
     node_hana_type {std::move (nht)}
   {}
@@ -51,35 +53,89 @@ get_node_info (NodeTagP node_tag)
 
 class GetType {};
 
-template <typename ChildTagP, typename ChildP>
+template <typename ChildTagP,
+          typename ChildP>
 constexpr auto
 get_type (ChildTagP tag,
           ChildP child)
 {
-  return NotOverridden {GetType {}, tag, child};
+  return NotOverridden {GetType {},
+                        tag,
+                        child};
 }
 
 class GetAccessInfo {};
 
-template <typename ChildTagP, typename ChildP>
+template <typename ChildTagP,
+          typename ChildP>
 constexpr auto
 get_access_info (ChildTagP tag,
                  ChildP child)
 {
-  return NotOverridden {GetAccessInfo {}, tag, child};
+  return NotOverridden {GetAccessInfo {},
+                        tag,
+                        child};
 }
 
 // storage API
 
 class GetStorageType {};
 
-template <typename StorageTagP, typename... TypeP>
+template <typename StorageTagP,
+          typename... TypeP>
 constexpr auto
 get_storage_type (StorageTagP storage_tag,
                   TypeP... type)
 {
-  return NotOverridden {GetStorageType {}, storage_tag, type...};
+  return NotOverridden {GetStorageType {},
+                        storage_tag,
+                        type...};
 }
+
+// getter API
+
+class GetGetterType {};
+
+template <typename GetterTagP,
+          typename ContainerInfoP>
+constexpr auto
+get_getter_type (GetterTagP getter_tag,
+                 ContainerInfoP container_info)
+{
+  return NotOverridden {GetGetterType {},
+                        getter_tag,
+                        container_info};
+}
+
+/// A namespace for convenience functions.
+///
+/// They are never used as ADL functions.
+namespace Convenience
+{
+
+// part API
+
+template <typename PartP>
+constexpr auto
+get_type (PartP part)
+{
+  using API::get_type;
+
+  return get_type (part.tag,
+                   part);
+}
+
+template <typename PartP>
+constexpr auto
+get_access_info (PartP part)
+{
+  using API::get_access_info;
+
+  return get_access_info (part.tag,
+                          part);
+}
+
+} // namespace Convenience
 
 } // namespace Gmmproc::Xml::Structured::API
 

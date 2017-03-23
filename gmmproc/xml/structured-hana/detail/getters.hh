@@ -27,18 +27,23 @@ template <typename GettersInfoP>
 constexpr auto
 get_getters_subclass_type (GettersInfoP getters_info)
 {
-  auto node_info = getters_info.node_info;
-  auto unique_getters = hana::fold_left
+  auto container_info = getters_info.container_info;
+  auto unique_getter_types = hana::fold_left
     (getters_info.unique_getter_tags,
      hana::make_tuple (),
-     [node_info](auto tuple, auto getter_tag)
+     [container_info](auto tuple,
+                      auto getter_tag)
      {
-       auto getter = get_getter (hana::traits::declval (getter_tag), node_info);
+       using API::get_getter_type;
 
-       return hana::append (tuple, getter);
+       auto getter_hana_type = get_getter_type (getter_tag,
+                                                container_info);
+
+       return hana::append (tuple,
+                            getter_hana_type);
      });
 
-  return NoADL::get_subclass (unique_getters);
+  return NoADL::get_subclass (unique_getter_types);
 }
 
 } // namespace Gmmproc::Xml::Structured::Detail

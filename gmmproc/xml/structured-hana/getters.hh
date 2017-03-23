@@ -11,86 +11,105 @@
 namespace Gmmproc::Xml::Structured::Getters
 {
 
-template <typename NodeInfoP, typename GetterTagP>
-class GetterBase : private virtual NodeInfoP::StorageHanaType::type
+// TODO: Clarify what getters and policies mean.
+//    Is it a map or tam?
+//    Keys are getter hana types or getter tag hana types?
+//    Also, find a better word for getters and policies.
+
+template <typename ContainerInfoP>
+class GetterRealBase : private virtual ContainerInfoP::StorageHanaType::type
 {
 private:
-  static constexpr NodeInfoP node_info {};
-  static constexpr boost::hana::type<GetterTagP> getter_tag_type {};
-  /*
+  static constexpr ContainerInfoP container_info {};
+
+  // TODO: can be static?
   template <typename AccessKeyP>
-  static constexpr decltype(auto)
-  get_access_key_info(AccessKeyP access_key)
+  constexpr auto
+  base_get_access_key_info (AccessKeyP access_key)
   {
-    constexpr decltype(auto) resolved_access_info {node_info.resolved_access_info.map};
-    constexpr decltype(auto) access_key_info {resolved_access_info[access_key]};
-
-    return access_key_info;
-  }
-  */
-
-protected:
-  /*
-  template <typename AccessKeyP, typename GetterTagP>
-  static constexpr decltype(auto)
-  get_policy (AccessKeyP access_key, GetterTagP getter_tag)
-  {
-    constexpr decltype(auto) access_key_info {get_access_key_info (access_key)};
-    constexpr decltype(auto) getters {access_key_info.getters.map};
-    constexpr decltype(auto) policy {getters[getter_tag]};
-
-    return policy;
-  }
-  */
-
-  template <typename AccessKeyP, typename... PolicyArgP>
-  decltype(auto)
-  base_get (AccessKeyP access_key,
-            PolicyArgP... policy_args) const
-  {
-    constexpr auto resolved_access_info {this->node_info.resolved_access_info};
+    constexpr auto resolved_access_info {this->container_info.resolved_access_info};
     constexpr auto access_key_type {boost::hana::make_type (access_key)};
 
     static_assert (boost::hana::contains (boost::hana::keys (resolved_access_info.map),
-                                          access_key_type),
-                   "the access key must be a part of the node info");
+                                          access_key),
+                   "the access key must be a part of the container info");
 
-    constexpr auto aki_map {resolved_access_info.map};
-    constexpr auto access_key_info {boost::hana::at_key (aki_map, access_key_type)};
     // TODO: Why doesn't it work?
-    //constexpr auto access_key_info {resolved_access_info.map[access_key_type]};
+    // return resolved_access_info.map[access_key_type];
+    return boost::hana::at_key (resolved_access_info.map,
+                                access_key_type);
+  }
+
+  // TODO: can be static?
+  template <typename GetterTagP,
+            typename AccessKeyInfoP>
+  constexpr auto
+  base_get_policy (GetterTagP getter_tag,
+                   AccessKeyInfoP access_key_info)
+  {
     constexpr auto getters {access_key_info.getters};
+    constexpr auto getter_tag_type {boost::hana::make_type (getter_tag)};
 
     static_assert (boost::hana::contains (boost::hana::keys (getters.map),
-                                          this->getter_tag_type),
+                                          getter_tag_type),
                    "the getter tag must be associated with this access key");
 
-    constexpr auto index {access_key_info.index};
-    constexpr auto policy {getters.map[getter_tag_type]};
+    return getters.map[getter_tag_type];
+  }
 
-    return policy.get (this->storage[index],
+public:
+  template <typename AccessKeyP>
+  decltype(auto)
+  base_get_raw (AccessKeyP access_key) const
+  {
+    constexpr auto access_key_info {this->base_get_access_key_info (access_key)};
+
+    return this->storage[access_key_info.index];
+  }
+
+  template <typename GetterTagP,
+            typename AccessKeyP,
+            typename... PolicyArgP>
+  decltype(auto)
+  base_get_tagged (GetterTagP getter_tag,
+                   AccessKeyP access_key,
+                   PolicyArgP... policy_arg) const
+  {
+    constexpr auto access_key_info {this->base_get_access_key_info (access_key)};
+    constexpr auto policy {this->base_get_policy (getter_tag, access_key_info)};
+
+    return policy.get (this->storage[access_key_info.index],
                        std::forward<PolicyArgP> (policy_args)...);
   }
+};
+
+template <typename ContainerInfoP,
+          typename GetterTagP>
+class GetterBase : public virtual GetterRealBase<ContainerInfoP>
+{
+private:
+  static constexpr GetterTagP getter_tag {};
+
+protected:
+  template <typename AccessKeyP,
+            typename... PolicyArgP>
+  decltype(auto)
+  base_get (AccessKeyP access_key,
+            PolicyArgP... policy_arg) const
+  {
+    return this->base_get_tagged (getter_tag,
+                                  access_key,
+                                  policy_arg...);
 };
 
 class SingleGetterTag
 {};
 
-template <typename SubPolicyP,
-class GroupForwardingPolicy
-{
-  template <typename GroupImplP, typename... PolicyArgP>
-  decltype(auto)
-  get (GroupImpl&& group_impl, PolicyArgP...) const
-  {
-    
-  }
-};
-
 class PassThroughPolicy
 {
 public:
-  template <typename ValueP, typename... PolicyArgP>
+  template <typename ValueP,
+            typename... PolicyArgP>
   decltype(auto)
   get (ValueP&& value, PolicyArgP...) const
   {
@@ -98,8 +117,8 @@ public:
   }
 };
 
-template <typename NodeInfoP>
-class SingleGetter : private virtual GetterBase<NodeInfoP, SingleGetterTag>
+template <typename ContainerInfoP>
+class SingleGetter : protected GetterBase<ContainerInfoP, SingleGetterTag>
 {
 public:
   template <typename AccessKeyP>
@@ -110,11 +129,12 @@ public:
   }
 };
 
-template <typename NodeInfoP>
+template <typename ContainerInfoP>
 constexpr auto
-get_getter (SingleGetterTag, NodeInfoP)
+get_getter_type (SingleGetterTag,
+                 ContainerInfoP)
 {
-  return boost::hana::type_c<SingleGetter<NodeInfoP>>;
+  return boost::hana::type_c<SingleGetter<ContainerInfoP>>;
 }
 
 } // namespace Gmmproc::Xml::Structured::Getters

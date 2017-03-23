@@ -14,7 +14,8 @@ template <typename TypeP>
 class Unregistered
 {};
 
-template <typename NameP, typename NodeHanaTypeP>
+template <typename NameP,
+          typename NodeHanaTypeP>
 class Registered
 {
 public:
@@ -22,7 +23,8 @@ public:
   using NodeHanaType = NodeHanaTypeP;
 
   constexpr
-  Registered (Name n, NodeHanaType nht)
+  Registered (Name n,
+              NodeHanaType nht)
   : name {std::move (n)},
     node_hana_type {std::move (nht)}
   {}

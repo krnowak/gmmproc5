@@ -1,51 +1,79 @@
 #ifndef GMMPROC_XML_STRUCTURED_DETAIL_GROUP_HH
 #define GMMPROC_XML_STRUCTURED_DETAIL_GROUP_HH
 
-#include <gmmproc/xml/structured/detail/getters.hh>
 #include <gmmproc/xml/structured/detail/storage.hh>
 #include <gmmproc/xml/structured/detail/utils.hh>
+
+#include <gmmproc/xml/structured/api.hh>
+#include <gmmproc/xml/structured/getters.hh>
 
 #include <boost/hana/type.hpp>
 
 namespace Gmmproc::Xml::Structured::Detail
 {
 
-template <typename StorageTypeP, typename GettersSubclassP>
-class Container : private virtual StorageTypeP,
-                  public GettersSubclassP
-{};
-
-template <typename StorageHanaTypeP, typename GettersSubclassHanaTypeP>
+template <typename GroupImplTypeP,
+          typename AccessKeyP,
+          typename PolicyP>
 constexpr auto
-get_container_hana_type (StorageHanaTypeP,
-                         GettersSubclassHanaTypeP)
+wrap_in_forwarding_policy (GroupImplTypeP,
+                           AccessKeyP,
+                           PolicyP)
 {
-  return hana::type_c<
-    Container<
-      typename StorageHanaTypeP::type,
-      typename GettersSubclassHanaTypeP::type
-    >
-  >;
+  return typename GroupImplTypeP::type::template ForwardingPolicy<AccessKeyP, PolicyP> {};
 }
 
-template <typename StorageTagP, typename PartsP>
+template <typename GroupImplTypeP,
+          typename PartHanaTypeP>
 constexpr auto
-get_container (StorageTagP storage_tag,
-               PartsP parts)
+get_sub_access_info_from_part (GroupImplTypeP group_impl_type,
+                               PartP part)
 {
-  auto resolved_storage_tag {NoADL::resolve_storage_tag (storage_tag, parts)};
-  auto getters_info {NoADL::resolve_getters_info (resolved_storage_tag)};
+  auto access_info {API::Convenience::get_access_info (part)};
+  auto sub_access_info_tuple {hana::fold_left
+    (access_info.tuple,
+     hana::make_tuple (),
+     [group_impl_type](auto sub_access_info_tuple,
+                       auto access_info_pair)
+     {
+       auto access_key {hana::first (access_info_pair)};
+       auto getters_and_policies {hana::second (access_info_pair)};
+       auto updated_getters_and_policies {hana::unpack
+         (getters_and_policies,
+          [group_impl_type, access_key](auto... getter_and_policy)
+          {
+            return hana::make_tuple
+              (hana::make_pair
+                (hana::first (getter_and_policy),
+                 NoADL::wrap_in_forwarding_policy
+                  (group_impl_type,
+                   access_key,
+                   hana::second (getter_and_policy)))...);
+          })};
 
-  auto storage_hana_type {resolved_storage_tag.storage_hana_type};
-  auto getters_subclass_hana_type {NoADL::get_getters_subclass_type (getters_info)};
+       return hana::append (sub_access_info_tuple,
+                            hana::make_pair (access_key,
+                                             updated_getters_and_policies));
+     })};
 
-  return NoADL::get_container_hana_type (storage_hana_type,
-                                         getters_subclass_hana_type);
+  return NoADL::make_tuple_and_map (sub_access_info_tuple);
 }
 
-template <typename StorageTagP, typename PartsP>
-using ContainerT = typename decltype(NoADL::get_container (std::declval<StorageTagP> (),
-                                                           std::declval<PartsP> ()))::type;
+template <typename GroupP>
+constexpr auto
+get_sub_access_infos (GroupP group)
+{
+  auto group_impl_type {API::Convenience::get_type (group)};
+
+  return hana::unpack
+    (group.parts,
+     [group_impl_type](auto... part_hana_type)
+     {
+       return hana::make_tuple
+         (NoADL::get_sub_access_info_from_part (group_impl_type,
+                                                hana::traits::declval (part_hana_type))...);
+     });
+}
 
 } // Gmmproc::Xml::Structured::Detail
 

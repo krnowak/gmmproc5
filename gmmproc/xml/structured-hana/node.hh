@@ -10,12 +10,14 @@
 namespace Gmmproc::Xml::Structured
 {
 
-template <typename StorageTagP, typename... PartP>
+template <typename StorageTagP,
+          typename... PartP>
 using CustomNode = Detail::Node<NodeView,
                                 StorageTagP,
                                 PartP...>;
 
-template <typename StorageTagP, typename PartP>
+template <typename StorageTagP,
+          typename PartP>
 using CustomDocument = Detail::Node<DocumentView,
                                     StorageTagP,
                                     PartP>;
@@ -24,7 +26,8 @@ template <typename... PartP>
 using Node = CustomNode<Hana::StorageTag,
                         PartP...>;
 
-template <typename AccessKeyP, typename NodeTagP>
+template <typename AccessKeyP,
+          typename NodeTagP>
 using Document = CustomDocument<Hana::StorageTag,
                                 Basic::Child<AccessKeyP,
                                              Basic::Single,

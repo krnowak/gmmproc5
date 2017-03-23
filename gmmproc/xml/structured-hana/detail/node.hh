@@ -9,7 +9,9 @@
 namespace Gmmproc::Xml::Structured::Detail
 {
 
-template <typename XmlViewTypeP, typename StorageTagP, typename... PartP>
+template <typename XmlViewTypeP,
+          typename StorageTagP,
+          typename... PartP>
 class Node : public ContainerT<StorageTagP,
                                hana::tuple<hana::type<PartP>...>>
 {

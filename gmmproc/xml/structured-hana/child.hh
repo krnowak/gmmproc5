@@ -41,7 +41,9 @@ class ChildTag {};
 
 // TODO: document that Child must have a public Tag type and public tag member
 // variable.
-template <typename AccessKeyP, typename BasicP, typename NodeTagP>
+template <typename AccessKeyP,
+          typename BasicP,
+          typename NodeTagP>
 class Child : public Part<ChildTag>
 {
 public:
@@ -59,7 +61,8 @@ constexpr auto
 get_type (ChildTag,
           ChildP child)
 {
-  return get_child_type (child.basic, child.node_tag);
+  return get_child_type (child.basic,
+                         child.node_tag);
 }
 
 template <typename ChildP>
@@ -67,7 +70,8 @@ constexpr auto
 get_access_info (ChildTag, ChildP child)
 {
   auto getters {get_child_getters (child.basic)};
-  auto access_info_pair {boost::hana::make_pair (child.access_key, getters)};
+  auto access_info_pair {boost::hana::make_pair (child.access_key,
+                                                 getters)};
 
   return Detail::make_tuple_and_map (boost::hana::make_tuple (access_info_pair));
 }
