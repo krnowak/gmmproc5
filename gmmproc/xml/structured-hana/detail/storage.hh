@@ -26,24 +26,24 @@ namespace Gmmproc::Xml::Structured::Detail
 
 template <typename StorageTagP,
           typename PartsP,
-          typename StorageHanaTypeP>
+          typename StorageTypeP>
 class ResolvedStorageTag
 {
 public:
   using StorageTag = StorageTagP;
   using Parts = PartsP;
-  using StorageHanaType = StorageHanaTypeP;
+  using StorageType = StorageTypeP;
 
   StorageTag storage_tag;
   Parts parts;
-  StorageHanaType storage_hana_type;
+  StorageType storage_type;
 };
 
 // explicitly specified deduction guide
 template <typename StorageTagP,
           typename PartsP,
-          typename StorageHanaTypeP>
-ResolvedStorageTag(StorageTagP, PartsP, StorageHanaTypeP) -> ResolvedStorageTag<StorageTagP, PartsP, StorageHanaTypeP>;
+          typename StorageTypeP>
+ResolvedStorageTag(StorageTagP, PartsP, StorageTypeP) -> ResolvedStorageTag<StorageTagP, PartsP, StorageTypeP>;
 
 template <typename StorageImplP>
 class StorageContainer
@@ -58,76 +58,80 @@ protected:
   StorageImplP storage;
 };
 
-template <typename StorageImplHanaTypeP>
+template <typename StorageImplTypeP>
 constexpr auto
-get_storage_container_type (StorageImplHanaTypeP)
+get_storage_container_type (StorageImplTypeP)
 {
-  return hana::type_c<StorageContainer<typename StorageImplHanaTypeP::type>>;
+  return hana::type_c<StorageContainer<typename StorageImplTypeP::type>>;
 }
 
 template <typename StorageTagP,
           typename PartsP>
 constexpr auto
 resolve_storage_tag (StorageTagP storage_tag,
-                     PartsP part_hana_types)
+                     PartsP parts)
 {
-  auto contained_hana_types {hana::unpack
-    (part_hana_types,
-     [](auto... part_hana_type)
+  auto contained_types {hana::unpack
+    (parts,
+     [](auto... part)
      {
-       return hana::make_tuple
-         (API::Convenience::get_type
-           (hana::traits::declval (part_hana_type))...);
+       return hana::make_tuple (API::Convenience::get_type (part)...);
      })};
-  auto storage_hana_type {hana::unpack
-    (contained_hana_types,
-     [storage_tag](auto... contained_hana_type)
+  auto storage_type {hana::unpack
+    (contained_types,
+     [storage_tag](auto... contained_type)
      {
-       using API::get_storage_type;
-
-       return get_storage_type (storage_tag,
-                                contained_hana_type...);
+       return API::Convenience::get_storage_type (storage_tag,
+                                                  contained_type...);
      })};
-  auto storage_container_type {NoADL::get_storage_container_type (storage_hana_type)};
+  auto storage_container_type {NoADL::get_storage_container_type (storage_type)};
 
+  // TODO: check how parts in resolved storage tag are used - as a
+  // tuple of parts or as a tuple of part types
   return ResolvedStorageTag {storage_tag,
-                             part_hana_types,
+                             parts,
                              storage_container_type};
 }
 
-template <typename GettersP,
+// access key info
+
+template <typename GetterTagsAndPoliciesP,
           typename IndexP>
 class AccessKeyInfo
 {
 public:
-  using Getters = GettersP;
+  using GetterTagsAndPolicies = GetterTagsAndPoliciesP;
   using Index = IndexP;
 
-  Getters getters;
+  GetterTagsAndPolicies getter_tags_and_policies;
   Index index;
 };
 
 // explicitly specified deduction guide
-template <typename GettersP,
+template <typename GetterTagsAndPoliciesP,
           typename IndexP>
-AccessKeyInfo(GettersP, IndexP) -> AccessKeyInfo<GettersP, IndexP>;
+AccessKeyInfo(GetterTagsAndPoliciesP, IndexP) -> AccessKeyInfo<GetterTagsAndPoliciesP, IndexP>;
 
-template <typename StorageHanaTypeP,
+// container info
+
+template <typename StorageTypeP,
           typename ResolvedAccessInfoP>
 class ContainerInfo
 {
 public:
-  using StorageHanaType = StorageHanaTypeP;
+  using StorageType = StorageTypeP;
   using ResolvedAccessInfo = ResolvedAccessInfoP;
 
-  StorageHanaType storage_hana_type;
+  StorageType storage_type;
   ResolvedAccessInfo resolved_access_info;
 };
 
 // explicitly specified deduction guide
-template <typename StorageHanaTypeP,
+template <typename StorageTypeP,
           typename ResolvedAccessInfoP>
-ContainerInfo (StorageHanaTypeP, ResolvedAccessInfoP) -> ContainerInfo<StorageHanaTypeP, ResolvedAccessInfoP>;
+ContainerInfo (StorageTypeP, ResolvedAccessInfoP) -> ContainerInfo<StorageTypeP, ResolvedAccessInfoP>;
+
+// getters info
 
 template <typename UniqueGetterTagsP,
           typename ContainerInfoP>
@@ -146,28 +150,30 @@ template <typename UniqueGetterTagsP,
           typename ContainerInfoP>
 GettersInfo (UniqueGetterTagsP, ContainerInfoP) -> GettersInfo<UniqueGetterTagsP, ContainerInfoP>;
 
-template <typename GetterTagsTupleP,
-          typename ResolvedAccessInfoTupleP,
+// getters info data
+
+template <typename GetterTagsP,
+          typename ResolvedAccessInfoP,
           typename IndexP>
 class GettersInfoData
 {
 public:
-  using GetterTagsTuple = GettersTagsTupleP;
-  using ResolvedAccessInfoTuple = ResolvedAccessInfoTupleP;
+  using GetterTags = GettersTagsP;
+  using ResolvedAccessInfos = ResolvedAccessInfosP;
   using Index = IndexP;
 
-  GetterTagsTuple getter_tags;
-  ResolvedAccessInfoTuple resolved_access_infos;
+  GetterTags getter_tags;
+  ResolvedAccessInfos resolved_access_infos;
   Index index;
 
-  template <typename NewGetterTagsTupleP,
-            typename NewResolvedAccessInfoTupleP>
+  template <typename UpdatedGetterTagsP,
+            typename UpdatedResolvedAccessInfosP>
   constexpr auto
-  update_data (NewGetterTagsTupleP new_getter_tags,
-               NewResolvedAccessInfoTupleP new_resolved_access_infos) const
+  update_data (UpdatedGetterTagsP updated_getter_tags,
+               UpdatedResolvedAccessInfosP updated_resolved_access_infos) const
   {
-    return GettersInfoData {new_getter_tags,
-                            new_resolved_access_infos,
+    return GettersInfoData {updated_getter_tags,
+                            updated_resolved_access_infos,
                             this->index};
   }
 
@@ -183,10 +189,65 @@ public:
 // explicitly specified deduction guides
 template <>
 GettersInfoData () -> GettersInfoData<hana::tuple<>, hana::tuple<>, hana::size_t<0>>;
-template <typename GetterTagsTupleP,
-          typename ResolvedAccessInfoTupleP,
+template <typename GetterTagsP,
+          typename ResolvedAccessInfosP,
           typename IndexP>
-GettersInfoData (GetterTagsTupleP, ResolvedAccessInfoTupleP, IndexP) -> GettersInfoData<GetterTagsTupleP, ResolvedAccessInfoTupleP, IndexP>;
+GettersInfoData (GetterTagsP, ResolvedAccessInfosP, IndexP) -> GettersInfoData<GetterTagsP, ResolvedAccessInfosP, IndexP>;
+
+// stable uniq data
+
+template <typename ValuesP,
+          typename ValuesSetP>
+class StableUniqData
+{
+public:
+  using Values = ValuesP;
+  using ValuesSet = ValuesSetP;
+
+  Values values;
+  ValuesSet values_set;
+};
+
+// explicitly specified deduction guides
+template <typename ValuesSetP>
+StableUniqData () -> StableUniqData<hana::tuple<>, ValuesSetP>;
+template <typename ValuesP,
+          typename ValuesSetP>
+StableUniqData (ValuesP, ValuesSetP) -> StableUniqData<ValuesP, ValuesSetP>;
+
+template <typename ValuesP>
+constexpr auto
+stable_uniq (ValuesP values)
+{
+  auto values_set {hana::to_set (values)};
+  auto stable_uniq_data {hana::fold_left
+    (values,
+     StableUniqData {values_set},
+     [](auto stable_uniq_data,
+        auto value)
+     {
+       if constexpr (hana::contains (stable_uniq_data.values_set,
+                                     value))
+       {
+         auto updated_values = hana::append (stable_uniq_data.values,
+                                             value);
+         auto updated_values_set = hana::erase_key (stable_uniq_data.values_set,
+                                                    value);
+
+         return StableUniqData {updated_values,
+                                updated_values_set};
+       }
+       else
+       {
+         return stable_uniq_data;
+       }
+     })};
+
+  static_assert (hana::length (stable_uniq_data.values_set) == hana::size_c<0>,
+                 "initial helper set of values should be empty after deduplication");
+
+  return stable_uniq_data.values;
+}
 
 template <typename ResolvedStorageTagP>
 constexpr auto
@@ -197,7 +258,7 @@ resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
      GettersInfoData {},
      [](auto getters_info_data, auto part)
      {
-       auto access_info {API::Convenience::get_access_info (hana::traits::declval (part))};
+       auto access_info {API::Convenience::get_access_info (part)};
        auto updated_getters_info_data = hana::fold_left
          (access_info.tuple,
           getters_info_data,
@@ -205,14 +266,16 @@ resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
              auto access_info_pair)
           {
             auto access_key {hana::first (access_info_pair)};
-            auto getters_and_policies_tam {hana::second (access_info_pair)};
+            auto getters_tags_and_policies {hana::second (access_info_pair)};
 
-            auto updated_getter_tags {hana::concat (getters_info_data.getter_tags,
-                                                    getters_and_policies_tam.keys ())};
+            auto getter_tag_types {hana::keys (getters_tags_and_policies.map)};
+            auto updated_getter_tag_types {hana::concat (getters_info_data.getter_tags,
+                                                         getter_tag_types)};
 
+            auto access_key_info {AccessKeyInfo {getters_tags_and_policies,
+                                                 getters_info_data.index}};
             auto new_resolved_access_info_pair {hana::make_pair (access_key,
-                                                                 AccessKeyInfo {getters_and_policies_tam,
-                                                                                getters_info_data.index})};
+                                                                 access_key_info)};
             auto updated_resolved_access_infos {hana::append (getters_info_data.resolved_access_infos,
                                                               new_resolved_access_info_pair)};
 
@@ -223,11 +286,17 @@ resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
        return updated_getters_info_data.increment_index ();
      });
 
-  auto unique_getter_tags {hana::to_set (getters_info_data.getter_tags)};
+  auto unique_getter_tag_types {NoADL::stable_uniq (getters_info_data.getter_tags)};
+  auto unique_getter_tags {hana::unpack
+    (unique_getter_tag_types,
+     [](auto... getter_tag)
+     {
+       return hana::make_tuple (hana::traits::declval (getter_tag)...);
+     })};
   auto resolved_access_info {NoADL::make_tuple_and_map (getters_info_data.resolved_access_infos)};
 
   return GettersInfo {unique_getter_tags,
-                      ContainerInfo {resolved_storage_tag.storage_hana_type,
+                      ContainerInfo {resolved_storage_tag.storage_type,
                                      resolved_access_info}};
 }
 

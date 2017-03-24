@@ -16,11 +16,11 @@ template <typename... TypeP>
 class Subclass : public TypeP...
 {};
 
-template <typename... HanaTypeP>
+template <typename... TypeP>
 constexpr auto
-get_subclass (hana::tuple<HanaTypeP...>)
+get_subclass (hana::tuple<TypeP...>)
 {
-  return hana::type_c<Subclass<typename HanaTypeP::type...>>;
+  return hana::type_c<Subclass<typename TypeP::type...>>;
 }
 
 template <typename GettersInfoP>
@@ -34,13 +34,11 @@ get_getters_subclass_type (GettersInfoP getters_info)
      [container_info](auto tuple,
                       auto getter_tag)
      {
-       using API::get_getter_type;
-
-       auto getter_hana_type = get_getter_type (getter_tag,
-                                                container_info);
+       auto getter_type {API::Convenience::get_getter_type (getter_tag,
+                                                            container_info)};
 
        return hana::append (tuple,
-                            getter_hana_type);
+                            getter_type);
      });
 
   return NoADL::get_subclass (unique_getter_types);

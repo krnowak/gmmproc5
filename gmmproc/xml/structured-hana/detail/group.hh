@@ -67,11 +67,10 @@ get_sub_access_infos (GroupP group)
 
   return hana::unpack
     (group.parts,
-     [group_impl_type](auto... part_hana_type)
+     [group_impl_type](auto... part)
      {
        return hana::make_tuple
-         (NoADL::get_sub_access_info_from_part (group_impl_type,
-                                                hana::traits::declval (part_hana_type))...);
+         (NoADL::get_sub_access_info_from_part (group_impl_type, part)...);
      });
 }
 

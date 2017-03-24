@@ -10,12 +10,12 @@ namespace Gmmproc::Xml::Structured::Hana
 class StorageTag
 {};
 
-template <typename... HanaTypeP>
+template <typename... TypeP>
 constexpr auto
 get_storage_type (StorageTag,
-                  HanaTypeP...)
+                  TypeP...)
 {
-  return boost::hana::type_c<boost::hana::tuple<typename HanaTypeP::type...>>;
+  return boost::hana::type_c<boost::hana::tuple<typename TypeP::type...>>;
 }
 
 } // namespace Gmmproc::Xml::Structured::Hana

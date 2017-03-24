@@ -83,6 +83,7 @@ make_tuple_and_map (TupleP tuple)
   return TupleAndMap {tuple, map};
 }
 
+// TODO: probably use stable_uniq somewhere
 template <typename TupleAndMapsTupleP>
 constexpr auto
 merge_disjoint_tuple_and_maps (TupleAndMapsTupleP tam_tuple)

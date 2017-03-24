@@ -1,6 +1,8 @@
 #ifndef GMMPROC_XML_STRUCTURED_API_HH
 #define GMMPROC_XML_STRUCTURED_API_HH
 
+#include <boost/hana/type.hpp>
+
 namespace Gmmproc::Xml::Structured::API
 {
 
@@ -53,28 +55,28 @@ get_node_info (NodeTagP node_tag)
 
 class GetType {};
 
-template <typename ChildTagP,
-          typename ChildP>
+template <typename PartTagP,
+          typename PartTypeP>
 constexpr auto
-get_type (ChildTagP tag,
-          ChildP child)
+get_type (PartTagP tag,
+          PartTypeP part_type)
 {
   return NotOverridden {GetType {},
                         tag,
-                        child};
+                        part_type};
 }
 
 class GetAccessInfo {};
 
-template <typename ChildTagP,
-          typename ChildP>
+template <typename PartTagP,
+          typename PartTypeP>
 constexpr auto
-get_access_info (ChildTagP tag,
-                 ChildP child)
+get_access_info (PartTagP tag,
+                 PartTypeP part_type)
 {
   return NotOverridden {GetAccessInfo {},
                         tag,
-                        child};
+                        part_type};
 }
 
 // storage API
@@ -97,14 +99,39 @@ get_storage_type (StorageTagP storage_tag,
 class GetGetterType {};
 
 template <typename GetterTagP,
-          typename ContainerInfoP>
+          typename ContainerInfoTypeP>
 constexpr auto
 get_getter_type (GetterTagP getter_tag,
-                 ContainerInfoP container_info)
+                 ContainerInfoTypeP container_info_type)
 {
   return NotOverridden {GetGetterType {},
                         getter_tag,
-                        container_info};
+                        container_info_type};
+}
+
+// child API
+
+class GetChildType {};
+
+template <typename BasicP,
+          typename NodeTagTypeP>
+constexpr auto
+get_child_type (BasicP basic,
+                NodeTagTypeP node_tag_type)
+{
+  return NotOverridden {GetChildType {},
+                        basic,
+                        node_tag_type};
+}
+
+class GetChildGetters {};
+
+template <typename BasicP>
+constexpr auto
+get_child_getters (BasicP)
+{
+  return NotOverridden {GetChildGetters {},
+                        basic};
 }
 
 /// A namespace for convenience functions.
@@ -122,7 +149,7 @@ get_type (PartP part)
   using API::get_type;
 
   return get_type (part.tag,
-                   part);
+                   boost::hana::make_type (part));
 }
 
 template <typename PartP>
@@ -132,7 +159,58 @@ get_access_info (PartP part)
   using API::get_access_info;
 
   return get_access_info (part.tag,
-                          part);
+                          boost::hana::make_type (part));
+}
+
+// storage API
+
+template <typename StorageTagP,
+          typename... TypeP>
+constexpr auto
+get_storage_type (StorageTagP storage_tag,
+                  TypeP... type)
+{
+  using API::get_storage_type;
+
+  return get_storage_type (storage_tag,
+                           type...);
+}
+
+// getter API
+
+template <typename GetterTagP,
+          typename ContainerInfoP>
+constexpr auto
+get_getter_type (GetterTagP getter_tag,
+                 ContainerInfoP container_info)
+{
+  using API::get_getter_type;
+
+  return get_getter_type (getter_tag,
+                          boost::hana::make_type (container_info));
+}
+
+// child API
+
+template <typename BasicP,
+          typename NodeTagTypeP>
+constexpr auto
+get_child_type (BasicP basic,
+                NodeTagP node_tag)
+{
+  using API::get_child_type;
+
+  return get_child_type (basic,
+                         boost::hana::make_type (node_tag));
+}
+
+template <typename BasicP>
+constexpr auto
+get_child_getters (BasicP)
+{
+  using API::get_child_getters;
+
+  return get_child_getters (basic);
 }
 
 } // namespace Convenience

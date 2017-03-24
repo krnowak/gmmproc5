@@ -12,13 +12,9 @@ namespace Gmmproc::Xml::Structured::Detail
 template <typename XmlViewTypeP,
           typename StorageTagP,
           typename... PartP>
-class Node : public ContainerT<StorageTagP,
-                               hana::tuple<hana::type<PartP>...>>
+class Node : private virtual Detail::ContainerStorageT<StorageTagP, hana::tuple<PartP...>>,
+             public Detail::ContainerGettersT<StorageTagP, hana::tuple<PartP...>>
 {
-private:
-  // TODO: get storage container type here
-  using StorageContainer = ;
-
 public:
   Node () = default;
   Node (XmlViewTypeP& /* xml_view */) {}

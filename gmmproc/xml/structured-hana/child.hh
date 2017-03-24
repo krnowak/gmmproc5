@@ -11,20 +11,24 @@
 #include <boost/hana/type.hpp>
 #include <boost/hana/tuple.hpp>
 
-namespace Gmmproc::Xml::Structured::Basic
+namespace Gmmproc::Xml::Structured
 {
 
 class Single
 {};
 
-template <typename NodeTagP>
+template <typename NodeTagTypeP>
 constexpr auto
 get_child_type (Single,
-                NodeTagP node_tag)
+                NodeTagTypeP node_tag_type)
 {
+  // TODO: create and use the API::Convenience::foo function, so the
+  // "using API::foo" clause is used only in the API::Convenience
+  // namespace
   using API::get_node_info;
 
-  auto registered_node_info = get_node_info (node_tag);
+  auto node_tag {boost::hana::declval (node_tag_type)};
+  auto registered_node_info {get_node_info (node_tag)};
 
   return registered_node_info.node_hana_type;
 }
@@ -32,15 +36,14 @@ get_child_type (Single,
 constexpr auto
 get_child_getters (Single)
 {
-  auto single_pair = boost::hana::make_pair (Getters::SingleGetterTag {}, Getters::PassThroughPolicy {});
+  auto single_pair {boost::hana::make_pair (Getters::SingleGetterTag {}, Getters::PassThroughPolicy {})};
 
   return Detail::make_tuple_and_map (boost::hana::make_tuple (single_pair));
 }
 
-class ChildTag {};
+class ChildTag
+{};
 
-// TODO: document that Child must have a public Tag type and public tag member
-// variable.
 template <typename AccessKeyP,
           typename BasicP,
           typename NodeTagP>
@@ -56,26 +59,30 @@ public:
   NodeTag node_tag;
 };
 
-template <typename ChildP>
+template <typename ChildTypeP>
 constexpr auto
 get_type (ChildTag,
-          ChildP child)
+          ChildTypeP child_type)
 {
-  return get_child_type (child.basic,
-                         child.node_tag);
+  auto child {boost::hana::traits::declval (child_type)};
+
+  return API::Convenience::get_child_type (child.basic,
+                                           child.node_tag);
 }
 
-template <typename ChildP>
+template <typename ChildTypeP>
 constexpr auto
-get_access_info (ChildTag, ChildP child)
+get_access_info (ChildTag,
+                 ChildTypeP child_type)
 {
-  auto getters {get_child_getters (child.basic)};
+  auto child {boost::hana::traits::declval (child_type)};
+  auto getters {API::Convenience::get_child_getters (child.basic)};
   auto access_info_pair {boost::hana::make_pair (child.access_key,
                                                  getters)};
 
   return Detail::make_tuple_and_map (boost::hana::make_tuple (access_info_pair));
 }
 
-} // namespace Gmmproc::Xml::Structured::Basic
+} // namespace Gmmproc::Xml::Structured
 
 #endif // GMMPROC_XML_STRUCTURED_CHILD_HH
