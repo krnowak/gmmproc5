@@ -4,6 +4,14 @@
 namespace Gmmproc::Xml::Structured
 {
 
+enum class PartKind
+{
+  // its impl is constructed with the node parameter
+  Normal,
+  // its impl is default constructed
+  Extra
+};
+
 template <typename TagP>
 class Part
 {

@@ -201,36 +201,6 @@ get_getter_type (SingleGetterTag,
   return boost::hana::type_c<SingleGetter<typename ContainerInfoTypeP::type>>;
 }
 
-// extra data
-
-class ExtraDataGetterTag
-{};
-
-template <typename ContainerInfoP>
-class ExtraDataGetter : protected GetterBase<ContainerInfo, ExtraDataGetterTag>
-{
-public:
-  decltype(auto)
-  get_extra_data () const
-  {
-    return this->base_get (Detail::ExtraDataAccessKey {});
-  }
-
-  decltype(auto)
-  get_extra_data ()
-  {
-    return this->base_get (Detail::ExtraDataAccessKey {});
-  }
-};
-
-template <typename ContainerInfoTypeP>
-constexpr auto
-get_getter_type (ExtraDataGetterTag,
-                 ContainerInfoTypeP)
-{
-  return boost::hana::type_c<ExtraDataGetter<typename ContainerInfoTypeP::type>>;
-}
-
 } // namespace Gmmproc::Xml::Structured
 
 #endif // GMMPROC_XML_STRUCTURED_GETTERS_HH

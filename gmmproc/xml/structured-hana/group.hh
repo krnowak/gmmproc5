@@ -73,15 +73,9 @@ get_access_info (GroupTag,
 {
   auto group = boost::hana::traits::declval (group_type);
   auto sub_access_infos = Detail::get_sub_access_infos (group);
-
-  auto main_getter_tag_and_policy_pair = boost::hana::make_pair (Getters::SingleGetterTag {},
-                                                                 Getters::PassThroughPolicy {});
-  auto main_getter_tags_and_policies {Detail::make_tuple_and_map
-    (boost::hana::make_tuple (main_getter_tag_and_policy_pair))};
-  auto main_access_info_pair {boost::hana::make_pair (group.access_key,
-                                                      main_getter_tags_and_policies)};
-  auto main_access_info {Detail::make_tuple_and_map
-    (boost::hana::make_tuple (main_access_info_pair))};
+  auto main_access_info {Detail::get_simple_access_info (group.access_key,
+                                                         Getters::SingleGetterTag {},
+                                                         Getters::PassThroughPolicy {})};
   auto all_access_infos {boost::hana::prepend (sub_access_infos,
                                                main_access_info)};
 

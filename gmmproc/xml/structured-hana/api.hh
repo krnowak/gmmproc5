@@ -79,6 +79,15 @@ get_access_info (PartTagP tag,
                         part_type};
 }
 
+class GetPartKind {};
+
+template <typename PartTagP>
+constexpr auto
+get_part_kind (PartTagP)
+{
+  return PartKind::Normal;
+}
+
 // storage API
 
 class GetStorageType {};
@@ -160,6 +169,15 @@ get_access_info (PartP part)
 
   return get_access_info (part.tag,
                           boost::hana::make_type (part));
+}
+
+template <typename PartTagP>
+constexpr auto
+get_part_kind (PartTagP tag)
+{
+  using API::get_part_kind;
+
+  return get_part_kind (tag);
 }
 
 // storage API
