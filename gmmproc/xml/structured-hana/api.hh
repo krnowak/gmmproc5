@@ -133,14 +133,39 @@ get_child_type (BasicP basic,
                         node_tag_type};
 }
 
-class GetChildGetters {};
+class GetChildGetterTagsAndPolicies {};
 
 template <typename BasicP>
 constexpr auto
-get_child_getters (BasicP)
+get_child_getter_tags_and_policies (BasicP)
 {
-  return NotOverridden {GetChildGetters {},
+  return NotOverridden {GetChildGetterTagsAndPolicies {},
                         basic};
+}
+
+// value API
+// TODO: finish it
+
+template <typename WrapperP,
+          typename PrimitiveP>
+constexpr auto
+get_wrapper_type (WrapperP wrapper,
+                  PrimitiveP primitive)
+{
+  using API::get_wrapper_type;
+
+  return get_wrapper_type (wrapper,
+                           primitive);
+}
+
+template <typename WrapperP,
+          typename PrimitiveP>
+constexpr auto
+get_wrapper_getter_tags_and_policies (WrapperP wrapper)
+{
+  using API::get_wrapper_getter_tags_and_policies;
+
+  return get_wrapper_getter_tags_and_policies (wrapper);
 }
 
 /// A namespace for convenience functions.
@@ -224,11 +249,35 @@ get_child_type (BasicP basic,
 
 template <typename BasicP>
 constexpr auto
-get_child_getters (BasicP)
+get_child_getter_tags_and_policies (BasicP)
 {
-  using API::get_child_getters;
+  using API::get_child_getter_tags_and_policies;
 
-  return get_child_getters (basic);
+  return get_child_getter_tags_and_policies (basic);
+}
+
+// value API
+
+template <typename WrapperP,
+          typename PrimitiveP>
+constexpr auto
+get_wrapper_type (WrapperP wrapper,
+                  PrimitiveP primitive)
+{
+  using API::get_wrapper_type;
+
+  return get_wrapper_type (wrapper,
+                           primitive);
+}
+
+template <typename WrapperP,
+          typename PrimitiveP>
+constexpr auto
+get_wrapper_getter_tags_and_policies (WrapperP wrapper)
+{
+  using API::get_wrapper_getter_tags_and_policies;
+
+  return get_wrapper_getter_tags_and_policies (wrapper);
 }
 
 } // namespace Convenience

@@ -34,11 +34,10 @@ get_child_type (Single,
 }
 
 constexpr auto
-get_child_getters (Single)
+get_child_getter_tags_and_policies (Single)
 {
-  auto single_pair {boost::hana::make_pair (Getters::SingleGetterTag {}, Getters::PassThroughPolicy {})};
-
-  return Detail::make_tuple_and_map (boost::hana::make_tuple (single_pair));
+  return Detail::get_simple_getter_tags_and_policies (SingleGetterTag {},
+                                                      PassThroughPolicy {});
 }
 
 class ChildTag
