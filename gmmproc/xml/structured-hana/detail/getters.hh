@@ -7,21 +7,9 @@
 #include <boost/hana/fold_left.hpp>
 #include <boost/hana/traits.hpp>
 #include <boost/hana/tuple.hpp>
-#include <boost/hana/type.hpp>
 
 namespace Gmmproc::Xml::Structured::Detail
 {
-
-template <typename... TypeP>
-class Subclass : public TypeP...
-{};
-
-template <typename... TypeP>
-constexpr auto
-get_subclass (hana::tuple<TypeP...>)
-{
-  return hana::type_c<Subclass<typename TypeP::type...>>;
-}
 
 template <typename GettersInfoP>
 constexpr auto

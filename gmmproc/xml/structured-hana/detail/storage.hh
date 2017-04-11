@@ -77,13 +77,8 @@ resolve_storage_tag (StorageTagP storage_tag,
      {
        return hana::make_tuple (API::Convenience::get_type (part)...);
      })};
-  auto storage_type {hana::unpack
-    (contained_types,
-     [storage_tag](auto... contained_type)
-     {
-       return API::Convenience::get_storage_type (storage_tag,
-                                                  contained_type...);
-     })};
+  auto storage_type = NoADL::get_storage_type (some_structured_tag,
+                                               contained_types);
   auto storage_container_type {NoADL::get_storage_container_type (storage_type)};
 
   // TODO: check how parts in resolved storage tag are used - as a

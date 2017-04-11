@@ -88,21 +88,6 @@ get_part_kind (PartTagP)
   return PartKind::Normal;
 }
 
-// storage API
-
-class GetStorageType {};
-
-template <typename StorageTagP,
-          typename... TypeP>
-constexpr auto
-get_storage_type (StorageTagP storage_tag,
-                  TypeP... type)
-{
-  return NotOverridden {GetStorageType {},
-                        storage_tag,
-                        type...};
-}
-
 // getter API
 
 class GetGetterType {};
@@ -203,20 +188,6 @@ get_part_kind (PartTagP tag)
   using API::get_part_kind;
 
   return get_part_kind (tag);
-}
-
-// storage API
-
-template <typename StorageTagP,
-          typename... TypeP>
-constexpr auto
-get_storage_type (StorageTagP storage_tag,
-                  TypeP... type)
-{
-  using API::get_storage_type;
-
-  return get_storage_type (storage_tag,
-                           type...);
 }
 
 // getter API

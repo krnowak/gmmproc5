@@ -104,6 +104,17 @@ merge_disjoint_tuple_and_maps (TupleAndMapsTupleP tam_tuple)
      });
 }
 
+template <typename... TypeP>
+class Subclass : public TypeP...
+{};
+
+template <typename... TypeP>
+constexpr auto
+get_subclass (hana::tuple<TypeP...>)
+{
+  return hana::type_c<Subclass<typename TypeP::type...>>;
+}
+
 } // namespace Gmmproc::Xml::Structured::Detail
 
 #endif // GMMPROC_XML_STRUCTURED_DETAIL_UTILS_HH
