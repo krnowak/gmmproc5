@@ -10,10 +10,9 @@ namespace Gmmproc::Xml::Structured::Detail
 {
 
 template <typename XmlViewTypeP,
-          typename StorageTagP,
           typename... PartP>
-class Node : private virtual Detail::ContainerStorageT<StorageTagP, hana::tuple<PartP...>>,
-             public Detail::ContainerGettersT<StorageTagP, hana::tuple<PartP...>>
+class Node : private virtual Detail::ContainerStorageT<hana::tuple<PartP...>>,
+             public Detail::ContainerGettersT<hana::tuple<PartP...>>
 {
 public:
   Node () = default;

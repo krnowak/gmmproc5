@@ -41,12 +41,10 @@ get_extended_parts (PartsP parts,
   }
 }
 
-template <typename StorageTagP,
-          typename PartsP,
+template <typename PartsP,
           typename ExtraDataImplTypeP>
 constexpr auto
-get_container_helper (StorageTagP storage_tag,
-                      PartsP parts,
+get_container_helper (PartsP parts,
                       ExtraDataImplTypeP extra_data_impl_type)
 {
   auto extended_parts {NoADL::get_extended_parts (parts, extra_data_impl_type)};
@@ -61,21 +59,17 @@ get_container_helper (StorageTagP storage_tag,
                                                       getters_subclass_type};
 }
 
-template <typename StorageTagP,
-          typename PartsP,
+template <typename PartsP,
           typename ExtraDataImplTypeP>
-using ContainerHelperT = typename decltype(NoADL::get_container (std::declval<StorageTagP> (),
-                                                                 std::declval<PartsP> (),
+using ContainerHelperT = typename decltype(NoADL::get_container (std::declval<PartsP> (),
                                                                  std::declval<ExtraDataImplTypeP> ()))::type;
-template <typename StorageTagP,
-          typename PartsP,
+template <typename PartsP,
           typename ExtraDataImplTypeP = hana::type<void>>
-using ContainerStorageT = typename ContainerHelperT<StorageTagP, PartsP, ExtraDataImplTypeP>::Storage;
+using ContainerStorageT = typename ContainerHelperT<PartsP, ExtraDataImplTypeP>::Storage;
 
-template <typename StorageTagP,
-          typename PartsP,
+template <typename PartsP,
           typename ExtraDataImplTypeP = hana::type<void>>
-using ContainerGettersT = typename ContainerHelperT<StorageTagP, PartsP, ExtraDataImplTypeP>::Getters;
+using ContainerGettersT = typename ContainerHelperT<PartsP, ExtraDataImplTypeP>::Getters;
 
 
 } // Gmmproc::Xml::Structured::Detail

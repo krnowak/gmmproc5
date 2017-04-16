@@ -18,24 +18,20 @@ class GroupTag
 {};
 
 template <typename AccessKeyP,
-          typename StorageTagP,
           typename... PartP>
 class Group : public Part<GroupTag>
 {
 public:
   using AccessKey = AccessKeyP;
-  using StorageTag = StorageTagP;
   using Parts = boost::hana::tuple<PartP...>;
 
   AccessKey access_key;
-  StorageTag storage_tag;
   Parts parts;
 };
 
-template <typename StorageTagP,
-          typename PartsP>
-class GroupImpl : private virtual Detail::ContainerStorageT<StorageTagP, PartsP>,
-                  public Detail::ContainerStorageT<StorageTagP, PartsP>
+template <typename PartsP>
+class GroupImpl : private virtual Detail::ContainerStorageT<PartsP>,
+                  public Detail::ContainerStorageT<PartsP>
 {
 public:
   template <typename AccessKeyP,
@@ -62,8 +58,7 @@ constexpr auto
 get_type (GroupTag,
           GroupTypeP)
 {
-  return hana::type_c<GroupImpl<typename GroupTypeP::type::StorageTag,
-                                typename GroupTypeP::type::Parts>>;
+  return hana::type_c<GroupImpl<typename GroupTypeP::type::Parts>>;
 }
 
 template <typename GroupTypeP>
