@@ -14,6 +14,7 @@
         (
           (innamespace . 0)
           (substatement-open . 0)
+          (brace-list-open . 0)
         )
       )
     )

@@ -19,6 +19,28 @@ namespace Gmmproc::Xml::Structured::Detail
 namespace NoADL = ::Gmmproc::Xml::Structured::Detail;
 namespace hana = ::boost::hana;
 
+// use with NoADL namespace
+
+template <typename UnwrappedP>
+using WrapT = hana::type<UnwrappedP>;
+
+template <typename WrappedP>
+using UnwrapT = typename WrappedP::type;
+
+template <typename UnwrappedP>
+constexpr auto
+wrap (UnwrappedP)
+{
+  return hana::type_c<UnwrappedP>;
+}
+
+template <typename WrappedP>
+constexpr auto
+unwrap (WrappedP wrapped)
+{
+  return boost::hana::traits::declval (wrapped);
+}
+
 // TODO: move it outside the Detail namespace
 // TODO: or just get rid of it and do searches in tuples
 template <typename TupleP,

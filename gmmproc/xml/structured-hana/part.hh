@@ -6,10 +6,12 @@ namespace Gmmproc::Xml::Structured
 
 enum class PartKind
 {
-  // its impl is constructed with the node parameter
+  // its impl is constructed with the structured tag and inputs
   Normal,
   // its impl is default constructed
-  Extra
+  Extra,
+  // its impl is not a part of a storage
+  NonMember
 };
 
 template <typename TagP>

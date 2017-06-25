@@ -31,62 +31,101 @@
 namespace Gmmproc::Xml::Structured::Detail
 {
 
-template <typename TypeP,
-          typename IndexP>
-class StorageMemberParameter
+template <typename PartP>
+class StorageMemberBase
 {
-public:
-  using Type = TypeP;
-  using Index = IndexP;
+protected:
+  static constexpr PartP part;
+
+  using Type = typename decltype(API::Convenience::get_type (part))::type;
 };
 
-template <typename SMParameterP>
-class StorageMember
+class <typename PartP, PartKind PartKindV = API::Convenience::get_part_kind (std::declval<PartP> ())>
+class StorageMember;
+
+template <typename PartP>
+class StorageMember<PartP, PartKind::Normal> : private StorageMemberBase<PartP>
 {
 private:
-  using Type = typename SMParameterP::Type;
-  using Index = typename SMParameterP::Index;
+  using Base = StorageMemberBase<PartP>;
 
 protected:
   template <typename StructuredTagP,
             typename... InputP>
   StorageMember(StructuredTagP structured_tag,
-                InputP... input)
-    : member {generate_member (structured_tag, input...)}
+                InputP&&... input)
+    : member {NoADL::generate_member (structured_tag, Base::part, std::forward<InputP> (input)...)}
   {}
 
-  Type member;
+  Base::Type member;
 };
 
-template <typename... SMParameterP>
-class Storage : private StorageMember<SMParameterP>...
+template <typename PartP>
+class StorageMember<PartP, PartKind::Extra> : private StorageMemberBase<PartP>
 {
 private:
-  using ThisStorage = Storage<SMParameterP...>;
-  using Members = hana::tuple<hana::type<StorageMember<SMParameterP>...>>;
+  using Base = StorageMemberBase<PartP>;
+
+protected:
+  template <typename StructuredTagP,
+            typename... InputP>
+  StorageMember(StructuredTagP,
+                InputP&&...)
+    : member {}
+  {}
+
+  Base::Type member;
+};
+
+template <typename PartP>
+class StorageMember<PartP, PartKind::NonMember> : private StorageMemberBase<PartP>
+{
+private:
+  using Base = StorageMemberBase<PartP>;
+
+protected:
+  template <typename StructuredTagP,
+            typename... InputP>
+  StorageMember(StructuredTagP structured_tag,
+                InputP&&... input)
+  {
+    NoADL::generate_member (structured_tag, Base::part, std::forward<InputP> (input)...);
+  }
+};
+
+template <typename... PartP>
+class Storage : private StorageMember<PartP>...
+{
+private:
+  using ThisStorage = Storage<PartP...>;
+  using Members = hana::tuple<hana::type<StorageMember<PartP>...>>;
 
   static constexpr Members members;
 
 public:
+  using Parts = hana::tuple<PartP...>;
+
+  static constexpr Parts parts;
+
   template <typename StructuredTag,
             typename... InputP>
   Storage (StructuredTag structured_tag,
            InputP... input)
-    : StorageMember<SMParameterP> {structured_tag,
-                                   input...}...
+    : StorageMember<PartP> {structured_tag,
+                            input...}...
   {}
 
   // TODO: deduplicate (differs only with constness)
   // TODO: make sure we return the reference to const
+  // TODO: assert that the part is not a NonMember kind
   template <typename IndexP>
   decltype(auto)
   operator[] (IndexP index) const
   {
     constexpr auto member_type {ThisStorage::members[index]};
     using MemberType = decltype(member_type)::type;
-    auto this_as_member {static_cast<MemberType const*> (this)};
 
-    return this_as_member->member;
+    return this->MemberType::member;
   }
 
   template <typename IndexP>
@@ -95,83 +134,26 @@ public:
   {
     constexpr auto member_type {ThisStorage::members[index]};
     using MemberType = decltype(member_type)::type;
-    auto this_as_member {static_cast<MemberType*> (this)};
 
-    return this_as_member->member;
+    return this->MemberType::member;
   }
 };
 
-template <typename... SMParameterP>
-get_storage_type_from_parameter_pack (SMParameterP...)
+template <typename... PartP>
+get_storage_type_from_parameter_pack (PartP...)
 {
-  return hana::type_c<Storage<SMParameter...>>;
+  return hana::type_c<Storage<PartP...>>;
 }
-
-template <typename TupleP>
-constexpr auto
-get_index_sequence_for (TupleP tuple)
-{
-  constexpr auto length = std::size_t {hana::length (tuple).value};
-  return std::make_index_sequence<length> {};
-}
-
-template <typename ContainedTypesP>
-constexpr auto
-get_storage_type (ContainedTypesP contained_types)
-{
-  constexpr auto zipper = [](auto type,
-                             auto index)
-  {
-    return StorageMemberParameter {type, index};
-  }
-
-  auto sm_parameters = hana::zip_with (zipper,
-                                       contained_types,
-                                       NoADL::get_index_sequence_for (contained_types));
-
-  return hana::unpack (sm_parameters,
-                       [](auto... sm_parameter)
-                       {
-                         return NoADL::get_storage_type_from_parameter_pack (sm_parameter...);
-                       });
-}
-
-
-
-// TODO: rename this thing - storage tag is gone
-template <typename PartsP,
-          typename StorageTypeP>
-class ResolvedStorageTag
-{
-public:
-  using Parts = PartsP;
-  using StorageType = StorageTypeP;
-
-  Parts parts;
-  StorageType storage_type;
-};
-
-// explicitly specified deduction guide
-template <typename PartsP,
-          typename StorageTypeP>
-ResolvedStorageTag(PartsP, StorageTypeP) -> ResolvedStorageTag<PartsP, StorageTypeP>;
 
 template <typename PartsP>
 constexpr auto
-resolve_storage_tag (PartsP parts)
+get_storage_type (PartsP parts)
 {
-  auto contained_types {hana::unpack
-    (parts,
-     [](auto... part)
-     {
-       return hana::make_tuple (API::Convenience::get_type (part)...);
-     })};
-  auto storage_type = NoADL::get_storage_type (contained_types);
-
-  // TODO: check how parts in resolved storage tag are used - as a
-  // tuple of parts or as a tuple of part types
-  return ResolvedStorageTag {parts,
-                             storage_type};
+  return hana::unpack (parts,
+                       [](auto... part)
+                       {
+                         return get_storage_type_from_parameter_pack (part...);
+                       });
 }
 
 // access key info
@@ -330,12 +312,12 @@ stable_uniq (ValuesP values)
   return stable_uniq_data.values;
 }
 
-template <typename ResolvedStorageTagP>
+template <typename PartsP>
 constexpr auto
-resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
+resolve_getters_info (PartsP parts)
 {
   auto getters_info_data = hana::fold_left
-    (resolved_storage_tag.parts,
+    (parts,
      GettersInfoData {},
      [](auto getters_info_data, auto part)
      {
@@ -375,14 +357,12 @@ resolve_getters_info (ResolvedStorageTagP resolved_storage_tag)
        return hana::make_tuple (hana::traits::declval (getter_tag)...);
      })};
   auto resolved_access_info {NoADL::make_tuple_and_map (getters_info_data.resolved_access_infos)};
+  auto storage_type {NoADL::get_storage_type (parts)};
 
   return GettersInfo {unique_getter_tags,
-                      ContainerInfo {resolved_storage_tag.storage_type,
+                      ContainerInfo {storage_type,
                                      resolved_access_info}};
 }
-
-template <typename ResolvedStorageTagP>
-using ContainerStorageTypeT = typename ResolvedStorageTagP::StorageType::type;
 
 } // namespace Gmmproc::Xml::Structured::Detail
 

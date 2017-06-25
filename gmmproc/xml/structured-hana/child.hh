@@ -14,30 +14,82 @@
 namespace Gmmproc::Xml::Structured
 {
 
-class Single
+class NodeKindTag
 {};
 
-template <typename NodeTagTypeP>
-constexpr auto
-get_child_type (Single,
-                NodeTagTypeP node_tag_type)
+template <typename NodeTagP>
+class NodeKind
 {
-  // TODO: create and use the API::Convenience::foo function, so the
-  // "using API::foo" clause is used only in the API::Convenience
-  // namespace
-  using API::get_node_info;
+public:
+  using Tag = NodeKindTag;
+  using NodeTag = NodeTag;
 
-  auto node_tag {boost::hana::declval (node_tag_type)};
-  auto registered_node_info {get_node_info (node_tag)};
+  Tag tag;
+  NodeTag node_tag;
+};
 
-  return registered_node_info.node_hana_type;
+template <typename NodeKindTypeP>
+constexpr auto
+get_kind_type (NodeKindTag,
+               NodeKindTypeP node_kind_type)
+{
+  auto node_kind {boost::hana::traits::declval (node_tag_type)};
+
+  return API::Convenience::get_node_type (node_kind.node_tag);
 }
 
-constexpr auto
-get_child_getter_tags_and_policies (Single)
+template <typename NodeKindTypeP,
+          typename StructuredTagType,
+          typename... InputP>
+decltype(auto)
+generate_kind_part_member (NodeKindTag node_kind_tag,
+                           NodeKindTypeP node_kind_type,
+                           StructuredTagTypeP structured_tag_type,
+                           Input&&... input)
 {
-  return Detail::get_simple_getter_tags_and_policies (SingleGetterTag {},
-                                                      PassThroughPolicy {});
+  // TODO
+}
+
+class ValueKindTag
+{};
+
+template <typename PrimitiveP>
+class ValueKind
+{
+public:
+  using Tag = ValueKindTag;
+  using Primitive = PrimitiveP;
+
+  Tag tag;
+  Primitive primitive;
+};
+
+template <typename ValueKindTypeP>
+constexpr auto
+get_kind_type (ValueKindTag,
+               ValueKindTypeP value_kind_type)
+{
+  auto value_kind {boost::hana::traits::declval (value_kind_type)};
+
+  return API::Convenience::get_real_primitive_type (value_kind.primitive);
+}
+
+template <typename ValueKindTypeP,
+          typename StructuredTagType,
+          typename... InputP>
+decltype(auto)
+generate_kind_part_member (ValueKindTag value_kind_tag,
+                           ValueKindTypeP value_kind_type,
+                           StructuredTagTypeP structured_tag_type,
+                           Input&&... input)
+{
+  constexpr auto value_kind {NoADL::unwrap (value_kind_type)};
+  constexpr auto real_type {API::Convenience::get_real_primitive_type (value_kind.primitive)};
+  auto structured_tag {NoADL::unwrap (structured_tag_type)};
+
+  return API::Convenience::get_primitive (structured_tag,
+                                          real_type,
+                                          std::forward<Input> (input)...);
 }
 
 class ChildTag
@@ -45,17 +97,17 @@ class ChildTag
 
 template <typename AccessKeyP,
           typename BasicP,
-          typename NodeTagP>
+          typename KindP>
 class Child : public Part<ChildTag>
 {
 public:
   using AccessKey = AccessKeyP;
   using Basic = BasicP;
-  using NodeTag = NodeTagP;
+  using Kind = KindP;
 
   AccessKey access_key;
   Basic basic;
-  NodeTag node_tag;
+  Kind kind;
 };
 
 template <typename ChildTypeP>
@@ -64,9 +116,10 @@ get_type (ChildTag,
           ChildTypeP child_type)
 {
   auto child {boost::hana::traits::declval (child_type)};
+  auto real_type {API::Convenience::get_kind_type (child.kind)};
 
-  return API::Convenience::get_child_type (child.basic,
-                                           child.node_tag);
+  return API::Convenience::get_child_type (child,
+                                           real_type);
 }
 
 template <typename ChildTypeP>
@@ -75,11 +128,27 @@ get_access_info (ChildTag,
                  ChildTypeP child_type)
 {
   auto child {boost::hana::traits::declval (child_type)};
-  auto getters {API::Convenience::get_child_getters (child.basic)};
+  auto getters {API::Convenience::get_child_getter_tags_and_policies (child)};
   auto access_info_pair {boost::hana::make_pair (child.access_key,
                                                  getters)};
 
   return Detail::make_tuple_and_map (boost::hana::make_tuple (access_info_pair));
+}
+
+template <typename ChildTypeP,
+          typename StructuredTagTypeP,
+          typename... InputP>
+decltype(auto)
+generate_part_member (ChildTag,
+                      ChildTypeP child_type,
+                      StructuredTagTypeP structured_tag_type,
+                      InputP&&... input)
+{
+  constexpr auto child {NoADL::unwrap (child_type)};
+
+  return API::Convenience::generate_child_part_member (child,
+                                                       structured_tag_type,
+                                                       std::forward<Input> (input)...);
 }
 
 } // namespace Gmmproc::Xml::Structured

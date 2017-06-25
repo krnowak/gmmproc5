@@ -17,43 +17,10 @@ public:
   {}
 };
 
-// registry API
-
-template <typename NameP,
-          typename NodeHanaTypeP>
-class Registered
-{
-public:
-  using Name = NameP;
-  using NodeHanaType = NodeHanaTypeP;
-
-  constexpr
-  Registered (Name n,
-              NodeHanaType nht)
-  : name {std::move (n)},
-    node_hana_type {std::move (nht)}
-  {}
-
-  Name name;
-  NodeHanaTypeP node_hana_type;
-};
-
-class GetNodeInfo {};
-
-template <typename NodeTagP>
-constexpr auto
-get_node_info (NodeTagP node_tag)
-{
-  // overloads/adl functions should return an instance of the Registered
-  // template specialization instead:
-  //
-  // return Registered {some_name, some_node_hana_type};
-  return NotOverridden {GetNodeInfo {}, node_tag};
-}
-
 // part API
 
-class GetType {};
+class GetType
+{};
 
 template <typename PartTagP,
           typename PartTypeP>
@@ -66,7 +33,8 @@ get_type (PartTagP tag,
                         part_type};
 }
 
-class GetAccessInfo {};
+class GetAccessInfo
+{};
 
 template <typename PartTagP,
           typename PartTypeP>
@@ -79,7 +47,8 @@ get_access_info (PartTagP tag,
                         part_type};
 }
 
-class GetPartKind {};
+class GetPartKind
+{};
 
 template <typename PartTagP>
 constexpr auto
@@ -88,9 +57,30 @@ get_part_kind (PartTagP)
   return PartKind::Normal;
 }
 
+class GeneratePartMember
+{};
+
+template <typename PartTagP,
+          typename PartTypeP,
+          typename StructuredTagTypeP,
+          typename... InputP>
+decltype(auto)
+generate_part_member (PartTagP tag,
+                      PartTypeP part_type,
+                      StructuredTagTypeP structured_tag_type,
+                      InputP&&... input)
+{
+  return NotOverridden {GeneratePartMember {},
+                        tag,
+                        part_type,
+                        structured_tag_type,
+                        std::forward<InputP> (input)...};
+}
+
 // getter API
 
-class GetGetterType {};
+class GetGetterType
+{};
 
 template <typename GetterTagP,
           typename ContainerInfoTypeP>
@@ -105,20 +95,22 @@ get_getter_type (GetterTagP getter_tag,
 
 // child API
 
-class GetChildType {};
+class GetChildType
+{};
 
 template <typename BasicP,
-          typename NodeTagTypeP>
+          typename RealTypeP>
 constexpr auto
 get_child_type (BasicP basic,
-                NodeTagTypeP node_tag_type)
+                RealTypeP real_type)
 {
   return NotOverridden {GetChildType {},
                         basic,
-                        node_tag_type};
+                        real_type};
 }
 
-class GetChildGetterTagsAndPolicies {};
+class GetChildGetterTagsAndPolicies
+{};
 
 template <typename BasicP>
 constexpr auto
@@ -128,29 +120,105 @@ get_child_getter_tags_and_policies (BasicP)
                         basic};
 }
 
-// value API
-// TODO: finish it
+class GenerateChildPartMember
+{};
 
-template <typename WrapperP,
-          typename PrimitiveP>
-constexpr auto
-get_wrapper_type (WrapperP wrapper,
-                  PrimitiveP primitive)
+template <typename BasicP,
+          typename KindTypeP,
+          typename StructuredTagTypeP,
+          typename... InputP>
+decltype(auto)
+generate_child_part_member (BasicP basic,
+                            KindTypeP kind_type,
+                            StructuredTagTypeP structured_tag_type,
+                            Input&&... input)
 {
-  using API::get_wrapper_type;
-
-  return get_wrapper_type (wrapper,
-                           primitive);
+  return NotOverridden {GenerateChildPartMember {},
+                        basic,
+                        structured_tag_type,
+                        kind_type,
+                        std::forward<InputP> (input)...};
 }
 
-template <typename WrapperP,
+// kind API
+
+class GetKindType
+{};
+
+template <typename KindTagP,
+          typename KindTypeP>
+constexpr auto
+get_kind_type (KindTagP kind_tag,
+               KindTypeP kind_type)
+{
+  return NotOverridden {GetKindType {},
+                        kind_tag,
+                        kind_type};
+}
+
+class GenerateKindPartMember
+{};
+
+template <typename KindTagP,
+          typename KindTypeP,
+          typename StructuredTagType,
+          typename... InputP>
+decltype(auto)
+generate_kind_part_member (KindTagP kind_tag,
+                           KindTypeP kind_type,
+                           StructuredTagTypeP structured_tag_type,
+                           Input&&... input)
+{
+  return NotOverridden {GenerateKindPartMember {},
+                        kind_tag,
+                        kind_type,
+                        structured_tag_type,
+                        std::forward<InputP> (input)...};
+}
+
+// primitive API
+
+class GetRealPrimitiveType
+{};
+
+template <typename PrimitiveTagP,
           typename PrimitiveP>
 constexpr auto
-get_wrapper_getter_tags_and_policies (WrapperP wrapper)
+get_real_primitive_type (PrimitiveTagP primitive_tag,
+                         PrimitiveP primitive)
 {
-  using API::get_wrapper_getter_tags_and_policies;
+  return NotOverridden {GetRealPrimitiveType {},
+                        primitive_tag,
+                        primitive};
+}
 
-  return get_wrapper_getter_tags_and_policies (wrapper);
+class GetPrimitive
+{};
+
+template <typename StructuredTagP,
+          typename RealPrimitiveTypeP,
+          typename... InputP>
+decltype(auto)
+get_primitive (StructuredTagP structured_tag,
+               RealPrimitiveTypeP real_primitive_type,
+               Input&&... input)
+{
+  return NotOverridden {GetPrimitive {},
+                        structured_tag,
+                        real_primitive_type,
+                        std::forward<Input> (input)...};
+}
+
+// node API
+
+class GetNodeType
+{};
+
+template <typename NodeTagP>
+constexpr auto
+get_node_type (NodeTagP node_tag)
+{
+  return NotOverridden {GetNodeType {}, node_tag};
 }
 
 /// A namespace for convenience functions.
@@ -181,13 +249,30 @@ get_access_info (PartP part)
                           boost::hana::make_type (part));
 }
 
-template <typename PartTagP>
+template <typename PartP>
 constexpr auto
-get_part_kind (PartTagP tag)
+get_part_kind (PartP part)
 {
   using API::get_part_kind;
 
-  return get_part_kind (tag);
+  return get_part_kind (part.tag);
+}
+
+// TODO: somehow wrap the input parameters, so they don't participate in ADL?
+template <typename PartP,
+          typename StructuredTagP,
+          typename... InputP>
+decltype(auto)
+generate_part_member (PartP part,
+                      StructuredTagP structured_tag,
+                      InputP&&... input)
+{
+  using API::generate_part_member;
+
+  return generate_part_member (part.tag,
+                               NoADL::wrap (part),
+                               NoADL::wrap (structured_tag),
+                               std::forward<InputP> (input)...);
 }
 
 // getter API
@@ -206,49 +291,107 @@ get_getter_type (GetterTagP getter_tag,
 
 // child API
 
-template <typename BasicP,
-          typename NodeTagTypeP>
+template <typename ChildP,
+          typename RealTypeP>
 constexpr auto
-get_child_type (BasicP basic,
-                NodeTagP node_tag)
+get_child_type (ChildP child,
+                RealTypeP real_type)
 {
   using API::get_child_type;
 
-  return get_child_type (basic,
-                         boost::hana::make_type (node_tag));
+  return get_child_type (child.basic,
+                         real_type);
 }
 
-template <typename BasicP>
+template <typename ChildP>
 constexpr auto
-get_child_getter_tags_and_policies (BasicP)
+get_child_getter_tags_and_policies (ChildP child)
 {
   using API::get_child_getter_tags_and_policies;
 
-  return get_child_getter_tags_and_policies (basic);
+  return get_child_getter_tags_and_policies (child.basic);
 }
 
-// value API
-
-template <typename WrapperP,
-          typename PrimitiveP>
-constexpr auto
-get_wrapper_type (WrapperP wrapper,
-                  PrimitiveP primitive)
+template <typename ChildP,
+          typename StructuredTagType,
+          typename... InputP>
+decltype(auto)
+generate_child_part_member (ChildP child,
+                            StructuredTagType structured_tag_type,
+                            InputP... input)
 {
-  using API::get_wrapper_type;
+  using API::generate_child_part_member;
 
-  return get_wrapper_type (wrapper,
-                           primitive);
+  return generate_child_part_member (child.basic,
+                                     child.kind,
+                                     structured_tag_type,
+                                     std::forward<Input> (input)...);
 }
 
-template <typename WrapperP,
-          typename PrimitiveP>
-constexpr auto
-get_wrapper_getter_tags_and_policies (WrapperP wrapper)
-{
-  using API::get_wrapper_getter_tags_and_policies;
+// kind API
 
-  return get_wrapper_getter_tags_and_policies (wrapper);
+template <typename KindP>
+constexpr auto
+get_kind_type (KindP kind)
+{
+  using API::get_kind_type;
+
+  return get_kind_type (kind.tag,
+                        NoADL::wrap (kind));
+}
+
+template <typename KindP,
+          typename StructuredTagType,
+          typename... InputP>
+decltype(auto)
+generate_kind_part_member (KindP kind,
+                           StructuredTagType structured_tag_type,
+                           InputP&&... input)
+{
+  using API::generate_kind_part_member;
+
+  return generate_kind_part_member (kind.tag,
+                                    NoADL::wrap(kind),
+                                    structured_tag_type,
+                                    std::forward<InputP> (input)...);
+}
+
+// primitive API
+
+template <typename PrimitiveP>
+constexpr auto
+get_real_primitive_type (PrimitiveP primitive)
+{
+  using API::get_real_primitive_type;
+
+  return get_real_primitive_type (primitive.tag,
+                                  primitive);
+}
+
+template <typename StructuredTagP,
+          typename RealPrimitiveTypeP,
+          typename... InputP>
+decltype(auto)
+get_primitive (StructuredTagP structured_tag,
+               RealPrimitiveTypeP real_primitive_type,
+               Input&&... input)
+{
+  using API::get_primitive;
+
+  return get_primitive (structured_tag,
+                        real_primitive_type,
+                        std::forward<Input> input...);
+}
+
+// node API
+
+template <typename NodeTagP>
+constexpr auto
+get_node_type (NodeTagP node_tag)
+{
+  using API::get_node_type;
+
+  return get_node_type (node_tag);
 }
 
 } // namespace Convenience

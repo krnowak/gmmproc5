@@ -201,6 +201,55 @@ get_getter_type (SingleGetterTag,
   return boost::hana::type_c<SingleGetter<typename ContainerInfoTypeP::type>>;
 }
 
+// vector
+
+class VectorGetterTag
+{};
+
+template <typename ContainerInfoP>
+class VectorGetter : protected GetterBase<ContainerInfoP, VectorGetterTag>
+{
+public:
+  template <typename AccessKeyP>
+  decltype(auto)
+  get_at (AccessKeyP access_key,
+          std::size_t index) const
+  {
+    return this->base_get (access_key)[index];
+  }
+
+  template <typename AccessKeyP>
+  decltype(auto)
+  get_at (AccessKeyP access_key,
+          std::size_t index)
+  {
+    return this->base_get (access_key)[index];
+  }
+
+  template <typename AccessKeyP>
+  decltype(auto)
+  size (AccessKeyP access_key)
+  {
+    return this->base_get (access_key).size ();
+  }
+
+  template <typename AccessKeyP>
+  decltype(auto)
+  range (AccessKeyP access_key) const
+  {
+    auto const& v {this->base_get (access_key)};
+    return boost::make_iterator_range (std::cbegin (v), std::cend (v));
+  }
+
+  template <typename AccessKeyP>
+  decltype(auto)
+  range (AccessKeyP access_key)
+  {
+    auto& v {this->base_get (access_key)};
+    return boost::make_iterator_range (std::begin (v), std::end (v));
+  }
+};
+
 } // namespace Gmmproc::Xml::Structured
 
 #endif // GMMPROC_XML_STRUCTURED_GETTERS_HH
